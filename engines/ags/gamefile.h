@@ -45,6 +45,42 @@ struct MouseCursor {
 	uint8 _flags;
 };
 
+struct InteractionVariable {
+	Common::String _name;
+	byte _type;
+	int32 _value;
+};
+
+struct NewInteractionValue {
+	byte _type;
+	uint32 _val;
+	uint32 _extra;
+};
+
+struct NewInteractionAction {};
+
+struct NewInteractionCommand : public NewInteractionAction {
+	uint32 _type;
+	Common::Array<NewInteractionValue> _args;
+	NewInteractionAction *_children;
+	struct NewInteractionCommandList *_parent;
+};
+
+struct NewInteractionCommandList : public NewInteractionAction {
+	Common::Array<NewInteractionCommand> _commands;
+	uint32 _timesRun;
+};
+
+struct NewInteractionEvent {
+	uint32 _type;
+	uint32 _timesRun;
+	NewInteractionCommandList *_response;
+};
+
+struct NewInteraction {
+	Common::Array<NewInteractionEvent> _events;
+};
+
 class GameFile {
 public:
 	GameFile();
@@ -53,6 +89,11 @@ public:
 	bool init(const ResourceManager &resMan);
 
 private:
+	InteractionVariable
+	readInteractionVariable(Common::SeekableReadStream *dta);
+	NewInteraction *readNewInteraction(Common::SeekableReadStream *dta);
+	NewInteractionCommandList *readCommandList(Common::SeekableReadStream *dta);
+
 	uint32 _version;
 
 	Common::String _versionString;
@@ -103,6 +144,10 @@ private:
 	Common::Array<byte> _fontOutline;
 
 	Common::Array<byte> _spriteFlags;
+
+	Common::Array<NewInteraction *> _interactionsChar;
+	Common::Array<NewInteraction *> _interactionsInv;
+	Common::Array<InteractionVariable> _globalVars;
 
 	void readVersion(Common::SeekableReadStream &dta);
 };
