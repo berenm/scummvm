@@ -61,8 +61,10 @@ private:
 	uint32 _engineStartTime;
 	uint32 _playTime;
 
-	uint16 _width;
-	uint16 _height;
+	uint16 _width, _height;
+	uint16 _baseWidth, _baseHeight;
+	uint16 _textMultiply;
+	bool _forceLetterbox;
 
 	ResourceManager *_resourceMan;
 	GameFile *_gameFile;
