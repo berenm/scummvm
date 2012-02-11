@@ -53,6 +53,9 @@ public:
 
 	bool isDemo() const;
 
+	uint32 getGameFileVersion() const;
+	uint32 getGUIVersion() const;
+
 private:
 	const AGSGameDescription *_gameDescription;
 
