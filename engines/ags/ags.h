@@ -45,6 +45,7 @@ struct AGSGameDescription;
 
 class ResourceManager;
 class GameFile;
+class SpriteSet;
 
 class AGSEngine : public Engine {
 public:
@@ -59,6 +60,8 @@ public:
 
 	uint32 getGameFileVersion() const;
 	uint32 getGUIVersion() const;
+
+	Common::SeekableReadStream *getFile(const Common::String &filename) const;
 
 private:
 	const AGSGameDescription *_gameDescription;
@@ -75,6 +78,7 @@ private:
 
 	ResourceManager *_resourceMan;
 	GameFile *_gameFile;
+	SpriteSet *_sprites;
 
 	Common::String getMasterArchive() const;
 
