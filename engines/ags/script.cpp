@@ -225,7 +225,7 @@ void ccInstance::call(const Common::String &name,
 		      name.c_str());
 	}
 
-	debugN(2, "running function: '%s'", name.c_str());
+	debugN(2, "running function: '%s'@%d", name.c_str(), codeLoc);
 	for (uint i = 0; i < params.size(); i++)
 		debugN(2, " %d", params[i]);
 	debug(2, " ");
@@ -246,7 +246,7 @@ void ccInstance::call(const Common::String &name,
 
 	// push parameters onto stack in reverse order
 	for (uint i = params.size(); i > 0; ++i)
-		pushValue(params[i]);
+		pushValue(params[i - 1]);
 	// push return address onto stack
 	pushValue(0);
 
@@ -316,9 +316,9 @@ static InstructionInfo instructionInfo[NUM_INSTRUCTIONS + 1] = {
     {"$pop", 1, iatRegister, iatNone},
     {"jmp", 1, iatInteger, iatNone},
     {"$mul", 2, iatRegister, iatInteger},
-    {"$farcall", 1, iatAny, iatNone}, // TODO
-    {"$farpush", 1, iatAny, iatNone}, // TODO
-    {"farsubsp", 1, iatAny, iatNone}, // TODO
+    {"$farcall", 1, iatRegister, iatNone},
+    {"$farpush", 1, iatRegister, iatNone},
+    {"farsubsp", 1, iatInteger, iatNone},
     {"sourceline", 1, iatInteger, iatNone},
     {"$callscr", 1, iatAny, iatNone}, // TODO
     {"thisaddr", 1, iatInteger, iatNone},
@@ -373,6 +373,7 @@ void ccInstance::runCodeFrom(uint32 start) {
 	uint32 loopIterationCheckDisabledCount = 0;
 
 	Common::Stack<RuntimeValue> externalStack;
+	bool nextCallNeedsObject = false;
 	uint32 funcArgumentCount = 0xffffffff;
 
 	Common::Stack<uint32> currentBase;
@@ -391,7 +392,7 @@ void ccInstance::runCodeFrom(uint32 start) {
 			error("runCodeFrom(): needed %d arguments for %s on line %d",
 			      neededArgs, info.name, _lineNumber);
 
-		debugN(2, "%s", info.name);
+		debugN(2, "%06d: %s", _pc, info.name);
 
 		ScriptCodeEntry arg[2];
 		RuntimeValue argVal[2];
@@ -408,7 +409,7 @@ void ccInstance::runCodeFrom(uint32 start) {
 			case FIXUP_NONE:
 				if (argType == iatRegister || argType == iatRegisterInt ||
 				    argType == iatRegisterFloat)
-					debugN(2, " reg%d", argVal[v]._value);
+					debugN(2, " %s", regnames[argVal[v]._value]);
 				else
 					debugN(2, " %d", argVal[v]._value);
 				break;
@@ -459,7 +460,10 @@ void ccInstance::runCodeFrom(uint32 start) {
 		const RuntimeValue &val1 = argVal[0], &val2 = argVal[1];
 		int32 int1 = (int) argVal[0]._value, int2 = (int) argVal[1]._value;
 
+		// temporary variables
 		RuntimeValue tempVal;
+		Common::Array<RuntimeValue> params;
+
 		switch (instruction) {
 		case SCMD_LINENUM: _lineNumber = int1; break;
 		case SCMD_ADD:
@@ -494,7 +498,9 @@ void ccInstance::runCodeFrom(uint32 start) {
 				return;
 			}
 			// FIXME: set current instance?
-			break;
+
+			// continue so that the PC doesn't get overwritten
+			continue;
 		case SCMD_LITTOREG:
 			// set reg1 to literal value arg2
 			_registers[int1] = val2;
@@ -650,13 +656,20 @@ void ccInstance::runCodeFrom(uint32 start) {
 			break;
 		case SCMD_MEMREADB:
 			// reg1 = m[MAR] (1 byte)
+			error("unimplemented %s", info.name);
+			break;
 		case SCMD_MEMREADW:
 			// reg1 = m[MAR] (2 bytes)
+			error("unimplemented %s", info.name);
+			break;
 		case SCMD_MEMWRITEB:
 			// m[MAR] = reg1 (1 byte)
+			error("unimplemented %s", info.name);
+			break;
 		case SCMD_MEMWRITEW:
 			// m[MAR] = reg1 (2 bytes)
 			error("unimplemented %s", info.name);
+			break;
 		case SCMD_JZ:
 			// jump if ax==0 by arg1
 			if (_registers[SREG_AX]._value == 0)
@@ -708,8 +721,29 @@ void ccInstance::runCodeFrom(uint32 start) {
 			break;
 		case SCMD_CALLEXT:
 			// farcall: call external (imported) function reg1
-			// FIXME
-			error("unimplemented %s", info.name);
+			if (_registers[int1]._type != rvtImport)
+				error("script tried to CALLEXT non-import runtime value of "
+				      "type %d (value %d) on line %d",
+				      tempVal._type, tempVal._value, _lineNumber);
+
+			if (funcArgumentCount == 0xffffffff)
+				funcArgumentCount = externalStack.size();
+
+			// construct the parameter list (in reverse order)
+			params.resize(funcArgumentCount);
+			for (uint i = 0; i < funcArgumentCount; ++i)
+				params[i] = externalStack[externalStack.size() - i - 1];
+
+			if (nextCallNeedsObject) {
+				// FIXME
+				error("don't support object calls yet");
+			} else {
+				_registers[SREG_AX] =
+				    callImportedFunction(_registers[int1]._value, params);
+			}
+
+			// FIXME: unfinished
+			funcArgumentCount = 0xffffffff;
 			break;
 		case SCMD_PUSHREAL:
 			// farpush: push reg1 onto real stack
@@ -719,16 +753,20 @@ void ccInstance::runCodeFrom(uint32 start) {
 			break;
 		case SCMD_SUBREALSTACK:
 			// farsubsp
-			// FIXME
-			error("unimplemented %s", info.name);
+			// FIXME: CALLAS handling
+			for (uint i = 0; i < int1; ++i)
+				externalStack.pop();
+			break;
 		case SCMD_CALLOBJ:
 			// $callobj: next call is member function of reg1
 			// FIXME
 			error("unimplemented %s", info.name);
+			break;
 		case SCMD_SHIFTLEFT:
 			// reg1 = reg1 << reg2
 			// FIXME
 			error("unimplemented %s", info.name);
+			break;
 		case SCMD_SHIFTRIGHT:
 			// reg1 = reg1 >> reg2
 			// FIXME
@@ -780,6 +818,18 @@ void ccInstance::runCodeFrom(uint32 start) {
 	}
 }
 
+RuntimeValue
+ccInstance::callImportedFunction(uint32 importId,
+                                 const Common::Array<RuntimeValue> &params) {
+	assert(importId < _script->_imports.size());
+
+	Common::String name = _script->_imports[importId];
+	debug(2, "trying to call import '%s'", name.c_str());
+
+	// FIXME: actually do the call
+	return RuntimeValue();
+}
+
 void ccInstance::pushValue(const RuntimeValue &value) {
 	assert(_registers[SREG_SP]._type == rvtStackPointer);
 
@@ -799,8 +849,8 @@ RuntimeValue ccInstance::popValue() {
 	assert(_registers[SREG_SP]._type == rvtStackPointer &&
 	       _registers[SREG_SP]._value >= 4);
 
-	uint32 stackValue = _registers[SREG_SP]._value;
 	_registers[SREG_SP]._value -= 4;
+	uint32 stackValue = _registers[SREG_SP]._value;
 	if (stackValue + 4 > _stack.size())
 		error("script caused VM stack underflow(?!) on line %d", _lineNumber);
 	if (_stack[stackValue]._type == rvtInvalid)

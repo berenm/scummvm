@@ -32,30 +32,40 @@ static const AGSGameDescription gameDescriptions[] = {
          AD_ENTRY1s("5days.exe", "e88fd6a23a5e498d7b0d50e3bb914085", 4440143),
          Common::EN_USA, Common::kPlatformWindows, ADGF_NO_FLAGS,
          GUIO1(GUIO_NOASPECT)},
+        "",
+        "",
     },
     {
         {"5days", "Special Edition",
          AD_ENTRY1s("5days.exe", "3b7cceb3e4bdb031dc5d8f290936e94b", 4614351),
          Common::EN_USA, Common::kPlatformWindows, ADGF_NO_FLAGS,
          GUIO1(GUIO_NOASPECT)},
+        "",
+        "",
     },
     {
         {"7days", "",
          AD_ENTRY1s("7days.exe", "465f972675db2da6040518221af5b0ba", 4693374),
          Common::EN_USA, Common::kPlatformWindows, ADGF_NO_FLAGS,
          GUIO1(GUIO_NOASPECT)},
+        "",
+        "",
     },
     {
         {"7days", "Special Edition",
          AD_ENTRY1s("7days.exe", "3b7cceb3e4bdb031dc5d8f290936e94b", 4863356),
          Common::EN_USA, Common::kPlatformWindows, ADGF_NO_FLAGS,
          GUIO1(GUIO_NOASPECT)},
+        "",
+        "",
     },
     {
         {"trilbysnotes", "",
          AD_ENTRY1s("notes.exe", "3b7cceb3e4bdb031dc5d8f290936e94b", 5736960),
          Common::EN_USA, Common::kPlatformWindows, ADGF_NO_FLAGS,
          GUIO1(GUIO_NOASPECT)},
+        "",
+        "",
     },
     {
         {"trilbysnotes", "Special Edition",
@@ -63,25 +73,33 @@ static const AGSGameDescription gameDescriptions[] = {
                     5880445),
          Common::EN_USA, Common::kPlatformWindows, ADGF_NO_FLAGS,
          GUIO1(GUIO_NOASPECT)},
+        "",
+        "",
     },
     {
         {"6days", "",
          AD_ENTRY1s("6days.exe", "3b7cceb3e4bdb031dc5d8f290936e94b", 7993899),
          Common::EN_USA, Common::kPlatformWindows, ADGF_NO_FLAGS,
          GUIO1(GUIO_NOASPECT)},
+        "",
+        "",
     },
     {
         {"6days", "Special Edition",
          AD_ENTRY1s("6das se.exe", "3b7cceb3e4bdb031dc5d8f290936e94b", 8173314),
          Common::EN_USA, Common::kPlatformWindows, ADGF_NO_FLAGS,
          GUIO1(GUIO_NOASPECT)},
+        "",
+        "",
     },
-    {AD_TABLE_END_MARKER}};
+    {AD_TABLE_END_MARKER, "", ""}};
 
 static const AGSGameDescription fallbackDescs[] = {{
     // 0
     {"ags", "unknown", AD_ENTRY1(0, 0), Common::UNK_LANG,
      Common::kPlatformUnknown, ADGF_NO_FLAGS, GUIO_NONE},
+    "",
+    "",
 }};
 
 static const ADFileBasedFallback fileBased[] = {
