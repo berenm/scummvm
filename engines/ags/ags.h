@@ -50,6 +50,14 @@ class SpriteSet;
 struct CharacterInfo;
 class ccInstance;
 
+class ExecutingScript {
+public:
+	ExecutingScript(ccInstance *instance);
+
+protected:
+	ccInstance *_instance;
+};
+
 class AGSEngine : public Engine {
 public:
 	AGSEngine(OSystem *syst, const AGSGameDescription *gameDesc);
@@ -74,6 +82,10 @@ public:
 	void setCursorGraphic(uint32 spriteId);
 	void mouseSetHotspot(uint32 x, uint32 y);
 	void updateCachedMouseCursor();
+
+	void runTextScript(
+	    ccInstance *instance, const Common::String &name,
+	    const Common::Array<uint32> &params = Common::Array<uint32>());
 
 private:
 	const AGSGameDescription *_gameDescription;
@@ -106,11 +118,14 @@ private:
 
 	CharacterInfo *_playerChar;
 
+	Common::Array<ExecutingScript> _runningScripts;
+
 	// script instances
 	ccInstance *_gameScript, *_gameScriptFork;
 	Common::Array<ccInstance *> _scriptModules;
 	Common::Array<ccInstance *> _scriptModuleForks;
 	ccInstance *_dialogScriptsScript;
+	ccInstance *_roomScript;
 
 	Common::String getMasterArchive() const;
 
@@ -123,6 +138,10 @@ private:
 	void loadNewRoom(uint32 id, CharacterInfo *forChar);
 	bool getScreenSize();
 	bool initGraphics();
+
+	bool runScriptFunction(ccInstance *instance, const Common::String &name,
+	                       const Common::Array<uint32> &params);
+	bool prepareTextScript(ccInstance *instance, const Common::String &name);
 
 	const ADGameFileDescription *getGameFiles() const;
 	const char *getGameId() const;
