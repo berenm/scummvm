@@ -64,7 +64,7 @@ struct ccScript {
 };
 
 enum RuntimeValueType {
-	rvtInvalid,
+	rvtInvalid = 0,
 	rvtInteger,
 	rvtGlobalData,
 	rvtFunction,
@@ -123,7 +123,8 @@ protected:
 	ccInstance *_runningInst;
 
 	void pushValue(const RuntimeValue &value);
-	uint32 popValue();
+	RuntimeValue popValue();
+	uint32 popIntValue();
 };
 
 } // End of namespace AGS
