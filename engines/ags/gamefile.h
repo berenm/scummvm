@@ -55,6 +55,8 @@ struct MouseCursor {
 };
 
 struct InteractionVariable {
+	void readFrom(Common::SeekableReadStream *dta);
+
 	Common::String _name;
 	byte _type;
 	int32 _value;
@@ -212,8 +214,6 @@ public:
 	bool init();
 
 private:
-	InteractionVariable
-	readInteractionVariable(Common::SeekableReadStream *dta);
 	NewInteraction *readNewInteraction(Common::SeekableReadStream *dta);
 	NewInteractionCommandList *readCommandList(Common::SeekableReadStream *dta);
 	ViewFrame readViewFrame(Common::SeekableReadStream *dta);

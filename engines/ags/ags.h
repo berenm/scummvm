@@ -115,6 +115,7 @@ private:
 
 	uint32 _startingRoom;
 	uint32 _displayedRoom;
+	class Room *_currentRoom;
 
 	CharacterInfo *_playerChar;
 
