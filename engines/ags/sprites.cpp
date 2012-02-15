@@ -93,6 +93,10 @@ SpriteSet::SpriteSet(AGSEngine *vm, Common::SeekableReadStream *stream) :
 		error("failed to read sprite file");
 }
 
+SpriteSet::~SpriteSet() {
+	delete _stream;
+}
+
 bool SpriteSet::loadSpriteIndexFile(uint32 spriteFileID) {
 	Common::SeekableReadStream *idxStream = _vm->getFile(kSpriteIndexFilename);
 	if (!idxStream)

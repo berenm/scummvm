@@ -27,6 +27,7 @@
 #include "engines/ags/ags.h"
 #include "engines/ags/constants.h"
 #include "engines/ags/room.h"
+#include "engines/ags/script.h"
 #include "engines/ags/util.h"
 
 namespace AGS {
@@ -76,6 +77,7 @@ static void decompressLZSS(Common::SeekableReadStream *stream, byte *outBuf,
 }
 
 static Graphics::Surface readLZSSImage(Common::SeekableReadStream *stream,
+                                       Graphics::PixelFormat format,
                                        byte *destPalette) {
 	Graphics::Surface surf;
 
@@ -93,11 +95,8 @@ static Graphics::Surface readLZSSImage(Common::SeekableReadStream *stream,
 	decompressLZSS(stream, buffer, uncompressedSize);
 	if (stream->eos() || (uint32) stream->pos() != oldPos + compressedSize)
 		error("readLZSSImage: failed to read %d compressed bytes of image "
-		      "(started at %d, got to %d)",
-		      compressedSize, oldPos, stream->pos());
-
-	// FIXME: XXX
-	Graphics::PixelFormat format = Graphics::PixelFormat::createFormatCLUT8();
+		      "(started at %d, got to %d, should be %d bytes)",
+		      compressedSize, oldPos, stream->pos(), uncompressedSize);
 
 	uint32 widthBytes = READ_LE_UINT32(buffer);
 	uint32 height = READ_LE_UINT32(buffer + 4);
@@ -174,7 +173,8 @@ static Graphics::Surface readRLEImage(Common::SeekableReadStream *stream) {
 #define BLOCKTYPE_OBJECTSCRIPTNAMES 9
 #define BLOCKTYPE_EOF 0xff
 
-Room::Room(AGSEngine *vm, Common::SeekableReadStream *dta) : _vm(vm) {
+Room::Room(AGSEngine *vm, Common::SeekableReadStream *dta) :
+    _vm(vm), _compiledScript(NULL) {
 	_backgroundSceneAnimSpeed = 5;
 	// FIXME: copy main background scene palette
 
@@ -202,7 +202,7 @@ Room::Room(AGSEngine *vm, Common::SeekableReadStream *dta) : _vm(vm) {
 			error("Room: expected main block, but got block type %d",
 			      blockType);
 
-		byte count;
+		uint32 count;
 		switch (blockType) {
 		case BLOCKTYPE_MAIN:
 			if (seenMain)
@@ -211,8 +211,15 @@ Room::Room(AGSEngine *vm, Common::SeekableReadStream *dta) : _vm(vm) {
 			readMainBlock(dta);
 			break;
 		case BLOCKTYPE_SCRIPT:
-			error("SCRIPT");
-			// FIXME
+			if (!_script.empty())
+				error("Room: second script encountered");
+
+			count = dta->readUint32LE();
+			while (count--)
+				_script += (char) dta->readByte();
+			for (uint i = 0; i < _script.size(); ++i)
+				_script.setChar(_script[i] + kSecretPassword[i % 11], i);
+			debug(7, "Room script: %s", _script.c_str());
 			break;
 		case BLOCKTYPE_COMPSCRIPT:
 			// TODO
@@ -225,8 +232,11 @@ Room::Room(AGSEngine *vm, Common::SeekableReadStream *dta) : _vm(vm) {
 			dta->skip(blockSize);
 			break;
 		case BLOCKTYPE_COMPSCRIPT3:
-			error("COMPSCRIPT3");
-			// FIXME
+			if (_compiledScript)
+				error("Room: second compiled script encountered");
+
+			_compiledScript = new ccScript();
+			_compiledScript->readFrom(dta);
 			break;
 		case BLOCKTYPE_OBJECTNAMES:
 			count = dta->readByte();
@@ -270,6 +280,27 @@ Room::Room(AGSEngine *vm, Common::SeekableReadStream *dta) : _vm(vm) {
 	}
 
 	// FIXME
+
+	delete dta;
+}
+
+Room::~Room() {
+	delete _compiledScript;
+
+	delete _interaction;
+	for (uint i = 0; i < _hotspots.size(); ++i)
+		delete _hotspots[i]._interaction;
+	for (uint i = 0; i < _objects.size(); ++i)
+		delete _objects[i]._interaction;
+	for (uint i = 0; i < _regions.size(); ++i)
+		delete _regions[i]._interaction;
+
+	for (uint i = 0; i < _backgroundScenes.size(); ++i)
+		_backgroundScenes[i]._scene.free();
+	_walkableMask.free();
+	_walkBehindMask.free();
+	_hotspotMask.free();
+	_regionsMask.free();
 }
 
 #define NO_GAME_ID_IN_ROOM_FILE 16325
@@ -542,8 +573,8 @@ void Room::readMainBlock(Common::SeekableReadStream *dta) {
 	BackgroundScene scene;
 	_backgroundScenes.push_back(scene);
 	if (_version >= 5)
-		_backgroundScenes[0]._scene =
-		    readLZSSImage(dta, _backgroundScenes[0]._palette);
+		_backgroundScenes[0]._scene = readLZSSImage(
+		    dta, _vm->getPixelFormat(), _backgroundScenes[0]._palette);
 	else
 		_backgroundScenes[0]._scene = readRLEImage(dta);
 

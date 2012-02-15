@@ -33,6 +33,8 @@ class SeekableReadStream;
 
 namespace AGS {
 
+extern const char *kSecretPassword;
+
 Common::String readString(Common::SeekableReadStream *dta);
 void decryptText(uint8 *str, uint32 max);
 Common::String decryptString(Common::SeekableReadStream *dta);

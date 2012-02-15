@@ -131,6 +131,7 @@ class AGSEngine;
 class Room {
 public:
 	Room(AGSEngine *vm, Common::SeekableReadStream *dta);
+	~Room();
 
 protected:
 	AGSEngine *_vm;
@@ -178,6 +179,7 @@ public:
 	Common::Array<InteractionVariable> _localVars;
 
 	Common::String _script;
+	ccScript *_compiledScript;
 
 	uint16 _width, _height; // in 320x200 terms (scrolling room size)
 	uint16 _resolution;     // 1 = 320x200, 2 = 640x400
