@@ -262,10 +262,28 @@ Room::Room(AGSEngine *vm, Common::SeekableReadStream *dta) :
 				_objects[i]._scriptName = objectName;
 			}
 			break;
-		case BLOCKTYPE_ANIMBKGRND:
-			error("ANIMBKGRND");
-			// FIXME
-			break;
+		case BLOCKTYPE_ANIMBKGRND: {
+			if (_backgroundScenes.size() != 1)
+				error("Room: second set of background scenes encountered");
+
+			byte numScenes = dta->readByte();
+			debug(5, "Room: %d extra background scenes", numScenes);
+			if (numScenes < 1)
+				error("Room: no background scenes encountered");
+
+			_backgroundSceneAnimSpeed = dta->readByte();
+
+			_backgroundScenes.resize(numScenes);
+			if (_version >= kAGSRoomVer255) {
+				for (uint i = 0; i < _backgroundScenes.size(); ++i)
+					_backgroundScenes[i]._sharedPalette =
+					    (bool) dta->readByte();
+			}
+			// we already read the first scene as part of the main block
+			for (uint i = 1; i < _backgroundScenes.size(); ++i)
+				_backgroundScenes[i]._scene = readLZSSImage(
+				    dta, _vm->getPixelFormat(), _backgroundScenes[i]._palette);
+		} break;
 		case BLOCKTYPE_PROPERTIES:
 			error("PROPERTIES");
 			// FIXME
