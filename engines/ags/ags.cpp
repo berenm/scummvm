@@ -487,11 +487,11 @@ ScriptImport AGSEngine::resolveImport(const Common::String &name) {
 		}
 	}
 
-	// FIXME: -> error
-	warning("unresolved script import '%s'", name.c_str());
-	ScriptImport import;
-	import._type = sitInvalid;
-	return import;
+	error("unresolved script import '%s'", name.c_str());
+}
+
+GlobalScriptState *AGSEngine::getScriptState() {
+	return _scriptState;
 }
 
 bool AGSEngine::runScriptFunction(ccInstance *instance,

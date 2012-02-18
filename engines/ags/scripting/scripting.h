@@ -47,6 +47,8 @@ public:
 	void addImport(const Common::String &name, const ScriptImport &import);
 	void addSystemFunctionImport(const Common::String &name,
 	                             ScriptAPIFunction *function);
+	void addSystemObjectImport(const Common::String &name,
+	                           ScriptObject *object);
 };
 
 } // End of namespace AGS

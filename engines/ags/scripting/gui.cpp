@@ -28,6 +28,15 @@
 
 namespace AGS {
 
+class ScriptGUIArray : public ScriptArray {
+public:
+	ScriptObject *getObjectAt(uint32 &offset) {
+		warning("ScriptGUIArray unimplemented"); // FIXME
+		offset = offset % 8;
+		return NULL;
+	}
+};
+
 void addGUISystemScripting(GlobalScriptState *state) {
 	// GUI functions
 	state->addSystemFunctionImport("GUI::Centre^0", &Script_UnimplementedStub);
@@ -313,7 +322,12 @@ void addGUISystemScripting(GlobalScriptState *state) {
 	                               &Script_UnimplementedStub);
 
 	// GUI-related functions
+	state->addSystemFunctionImport("AnimateButton", &Script_UnimplementedStub);
 	state->addSystemFunctionImport("CentreGUI", &Script_UnimplementedStub);
+	state->addSystemFunctionImport("DisableInterface",
+	                               &Script_UnimplementedStub);
+	state->addSystemFunctionImport("EnableInterface",
+	                               &Script_UnimplementedStub);
 	state->addSystemFunctionImport("FindGUIID", &Script_UnimplementedStub);
 	state->addSystemFunctionImport("GetButtonPic", &Script_UnimplementedStub);
 	state->addSystemFunctionImport("GetGUIAt", &Script_UnimplementedStub);
@@ -323,6 +337,8 @@ void addGUISystemScripting(GlobalScriptState *state) {
 	state->addSystemFunctionImport("InterfaceOff", &Script_UnimplementedStub);
 	state->addSystemFunctionImport("InterfaceOn", &Script_UnimplementedStub);
 	state->addSystemFunctionImport("IsGUIOn", &Script_UnimplementedStub);
+	state->addSystemFunctionImport("IsInterfaceEnabled",
+	                               &Script_UnimplementedStub);
 	state->addSystemFunctionImport("ListBoxAdd", &Script_UnimplementedStub);
 	state->addSystemFunctionImport("ListBoxClear", &Script_UnimplementedStub);
 	state->addSystemFunctionImport("ListBoxDirList", &Script_UnimplementedStub);
@@ -341,7 +357,13 @@ void addGUISystemScripting(GlobalScriptState *state) {
 	                               &Script_UnimplementedStub);
 	state->addSystemFunctionImport("SetButtonPic", &Script_UnimplementedStub);
 	state->addSystemFunctionImport("SetButtonText", &Script_UnimplementedStub);
+	state->addSystemFunctionImport("SetGUIBackgroundPic",
+	                               &Script_UnimplementedStub);
 	state->addSystemFunctionImport("SetGUIClickable",
+	                               &Script_UnimplementedStub);
+	state->addSystemFunctionImport("SetGUIObjectEnabled",
+	                               &Script_UnimplementedStub);
+	state->addSystemFunctionImport("SetGUIObjectPosition",
 	                               &Script_UnimplementedStub);
 	state->addSystemFunctionImport("SetGUIObjectSize",
 	                               &Script_UnimplementedStub);
@@ -353,10 +375,13 @@ void addGUISystemScripting(GlobalScriptState *state) {
 	state->addSystemFunctionImport("SetLabelColor", &Script_UnimplementedStub);
 	state->addSystemFunctionImport("SetLabelFont", &Script_UnimplementedStub);
 	state->addSystemFunctionImport("SetLabelText", &Script_UnimplementedStub);
+	state->addSystemFunctionImport("SetSliderValue", &Script_UnimplementedStub);
 	state->addSystemFunctionImport("SetTextBoxFont", &Script_UnimplementedStub);
 	state->addSystemFunctionImport("SetTextBoxText", &Script_UnimplementedStub);
 	state->addSystemFunctionImport("SetTextWindowGUI",
 	                               &Script_UnimplementedStub);
+
+	state->addSystemObjectImport("gui", new ScriptGUIArray);
 }
 
 } // End of namespace AGS
