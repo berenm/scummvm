@@ -24,20 +24,14 @@
  * Jones, which is licensed under the Artistic License 2.0.
  */
 
+#include "engines/ags/gui.h"
 #include "engines/ags/scripting/scripting.h"
 
 namespace AGS {
 
-class ScriptGUIArray : public ScriptArray {
-public:
-	ScriptObject *getObjectAt(uint32 &offset) {
-		warning("ScriptGUIArray unimplemented"); // FIXME
-		offset = offset % 8;
-		return NULL;
-	}
-};
+void addGUISystemScripting(AGSEngine *vm) {
+	GlobalScriptState *state = vm->getScriptState();
 
-void addGUISystemScripting(GlobalScriptState *state) {
 	// GUI functions
 	state->addSystemFunctionImport("GUI::Centre^0", &Script_UnimplementedStub);
 	state->addSystemFunctionImport("GUI::GetAtScreenXY^2",
@@ -380,8 +374,6 @@ void addGUISystemScripting(GlobalScriptState *state) {
 	state->addSystemFunctionImport("SetTextBoxText", &Script_UnimplementedStub);
 	state->addSystemFunctionImport("SetTextWindowGUI",
 	                               &Script_UnimplementedStub);
-
-	state->addSystemObjectImport("gui", new ScriptGUIArray);
 }
 
 } // End of namespace AGS

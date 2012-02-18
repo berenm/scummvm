@@ -517,7 +517,8 @@ void ccInstance::runCodeFrom(uint32 start) {
 					argVal[v]._instance = _resolvedImports[argValue]._owner;
 					break;
 				default:
-					error("internal inconsistency (got import fixup type %d)",
+					error("internal inconsistency (got import fixup with "
+					      "import type %d)",
 					      _resolvedImports[argValue]._type);
 				}
 				debugN(2, " import@%d:%s", argValue,
@@ -884,13 +885,14 @@ void ccInstance::runCodeFrom(uint32 start) {
 					      "%d (resolved to %d) on line %d",
 					      _registers[SREG_OP]._value, offset, _lineNumber);
 
-				// FIXME
-				warning("don't support object calls yet");
-				_registers[SREG_AX] =
-				    callImportedFunction(_registers[int1]._function, params);
+				RuntimeValue objValue;
+				objValue._type = rvtSystemObject;
+				objValue._object = object;
+				params.push_back(objValue);
+				_registers[SREG_AX] = _registers[int1]._function(_vm, params);
+				params.pop_back();
 			} else {
-				_registers[SREG_AX] =
-				    callImportedFunction(_registers[int1]._function, params);
+				_registers[SREG_AX] = _registers[int1]._function(_vm, params);
 			}
 
 			// FIXME: unfinished
@@ -987,13 +989,6 @@ void ccInstance::runCodeFrom(uint32 start) {
 		// increment to next instruction, skipping any arguments
 		_pc += (1 + neededArgs);
 	}
-}
-
-RuntimeValue
-ccInstance::callImportedFunction(ScriptAPIFunction *function,
-                                 const Common::Array<RuntimeValue> &params) {
-	// FIXME: actually do the call
-	return RuntimeValue();
 }
 
 void ccInstance::pushValue(const RuntimeValue &value) {

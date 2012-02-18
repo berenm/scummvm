@@ -28,7 +28,9 @@
 
 namespace AGS {
 
-void addStringsSystemScripting(GlobalScriptState *state) {
+void addStringsSystemScripting(AGSEngine *vm) {
+	GlobalScriptState *state = vm->getScriptState();
+
 	// String functions
 	state->addSystemFunctionImport("String::IsNullOrEmpty^1",
 	                               &Script_UnimplementedStub);

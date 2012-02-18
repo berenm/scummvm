@@ -35,11 +35,17 @@ Script_UnimplementedStub(AGSEngine *vm,
 }
 
 void GlobalScriptState::addImport(const Common::String &name,
-                                  const ScriptImport &import) {
-	// FIXME: allow overriding of script imports by system
+                                  const ScriptImport &import,
+                                  bool forceReplace) {
 	if (_imports.contains(name)) {
-		warning("duplicate exported '%s'", name.c_str());
-		return;
+		if (forceReplace) {
+			ScriptImport oldImport = _imports[name];
+			if (oldImport._type == sitSystemObject)
+				delete oldImport._object;
+		} else {
+			warning("duplicate exported '%s'", name.c_str());
+			return;
+		}
 	}
 
 	_imports[name] = import;
@@ -56,37 +62,40 @@ void GlobalScriptState::addSystemFunctionImport(const Common::String &name,
 }
 
 void GlobalScriptState::addSystemObjectImport(const Common::String &name,
-                                              ScriptObject *object) {
+                                              ScriptObject *object,
+                                              bool forceReplace) {
 	ScriptImport import;
 
 	import._type = sitSystemObject;
 	import._object = object;
 
-	addImport(name, import);
+	addImport(name, import, forceReplace);
 }
 
-extern void addAudioSystemScripting(GlobalScriptState *state);
-extern void addCharacterSystemScripting(GlobalScriptState *state);
-extern void addGameSystemScripting(GlobalScriptState *state);
-extern void addGraphicsSystemScripting(GlobalScriptState *state);
-extern void addGUISystemScripting(GlobalScriptState *state);
-extern void addInputSystemScripting(GlobalScriptState *state);
-extern void addInventorySystemScripting(GlobalScriptState *state);
-extern void addMiscSystemScripting(GlobalScriptState *state);
-extern void addRoomSystemScripting(GlobalScriptState *state);
-extern void addStringsSystemScripting(GlobalScriptState *state);
+extern void addAudioSystemScripting(AGSEngine *vm);
+extern void addCharacterSystemScripting(AGSEngine *vm);
+extern void addGameSystemScripting(AGSEngine *vm);
+extern void addGraphicsSystemScripting(AGSEngine *vm);
+extern void addGUISystemScripting(AGSEngine *vm);
+extern void addInputSystemScripting(AGSEngine *vm);
+extern void addInventorySystemScripting(AGSEngine *vm);
+extern void addMiscSystemScripting(AGSEngine *vm);
+extern void addRoomSystemScripting(AGSEngine *vm);
+extern void addStringsSystemScripting(AGSEngine *vm);
 
-void addSystemScripting(GlobalScriptState *state) {
-	addAudioSystemScripting(state);
-	addCharacterSystemScripting(state);
-	addGameSystemScripting(state);
-	addGraphicsSystemScripting(state);
-	addGUISystemScripting(state);
-	addInputSystemScripting(state);
-	addInventorySystemScripting(state);
-	addMiscSystemScripting(state);
-	addRoomSystemScripting(state);
-	addStringsSystemScripting(state);
+void addSystemScripting(AGSEngine *vm) {
+	GlobalScriptState *state = vm->getScriptState();
+
+	addAudioSystemScripting(vm);
+	addCharacterSystemScripting(vm);
+	addGameSystemScripting(vm);
+	addGraphicsSystemScripting(vm);
+	addGUISystemScripting(vm);
+	addInputSystemScripting(vm);
+	addInventorySystemScripting(vm);
+	addMiscSystemScripting(vm);
+	addRoomSystemScripting(vm);
+	addStringsSystemScripting(vm);
 }
 
 } // End of namespace AGS

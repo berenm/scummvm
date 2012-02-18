@@ -31,6 +31,8 @@
 #include "common/hash-str.h"
 #include "common/stream.h"
 
+#include "engines/ags/scriptobj.h"
+
 namespace AGS {
 
 enum ScriptImportType {
@@ -94,7 +96,6 @@ enum RuntimeValueType {
 class AGSEngine;
 class ccInstance;
 struct RuntimeValue;
-class ScriptObject;
 
 typedef RuntimeValue
 ScriptAPIFunction(AGSEngine *vm, const Common::Array<RuntimeValue> &params);
@@ -155,9 +156,6 @@ public:
 
 protected:
 	void runCodeFrom(uint32 start);
-	RuntimeValue
-	callImportedFunction(ScriptAPIFunction *function,
-	                     const Common::Array<RuntimeValue> &params);
 
 	AGSEngine *_vm;
 	ccScript *_script;
@@ -179,16 +177,40 @@ protected:
 	uint32 popIntValue();
 };
 
-class ScriptObject {
+// array of (system) script objects; for characters[], gui[], etc
+template <class T> class ScriptObjectArray : public ScriptObject {
 public:
-	virtual ~ScriptObject() {}
+	ScriptObjectArray(Common::Array<T> &array, uint32 elementSize) :
+	    _array(array), _elementSize(elementSize) {}
+	virtual ScriptObject *getObjectAt(uint32 &offset) {
+		uint32 objectId = offset / _elementSize;
+		if (objectId >= _array.size())
+			return NULL;
+		offset = offset % _elementSize;
+		return &_array[objectId];
+	}
 
-	virtual ScriptObject *getObjectAt(uint32 &offset) { return this; }
+protected:
+	uint32 _elementSize;
+	Common::Array<T> &_array;
 };
 
-class ScriptArray : public ScriptObject {
+// specialization of above for arrays containing pointers
+template <class T> class ScriptObjectArray<T *> : public ScriptObject {
 public:
-	virtual ScriptObject *getObjectAt(uint32 &offset) = 0;
+	ScriptObjectArray(Common::Array<T *> &array, uint32 elementSize) :
+	    _array(array), _elementSize(elementSize) {}
+	virtual ScriptObject *getObjectAt(uint32 &offset) {
+		uint32 objectId = offset / _elementSize;
+		if (objectId >= _array.size())
+			return NULL;
+		offset = offset % _elementSize;
+		return _array[objectId];
+	}
+
+protected:
+	uint32 _elementSize;
+	Common::Array<T *> &_array;
 };
 
 } // End of namespace AGS

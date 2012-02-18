@@ -28,7 +28,9 @@
 
 namespace AGS {
 
-void addAudioSystemScripting(GlobalScriptState *state) {
+void addAudioSystemScripting(AGSEngine *vm) {
+	GlobalScriptState *state = vm->getScriptState();
+
 	// pretending-to-be-member audio functions
 	state->addSystemFunctionImport("Game::GetMODPattern^0",
 	                               &Script_UnimplementedStub);

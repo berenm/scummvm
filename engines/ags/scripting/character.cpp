@@ -28,13 +28,6 @@
 
 namespace AGS {
 
-class ScriptCharacterArray : public ScriptArray {
-public:
-	ScriptObject *getObjectAt(uint32 &offset) {
-		error("ScriptCharacterArray unimplemented"); // FIXME
-	}
-};
-
 RuntimeValue Script_AddInventory(AGSEngine *vm,
                                  const Common::Array<RuntimeValue> &params) {
 	// FIXME
@@ -43,7 +36,9 @@ RuntimeValue Script_AddInventory(AGSEngine *vm,
 	return RuntimeValue();
 }
 
-void addCharacterSystemScripting(GlobalScriptState *state) {
+void addCharacterSystemScripting(AGSEngine *vm) {
+	GlobalScriptState *state = vm->getScriptState();
+
 	// Character functions
 	state->addSystemFunctionImport("Character::AddInventory^2",
 	                               &Script_UnimplementedStub);
@@ -376,8 +371,6 @@ void addCharacterSystemScripting(GlobalScriptState *state) {
 	state->addSystemFunctionImport("NewRoom", &Script_UnimplementedStub);
 	state->addSystemFunctionImport("NewRoomEx", &Script_UnimplementedStub);
 	state->addSystemFunctionImport("NewRoomNPC", &Script_UnimplementedStub);
-
-	state->addSystemObjectImport("character", new ScriptCharacterArray);
 }
 
 } // End of namespace AGS
