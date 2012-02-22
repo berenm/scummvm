@@ -93,6 +93,8 @@ public:
 	struct ScriptImport resolveImport(const Common::String &name);
 	class GlobalScriptState *getScriptState();
 
+	Common::RandomSource *getRandomSource() { return _rnd; }
+
 private:
 	const AGSGameDescription *_gameDescription;
 
