@@ -231,8 +231,6 @@ public:
 
 	Common::Array<Common::String> _messages;
 
-	Common::Array<Character *> _chars;
-
 	Common::Array<DialogTopic> _dialogs;
 	Common::Array<Common::String> _speechLines;
 
