@@ -2235,10 +2235,7 @@ Script_GUI_set_BackgroundGraphic(AGSEngine *vm, GUIGroup *self,
 RuntimeValue
 Script_GUI_get_Clickable(AGSEngine *vm, GUIGroup *self,
                          const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("GUI::get_Clickable unimplemented");
-
-	return RuntimeValue();
+	return ((self->_flags & GUIF_NOCLICK) == 0);
 }
 
 // GUI: import attribute bool Clickable
@@ -2248,10 +2245,11 @@ RuntimeValue
 Script_GUI_set_Clickable(AGSEngine *vm, GUIGroup *self,
                          const Common::Array<RuntimeValue> &params) {
 	uint32 value = params[0]._value;
-	UNUSED(value);
 
-	// FIXME
-	error("GUI::set_Clickable unimplemented");
+	if (value)
+		self->_flags &= ~GUIF_NOCLICK;
+	else
+		self->_flags |= GUIF_NOCLICK;
 
 	return RuntimeValue();
 }
@@ -2261,13 +2259,14 @@ Script_GUI_set_Clickable(AGSEngine *vm, GUIGroup *self,
 RuntimeValue
 Script_GUI_geti_Controls(AGSEngine *vm, GUIGroup *self,
                          const Common::Array<RuntimeValue> &params) {
-	int index = params[0]._signedValue;
-	UNUSED(index);
+	uint index = params[0]._value;
 
-	// FIXME
-	error("GUI::geti_Controls unimplemented");
+	if (index >= self->_controls.size())
+		error("GUI::geti_Controls: control %d is too high (only have %d "
+		      "controls)",
+		      index, self->_controls.size());
 
-	return RuntimeValue();
+	return self->_controls[index];
 }
 
 // GUI: readonly import attribute int ControlCount
@@ -2275,10 +2274,7 @@ Script_GUI_geti_Controls(AGSEngine *vm, GUIGroup *self,
 RuntimeValue
 Script_GUI_get_ControlCount(AGSEngine *vm, GUIGroup *self,
                             const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("GUI::get_ControlCount unimplemented");
-
-	return RuntimeValue();
+	return self->_controls.size();
 }
 
 // GUI: import attribute int Height
