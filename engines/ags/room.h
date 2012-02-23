@@ -133,6 +133,8 @@ public:
 	Room(AGSEngine *vm, Common::SeekableReadStream *dta);
 	~Room();
 
+	void convertCoordinatesToLowRes();
+
 protected:
 	AGSEngine *_vm;
 
@@ -145,8 +147,6 @@ public:
 	Graphics::Surface _walkBehindMask; // object
 	Graphics::Surface _hotspotMask;    // lookat
 	Graphics::Surface _regionsMask;    // regions
-
-	byte *_palette[256 * 4];
 
 	Common::Array<uint16>
 	    _walkBehindBaselines; // objyval: baselines of walkbehind areas
