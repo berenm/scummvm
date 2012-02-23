@@ -403,7 +403,7 @@ void AGSEngine::setCursorMode(uint32 newMode) {
 	if (newMode >= _gameFile->_cursors.size())
 		error("setCursorMode: invalid cursor mode %d (only %d cursors)",
 		      newMode, _gameFile->_cursors.size());
-	_needsUpdate = true;
+	invalidateGUI();
 
 	if (_gameFile->_cursors[newMode]._flags & MCF_DISABLED) {
 		findNextEnabledCursor(newMode);
@@ -539,6 +539,16 @@ ScriptImport AGSEngine::resolveImport(const Common::String &name) {
 
 GlobalScriptState *AGSEngine::getScriptState() {
 	return _scriptState;
+}
+
+uint32 AGSEngine::getGameSpeed() {
+	// FIXME: adjust by modifier
+	return _framesPerSecond;
+}
+
+void AGSEngine::setGameSpeed(uint32 speed) {
+	// FIXME: adjust by modifier
+	_framesPerSecond = CLIP<uint32>(speed, 10, 1000);
 }
 
 byte AGSEngine::getGameOption(uint index) {
