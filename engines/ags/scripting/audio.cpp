@@ -25,6 +25,7 @@
  */
 
 #include "engines/ags/scripting/scripting.h"
+#include "engines/ags/gamestate.h"
 
 namespace AGS {
 
@@ -403,13 +404,10 @@ RuntimeValue Script_StopMusic(AGSEngine *vm, ScriptObject *,
 }
 
 // import int IsVoxAvailable()
-// Undocumented.
+// Checks whether a SPEECH.VOX file was found.
 RuntimeValue Script_IsVoxAvailable(AGSEngine *vm, ScriptObject *,
                                    const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("IsVoxAvailable unimplemented");
-
-	return RuntimeValue();
+	return (vm->_state->_wantSpeech >= 0);
 }
 
 // import void SetSpeechVolume(int volume)

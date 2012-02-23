@@ -25,6 +25,7 @@
  */
 
 #include "engines/ags/scripting/scripting.h"
+#include "engines/ags/constants.h"
 #include "engines/ags/inventory.h"
 #include "engines/ags/room.h"
 
@@ -819,12 +820,17 @@ RuntimeValue
 Script_SetCharacterClickable(AGSEngine *vm, ScriptObject *,
                              const Common::Array<RuntimeValue> &params) {
 	uint32 charid = params[0]._value;
-	UNUSED(charid);
-	int clickable = params[1]._signedValue;
-	UNUSED(clickable);
+	uint clickable = params[1]._value;
 
-	// FIXME
-	error("SetCharacterClickable unimplemented");
+	if (charid >= vm->_characters.size())
+		error("SetCharacterClickable: character %d is too high (only have %d)",
+		      charid, vm->_characters.size());
+
+	Character *c = vm->_characters[charid];
+	if (clickable)
+		c->_flags &= ~CHF_NOINTERACT;
+	else
+		c->_flags |= CHF_NOINTERACT;
 
 	return RuntimeValue();
 }

@@ -341,10 +341,8 @@ RuntimeValue Script_GetCursorMode(AGSEngine *vm, ScriptObject *,
 RuntimeValue Script_SetCursorMode(AGSEngine *vm, ScriptObject *,
                                   const Common::Array<RuntimeValue> &params) {
 	uint32 cursormode = params[0]._value;
-	UNUSED(cursormode);
 
-	// FIXME
-	error("SetCursorMode unimplemented");
+	vm->setCursorMode(cursormode);
 
 	return RuntimeValue();
 }
