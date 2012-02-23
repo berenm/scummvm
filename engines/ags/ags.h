@@ -95,6 +95,8 @@ public:
 
 	Common::RandomSource *getRandomSource() { return _rnd; }
 
+	void playSound(uint soundId);
+
 	Common::Array<Character *> _characters;
 
 private:
