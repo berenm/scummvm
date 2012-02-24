@@ -26,6 +26,7 @@
 
 #include "common/debug.h"
 #include "engines/ags/scripting/scripting.h"
+#include "engines/ags/gamestate.h"
 
 namespace AGS {
 
@@ -410,10 +411,7 @@ RuntimeValue Script_Game_set_IgnoreUserInputAfterTextTimeoutMs(
 RuntimeValue
 Script_Game_get_InSkippableCutscene(AGSEngine *vm, ScriptObject *,
                                     const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Game::get_InSkippableCutscene unimplemented");
-
-	return RuntimeValue();
+	return (vm->_state->_inCutscene != 0);
 }
 
 // Game: readonly import static attribute int InventoryItemCount
@@ -516,10 +514,7 @@ Script_Game_set_NormalFont(AGSEngine *vm, ScriptObject *,
 RuntimeValue
 Script_Game_get_SkippingCutscene(AGSEngine *vm, ScriptObject *,
                                  const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Game::get_SkippingCutscene unimplemented");
-
-	return RuntimeValue();
+	return (vm->_state->_fastForward != 0);
 }
 
 // Game: import static attribute FontType SpeechFont
