@@ -128,6 +128,7 @@ public:
 	uint32 getGameUniqueID() const;
 
 	Common::SeekableReadStream *getFile(const Common::String &filename) const;
+	ResourceManager *getResourceManager() { return _resourceMan; }
 
 	Graphics::PixelFormat getPixelFormat() const;
 
@@ -178,6 +179,7 @@ public:
 
 	GameFile *_gameFile;
 	class GameState *_state;
+	class AGSAudio *_audio;
 
 	Common::Array<Character *> _characters;
 
