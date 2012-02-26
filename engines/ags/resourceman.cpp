@@ -37,7 +37,7 @@ static const uint32 k1234 = MKTAG('\x1', '\x2', '\x3', '\x4');
 static const uint32 kSigE = MKTAG('S', 'I', 'G', 'E');
 
 // The master archive, which might be attached to the EXE, is always referenced
-// as "ac2game.ags".
+// as "ac2game.ags" in V2.
 static const char *kMasterArchiveName = "ac2game.ags";
 
 static const char *kSecretArchivePassword = "My\x1\xde\x4Jibzle";
@@ -169,6 +169,8 @@ bool ResourceManager::init(const Common::String &masterArchive) {
 		return readArchiveList_v21(master);
 
 	// Not possible :P
+	warning("ResourceManager::init(): unsupported master archive version %d",
+	        master.version);
 
 	return false;
 }
@@ -199,10 +201,13 @@ bool ResourceManager::openArchives(
 	for (Common::Array<File>::iterator file = _files.begin();
 	     file != _files.end(); ++file) {
 		// Sanity check
-		if (file->archive >= _archives.size())
+		if (file->archive >= _archives.size()) {
+			warning("openArchives: archive id %d too high (only %d archives)",
+			        file->archive, _archives.size());
 			return false;
+		}
 
-		if (archives[file->archive].equalsIgnoreCase(kMasterArchiveName))
+		if (file->archive == 0)
 			file->offset += master.offset;
 	}
 
@@ -436,6 +441,16 @@ ResourceManager::getFile(const Common::String &file) const {
 
 	return new Common::SeekableSubReadStream(_archives[f.archive], f.offset,
 	                                         f.offset + f.size);
+}
+
+Common::Array<Common::String> ResourceManager::getFilenames() const {
+	Common::Array<Common::String> filenames;
+
+	for (Common::Array<File>::const_iterator file = _files.begin();
+	     file != _files.end(); ++file)
+		filenames.push_back(file->name);
+
+	return filenames;
 }
 
 bool ResourceManager::dumpFile(const Common::String &file) const {

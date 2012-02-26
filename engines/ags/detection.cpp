@@ -25,9 +25,11 @@
  */
 
 #include "base/plugins.h"
+#include "common/debug.h"
 #include "engines/advancedDetector.h"
 
 #include "ags/ags.h"
+#include "ags/constants.h"
 #include "ags/resourceman.h"
 
 namespace AGS {
@@ -143,9 +145,16 @@ AGSMetaEngine::fallbackDetect(const FileMap &allFiles,
 			continue;
 
 		Common::SeekableReadStream *dta =
-		    resourceManager.getFile("ac2game.dta");
-		if (!dta)
-			continue;
+		    resourceManager.getFile(AGS::kGameDataNameV2);
+		if (!dta) {
+			// if no 2.x data, try 3.x
+			dta = resourceManager.getFile(AGS::kGameDataNameV3);
+			if (!dta) {
+				debug(3, "AGS detection couldn't find game data file in '%s'",
+				      filename.c_str());
+				continue;
+			}
+		}
 		dta->skip(30 + 4); // signature + version
 		uint32 versionStringLength = dta->readUint32LE();
 		dta->skip(versionStringLength);
