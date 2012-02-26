@@ -95,6 +95,7 @@ extern void addMiscSystemScripting(AGSEngine *vm);
 extern void addObjectSystemScripting(AGSEngine *vm);
 extern void addParserSystemScripting(AGSEngine *vm);
 extern void addRoomSystemScripting(AGSEngine *vm);
+extern void addSnowRainSystemScripting(AGSEngine *vm);
 extern void addStringSystemScripting(AGSEngine *vm);
 extern void addUtilsSystemScripting(AGSEngine *vm);
 
@@ -112,6 +113,7 @@ void addSystemScripting(AGSEngine *vm) {
 	addObjectSystemScripting(vm);
 	addParserSystemScripting(vm);
 	addRoomSystemScripting(vm);
+	addSnowRainSystemScripting(vm);
 	addStringSystemScripting(vm);
 	addUtilsSystemScripting(vm);
 }
