@@ -33,6 +33,7 @@ namespace AGS {
 
 GameState::GameState(AGSEngine *vm) : _vm(vm) {
 	_wantSpeech = -2;
+	_separateMusicLib = 0;
 
 	_recording = 0;
 	_playback = 0;

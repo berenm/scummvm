@@ -428,10 +428,7 @@ RuntimeValue Script_SetSpeechVolume(AGSEngine *vm, ScriptObject *,
 RuntimeValue
 Script_IsMusicVoxAvailable(AGSEngine *vm, ScriptObject *,
                            const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("IsMusicVoxAvailable unimplemented");
-
-	return RuntimeValue();
+	return (vm->_state->_separateMusicLib != 0);
 }
 
 // AudioChannel: import void Seek(int position)
