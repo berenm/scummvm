@@ -39,6 +39,12 @@ SpriteSet::SpriteSet(AGSEngine *vm, Common::SeekableReadStream *stream) :
     _vm(vm), _stream(stream) {
 	uint16 version = _stream->readUint16LE();
 
+	char signature[13 + 1];
+	_stream->read(signature, 13);
+	signature[13] = '\0';
+	if (memcmp(kSpriteFileSignature, signature, 13) != 0)
+		error("bad sprite file signature ('%s')", signature);
+
 	uint32 spriteFileID = 0;
 	switch (version) {
 	case 4: _spritesAreCompressed = false; break;
@@ -49,12 +55,6 @@ SpriteSet::SpriteSet(AGSEngine *vm, Common::SeekableReadStream *stream) :
 		break;
 	default: error("unsupported sprite file version %d", version);
 	}
-
-	char signature[13 + 1];
-	_stream->read(signature, 13);
-	signature[13] = '\0';
-	if (memcmp(kSpriteFileSignature, signature, 13) != 0)
-		error("bad sprite file signature ('%s')", signature);
 
 	if (version < 5) {
 		_stream->skip(256 * 3); // palette
