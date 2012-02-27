@@ -85,7 +85,7 @@ protected:
 class ScriptString : public ScriptObject {
 public:
 	virtual const Common::String getString() = 0;
-	virtual void setString(const Common::String &text) = 0;
+	virtual void setString(const Common::String &string) = 0;
 
 	virtual bool isOfType(ScriptObjectType objectType) {
 		return (objectType == sotString);
@@ -97,9 +97,20 @@ public:
 	ScriptConstString(const Common::String &string) : _string(string) {}
 
 	const Common::String getString() { return _string; }
-	void setString(const Common::String &text) {
+	void setString(const Common::String &string) {
 		error("tried to set a ScriptConstString");
 	}
+
+protected:
+	Common::String _string;
+};
+
+class ScriptMutableString : public ScriptString {
+public:
+	ScriptMutableString(const Common::String &string) : _string(string) {}
+
+	const Common::String getString() { return _string; }
+	void setString(const Common::String &string) { _string = string; }
 
 protected:
 	Common::String _string;
