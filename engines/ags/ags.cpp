@@ -1195,12 +1195,6 @@ int AGSEngine::divideDownCoordinateRoundUp(int coord) {
 	               _screenResolutionMultiplier - 1));
 }
 
-void AGSEngine::playSound(uint soundId) {
-	// uint priority = 10;
-
-	// FIXME
-}
-
 // don't return until the provided blocking condition is satisfied
 // this is similar to 'do_main_cycle' in original.
 void AGSEngine::blockUntil(BlockUntilType untilType, uint untilId) {
