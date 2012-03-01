@@ -86,9 +86,11 @@ AGSEngine::~AGSEngine() {
 	delete _gameScriptFork;
 	delete _dialogScriptsScript;
 	delete _roomScript;
+	delete _roomScriptFork;
 
 	delete _sprites;
 
+	delete _audio;
 	delete _gameFile;
 	delete _resourceMan;
 
