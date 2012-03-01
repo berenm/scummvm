@@ -333,6 +333,14 @@ void ccInstance::call(const Common::String &name,
 	// FIXME: abort/free cleanup
 }
 
+uint32 ccInstance::getReturnValue() {
+	if (_returnValue._type != rvtInteger)
+		error("getReturnValue(): last return value was of type %d, not integer",
+		      _returnValue._type);
+
+	return _returnValue._value;
+}
+
 enum InstArgumentType {
 	iatAny,           // anything
 	iatInteger,       // integer
@@ -434,6 +442,8 @@ static const char *regnames[] = {"null", "sp", "mar", "ax",
 void ccInstance::runCodeFrom(uint32 start) {
 	ccInstance *inst = _runningInst;
 	ccScript *script = inst->_script;
+
+	_returnValue = (uint) -1;
 
 	assert(start < script->_code.size());
 	_pc = start;
@@ -610,7 +620,8 @@ void ccInstance::runCodeFrom(uint32 start) {
 			// pop return address
 			_pc = popIntValue();
 			if (_pc == 0) {
-				// FIXME: store SREG_AX?
+				debug(4, "(returning to caller)");
+				_returnValue = _registers[SREG_AX];
 				return;
 			}
 			// FIXME: set current instance?
@@ -848,9 +859,9 @@ void ccInstance::runCodeFrom(uint32 start) {
 			_pc += int1;
 			// check whether the script is stuck in a loop
 			if (loopIterationCheckDisabledCount)
-				continue;
+				break;
 			if (int1 > 0)
-				continue;
+				break;
 			// FIXME: make sure the script isn't stuck in a loop
 			break;
 		case SCMD_MUL:
@@ -970,7 +981,7 @@ void ccInstance::runCodeFrom(uint32 start) {
 				_pc = oldpc;
 				_runningInst = wasRunning;
 
-				recoverFromCallAs = (funcArgumentCount != 0xffffffff);
+				recoverFromCallAs = !externalStack.empty();
 			}
 			break;
 		case SCMD_CALLEXT:
@@ -1033,6 +1044,10 @@ void ccInstance::runCodeFrom(uint32 start) {
 					popValue();
 				recoverFromCallAs = false;
 			}
+			if (externalStack.size() < int1)
+				error("script tried to farsubsp %d parameters, but there were "
+				      "only %d",
+				      int1, externalStack.size());
 			for (uint i = 0; i < (uint32) int1; ++i)
 				externalStack.pop();
 			break;
