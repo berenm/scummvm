@@ -31,6 +31,7 @@
 #include "common/rect.h"
 #include "graphics/surface.h"
 
+#include "engines/ags/drawable.h"
 #include "engines/ags/gamefile.h"
 
 namespace Common {
@@ -38,13 +39,6 @@ class SeekableReadStream;
 }
 
 namespace AGS {
-
-struct SpriteStruct {
-	uint16 _spriteId;
-	uint16 _x, _y;
-	uint16 _roomId;
-	uint16 _on;
-};
 
 struct PolyPoint {
 	uint32 x, y;
@@ -72,17 +66,46 @@ struct RoomRegion {
 	uint32 _tintLevel;
 };
 
-struct RoomObject : public ScriptObject {
-	RoomObject() : _interaction(NULL), _flags(0) {}
+struct RoomObject : public ScriptObject, public Drawable {
+	RoomObject(AGSEngine *vm) : _vm(vm), _interaction(NULL), _flags(0) {}
 
-	SpriteStruct _sprite;
+	// originally from room, immutable
 	NewInteraction *_interaction;
 	Common::Array<Common::String> *_scripts;
-	uint32 _baseLine;
-	uint16 _flags;
 	Common::String _name;
 	Common::String _scriptName;
 	Common::StringMap _properties;
+
+	// originally from room, mutable
+	uint32 _baseLine;
+	uint16 _flags;
+	// below originally from sprite
+	Common::Point _pos;
+	uint16 _spriteId;
+	uint16 _on;
+
+	// constructed at runtime
+	uint16 _view, _loop, _frame;
+	uint16 _wait, _moving;
+	uint _transparency;
+	bool _cycling;
+	byte _overallSpeed;
+	uint16 _tintRed, _tintGreen, _tintBlue, _tintLevel, _tintLight;
+	uint16 _blockingWidth, _blockingHeight;
+
+	virtual Common::Point getDrawPos();
+	virtual int getDrawOrder();
+	virtual const Graphics::Surface *getDrawSurface();
+	virtual uint getDrawWidth();
+	virtual uint getDrawHeight();
+	virtual uint getDrawTransparency();
+	virtual bool isDrawVerticallyMirrored();
+	virtual int getDrawLightLevel();
+	virtual void getDrawTint(int &lightLevel, int &luminance, byte &red,
+	                         byte &green, byte &blue);
+
+protected:
+	AGSEngine *_vm;
 };
 
 #define MSG_DISPLAYNEXT 1 // supercedes using alt-200 at end of message
@@ -128,12 +151,23 @@ struct BackgroundScene {
 
 class AGSEngine;
 
-class Room {
+class Room : public Drawable {
 public:
 	Room(AGSEngine *vm, Common::SeekableReadStream *dta);
 	~Room();
 
 	void convertCoordinatesToLowRes();
+
+	virtual Common::Point getDrawPos() { return Common::Point(0, 0); }
+	virtual int getDrawOrder() { return 0; }
+	virtual const Graphics::Surface *getDrawSurface();
+	virtual uint getDrawWidth();
+	virtual uint getDrawHeight();
+	virtual uint getDrawTransparency() { return 0; }
+	virtual bool isDrawVerticallyMirrored() { return false; }
+	virtual int getDrawLightLevel() { return 0; }
+	virtual void getDrawTint(int &lightLevel, int &luminance, byte &red,
+	                         byte &green, byte &blue) {}
 
 protected:
 	AGSEngine *_vm;
@@ -154,7 +188,7 @@ public:
 	Common::Rect _boundary; // to walk off screen
 
 	Common::Array<RoomRegion> _regions;
-	Common::Array<RoomObject> _objects;
+	Common::Array<RoomObject *> _objects;
 
 	Common::String _password;
 	Common::Array<byte> _options;
