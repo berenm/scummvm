@@ -51,12 +51,45 @@ class SpriteSet;
 struct Character;
 class ccInstance;
 
+struct PendingScript {
+	Common::String name;
+	uint p1, p2;
+};
+
+// actions which can't be run while scripts are running, and so must be queued
+// until the script is done
+enum PostScriptActionType {
+	kPSANewRoom,
+	kPSAInvScreen,
+	kPSARestoreGame,
+	kPSARestoreGameDialog,
+	kPSARunAGSGame,
+	kPSARunDialog,
+	kPSARestartGame,
+	kPSASaveGame,
+	kPSASaveGameDialog
+};
+
+struct PostScriptAction {
+	PostScriptActionType type;
+	uint data;
+	Common::String name;
+};
+
 class ExecutingScript {
 public:
 	ExecutingScript(ccInstance *instance);
 
+	void queueAction(PostScriptActionType type, uint data,
+	                 const Common::String &name);
+	// run_another
+	void queueScript(const Common::String &name, uint p1 = 0, uint p2 = 0);
+
 protected:
 	ccInstance *_instance;
+
+	Common::Array<PendingScript> _pendingScripts;
+	Common::Array<PostScriptAction> _pendingActions;
 };
 
 enum NewRoomState {
@@ -132,8 +165,6 @@ public:
 	ResourceManager *getResourceManager() { return _resourceMan; }
 	SpriteSet *getSprites() { return _sprites; }
 
-	Graphics::PixelFormat getPixelFormat() const;
-
 	void setDefaultCursor();
 	uint32 findNextEnabledCursor(uint32 startWith);
 	void setCursorMode(uint32 newMode);
@@ -171,6 +202,9 @@ public:
 	void startSkippableCutscene();
 	void stopFastForwarding();
 
+	void runDialog(uint dialogId);
+	int showDialogOptions(uint dialogId, uint sayChosenOption);
+
 	void invalidateScreen() { _needsUpdate = true; }
 	void invalidateGUI() { _guiNeedsUpdate = true; }
 
@@ -179,6 +213,7 @@ public:
 	GameFile *_gameFile;
 	class GameState *_state;
 	class AGSAudio *_audio;
+	AGSGraphics *_graphics;
 
 	Common::Array<Character *> _characters;
 
@@ -187,19 +222,11 @@ private:
 
 	Common::RandomSource *_rnd;
 
-	AGSGraphics *_graphics;
-
 	uint32 _engineStartTime;
 	uint32 _playTime;
 	uint32 _loopCounter;
 	uint32 _framesPerSecond;
 	uint32 _lastFrameTime;
-
-	uint16 _width, _height;
-	uint16 _baseWidth, _baseHeight;
-	uint32 _screenResolutionMultiplier;
-	uint16 _textMultiply;
-	bool _forceLetterbox;
 
 	ResourceManager *_resourceMan;
 	SpriteSet *_sprites;
@@ -252,6 +279,8 @@ private:
 	BlockUntilType _blockingUntil;
 	uint _blockingUntilId;
 
+	bool _saidSpeechLine;
+
 	Common::String getMasterArchive() const;
 
 	bool init();
@@ -266,10 +295,13 @@ private:
 	void firstRoomInitialization();
 	void loadNewRoom(uint32 id, Character *forChar);
 	void checkNewRoom();
-	bool getScreenSize();
-	bool initGraphics();
 
 	BlockUntilType checkBlockingUntil();
+
+	void doConversation(uint dialogId);
+	int runDialogScript(struct DialogTopic &topic, uint dialogId, uint offset,
+	                    uint optionId);
+	int runDialogRequest(uint request);
 
 	bool runScriptFunction(ccInstance *instance, const Common::String &name,
 	                       const Common::Array<uint32> &params);
