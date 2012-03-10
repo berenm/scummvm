@@ -61,20 +61,6 @@ struct ScriptSection {
 	uint32 _offset;
 };
 
-// the data for a script
-struct ccScript {
-	void readFrom(Common::SeekableReadStream *dta);
-
-	Common::Array<byte> _globalData;
-	Common::Array<ScriptCodeEntry> _code;
-	Common::Array<byte> _strings;
-	Common::Array<uint32> _globalFixups;
-	Common::Array<Common::String> _imports;
-	Common::Array<ScriptExport> _exports;
-	uint32 _instances;
-	Common::Array<ScriptSection> _sections;
-};
-
 enum RuntimeValueType {
 	rvtInvalid = 0,
 	// constants
@@ -150,6 +136,22 @@ struct RuntimeValue {
 	}
 };
 
+// the data for a script
+struct ccScript {
+	void readFrom(Common::SeekableReadStream *dta);
+
+	Common::Array<byte> _globalData;
+	Common::HashMap<uint32, RuntimeValue> _globalObjects;
+	Common::Array<uint32> _globalFixups;
+
+	Common::Array<ScriptCodeEntry> _code;
+	Common::Array<byte> _strings;
+	Common::Array<Common::String> _imports;
+	Common::Array<ScriptExport> _exports;
+	uint32 _instances;
+	Common::Array<ScriptSection> _sections;
+};
+
 struct ScriptImport {
 	ScriptImportType _type;
 
@@ -215,6 +217,7 @@ protected:
 	uint32 popIntValue();
 
 	ScriptObject *getObjectFrom(const RuntimeValue &value);
+	void writePointer(const RuntimeValue &value, ScriptObject *object);
 };
 
 } // End of namespace AGS
