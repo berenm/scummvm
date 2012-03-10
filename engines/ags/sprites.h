@@ -38,6 +38,10 @@ namespace AGS {
 
 void unpackSpriteBits(Common::SeekableReadStream *stream, byte *dest,
                       uint32 size);
+void unpackSpriteBits16(Common::SeekableReadStream *stream, uint16 *dest,
+                        uint32 size);
+void unpackSpriteBits32(Common::SeekableReadStream *stream, uint32 *dest,
+                        uint32 size);
 
 struct SpriteInfo {
 	uint32 _offset;
