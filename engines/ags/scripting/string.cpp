@@ -444,7 +444,7 @@ RuntimeValue Script_StringToInt(AGSEngine *vm, ScriptObject *,
 }
 
 static const ScriptSystemFunctionInfo ourFunctionList[] = {
-    {"String::Format^101", (ScriptAPIFunction *) &Script_String_Format, "s",
+    {"String::Format^101", (ScriptAPIFunction *) &Script_String_Format, "s.",
      sotNone},
     {"String::IsNullOrEmpty^1",
      (ScriptAPIFunction *) &Script_String_IsNullOrEmpty, "t", sotNone},

@@ -1401,7 +1401,8 @@ ccInstance::callImportedFunction(const ScriptSystemFunctionInfo *function,
 
 	// check the signature
 	uint pos = 0;
-	while (function->signature[pos] != '\0') {
+	while (function->signature[pos] != '\0' &&
+	       function->signature[pos] != '.') {
 		if (pos == params.size())
 			error("not enough parameters (%d) to '%s'", params.size(),
 			      function->name);
@@ -1464,7 +1465,7 @@ ccInstance::callImportedFunction(const ScriptSystemFunctionInfo *function,
 	}
 
 	// FIXME: variable argument functions
-	if (pos < params.size())
+	if (function->signature[pos] != '.' && pos < params.size())
 		error("too many parameters (%d) to '%s'", params.size(),
 		      function->name);
 
