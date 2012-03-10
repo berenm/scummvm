@@ -30,7 +30,7 @@
 #include "common/rect.h"
 
 namespace Graphics {
-class Surface;
+struct Surface;
 }
 
 namespace AGS {

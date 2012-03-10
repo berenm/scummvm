@@ -49,7 +49,8 @@ enum AudioFileType {
 	kAudioFileMOD = 6
 };
 
-struct AudioClip : public ScriptObject {
+class AudioClip : public ScriptObject {
+public:
 	bool isOfType(ScriptObjectType objectType) {
 		return (objectType == sotAudioClip);
 	}
@@ -74,7 +75,7 @@ struct AudioClipType {
 	uint _crossfadeSpeed;
 };
 
-struct AudioChannel : public ScriptObject {
+class AudioChannel : public ScriptObject {
 public:
 	AudioChannel(AGSEngine *vm, uint id);
 	bool isOfType(ScriptObjectType objectType) {
