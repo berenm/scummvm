@@ -25,6 +25,8 @@
  */
 
 #include "engines/ags/scripting/scripting.h"
+#include "engines/ags/graphics.h"
+#include "common/events.h"
 
 namespace AGS {
 
@@ -142,13 +144,17 @@ Script_Mouse_GetModeGraphic(AGSEngine *vm, ScriptObject *,
 RuntimeValue
 Script_Mouse_IsButtonDown(AGSEngine *vm, ScriptObject *,
                           const Common::Array<RuntimeValue> &params) {
-	uint32 mousebutton = params[0]._value;
-	UNUSED(mousebutton);
+	uint32 mouseButton = params[0]._value;
 
-	// FIXME
-	error("Mouse::IsButtonDown unimplemented");
+	if (mouseButton < 1 || mouseButton > 3)
+		error("IsButtonDown: button %d is invalid", mouseButton);
 
-	return RuntimeValue();
+	// TODO: at the time of writing, ScummVM doesn't provide the middle mouse
+	// button here
+	uint mask = 1 << (mouseButton - 1);
+	bool ret = vm->getEventManager()->getButtonState() & mask;
+
+	return RuntimeValue((uint) ret);
 }
 
 // Mouse: import static void SaveCursorUntilItLeaves()
@@ -330,10 +336,7 @@ Script_ChangeCursorHotspot(AGSEngine *vm, ScriptObject *,
 // Mouse function.
 RuntimeValue Script_GetCursorMode(AGSEngine *vm, ScriptObject *,
                                   const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("GetCursorMode unimplemented");
-
-	return RuntimeValue();
+	return vm->getCursorMode();
 }
 
 // import void SetCursorMode(CursorMode)
@@ -373,11 +376,9 @@ Script_SetDefaultCursor(AGSEngine *vm, ScriptObject *,
 // Mouse function.
 RuntimeValue Script_SetMouseCursor(AGSEngine *vm, ScriptObject *,
                                    const Common::Array<RuntimeValue> &params) {
-	uint32 cursormode = params[0]._value;
-	UNUSED(cursormode);
+	uint32 newCursor = params[0]._value;
 
-	// FIXME
-	error("SetMouseCursor unimplemented");
+	vm->_graphics->setMouseCursor(newCursor);
 
 	return RuntimeValue();
 }
