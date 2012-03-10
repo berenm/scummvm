@@ -114,7 +114,11 @@ struct WordsDictionary {
 
 struct ccScript;
 
-struct ViewFrame {
+struct ViewFrame : public ScriptObject {
+	bool isOfType(ScriptObjectType objectType) {
+		return (objectType == sotViewFrame);
+	}
+
 	uint32 _pic;
 	uint16 _xOffs, _yOffs;
 	uint16 _speed;
