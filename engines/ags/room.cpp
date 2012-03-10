@@ -187,7 +187,7 @@ void RoomObject::getDrawTint(int &lightLevel, int &luminance, byte &red,
 #define BLOCKTYPE_EOF 0xff
 
 Room::Room(AGSEngine *vm, Common::SeekableReadStream *dta) :
-    _vm(vm), _compiledScript(NULL) {
+    _vm(vm), _compiledScript(NULL), _interaction(NULL) {
 	_backgroundSceneAnimSpeed = 5;
 	// FIXME: copy main background scene palette
 
@@ -492,8 +492,13 @@ void Room::readMainBlock(Common::SeekableReadStream *dta) {
 		if (_version >= kAGSRoomVer300) {
 			// 3.x scripts
 
-			// FIXME
-			error("3.x not supported yet");
+			_interactionScripts.readFrom(dta);
+			for (uint i = 0; i < _hotspots.size(); ++i)
+				_hotspots[i]._interactionScripts.readFrom(dta);
+			for (uint i = 0; i < _objects.size(); ++i)
+				_objects[i]->_interactionScripts.readFrom(dta);
+			for (uint i = 0; i < _regions.size(); ++i)
+				_regions[i]._interactionScripts.readFrom(dta);
 		}
 	}
 
