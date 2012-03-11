@@ -52,19 +52,30 @@ RuntimeValue Script_GetRawTime(AGSEngine *vm, ScriptObject *,
 	return RuntimeValue();
 }
 
+enum { kRoundDown = 0, kRoundNearest = 1, kRoundUp = 2 };
+
 // import int FloatToInt(float value, RoundDirection=eRoundDown)
 // Converts a floating point value to an integer.
 RuntimeValue Script_FloatToInt(AGSEngine *vm, ScriptObject *,
                                const Common::Array<RuntimeValue> &params) {
 	float value = params[0]._floatValue;
-	UNUSED(value);
-	uint32 rounddirection = params[1]._value;
-	UNUSED(rounddirection);
+	uint32 roundDirection = params[1]._value;
 
-	// FIXME
-	error("FloatToInt unimplemented");
+	if (value >= 0.0) {
+		switch (roundDirection) {
+		case kRoundDown: return (int) value;
+		case kRoundNearest: return (int) (value + 0.5);
+		case kRoundUp: return (int) (value + 0.999999);
+		}
+	} else {
+		switch (roundDirection) {
+		case kRoundUp: return (int) value;
+		case kRoundNearest: return (int) (value - 0.5);
+		case kRoundDown: return (int) (value - 0.999999);
+		}
+	}
 
-	return RuntimeValue();
+	error("FloatToInt: invalid round direction %d", roundDirection);
 }
 
 // import float IntToFloat(int value)
@@ -72,12 +83,8 @@ RuntimeValue Script_FloatToInt(AGSEngine *vm, ScriptObject *,
 RuntimeValue Script_IntToFloat(AGSEngine *vm, ScriptObject *,
                                const Common::Array<RuntimeValue> &params) {
 	int value = params[0]._signedValue;
-	UNUSED(value);
 
-	// FIXME
-	error("IntToFloat unimplemented");
-
-	return RuntimeValue();
+	return (float) value;
 }
 
 // import int Random(int max)
