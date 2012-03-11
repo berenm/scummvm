@@ -251,6 +251,9 @@ private:
 	                     uint data2 = (uint) -1000, uint data3 = 0);
 	void processGameEvent(const GameEvent &event);
 	void processAllGameEvents();
+	bool runInteractionScript(struct InteractionScript *scripts, uint eventId,
+	                          uint fallback = (uint) -1,
+	                          bool isInventory = false);
 	bool runInteractionEvent(struct NewInteraction *interaction, uint eventId,
 	                         uint fallback = (uint) -1,
 	                         bool isInventory = false);
