@@ -174,6 +174,8 @@ public:
 	~GameFile();
 
 	bool init();
+	void readProperties(Common::SeekableReadStream *dta,
+	                    Common::StringMap &map);
 
 private:
 	ViewFrame readViewFrame(Common::SeekableReadStream *dta);
@@ -182,8 +184,6 @@ private:
 	void readGui(Common::SeekableReadStream *dta);
 	void readPlugins(Common::SeekableReadStream *dta);
 	void readPropertyData(Common::SeekableReadStream *dta);
-	void readProperties(Common::SeekableReadStream *dta,
-	                    Common::StringMap &map);
 	void setDefaultMessages();
 
 public:

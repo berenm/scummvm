@@ -471,8 +471,6 @@ bool GameFile::init() {
 		}
 	}
 
-	debug(5, "game file read %d of %d", dta->pos(), dta->size());
-
 	if ((_version >= kAGSVer300b) && _options[OPT_DEBUGMODE]) {
 		uint32 roomCount = dta->readUint32LE();
 		for (uint i = 0; i < roomCount; ++i) {
@@ -483,6 +481,8 @@ bool GameFile::init() {
 			      roomName.c_str());
 		}
 	}
+
+	debug(5, "game file read %d of %d", dta->pos(), dta->size());
 
 	delete dta;
 
