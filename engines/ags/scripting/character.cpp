@@ -2304,10 +2304,7 @@ Script_Character_set_SpeechColor(AGSEngine *vm, Character *self,
 RuntimeValue
 Script_Character_get_SpeechView(AGSEngine *vm, Character *self,
                                 const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Character::get_SpeechView unimplemented");
-
-	return RuntimeValue();
+	return RuntimeValue(self->_talkView + 1);
 }
 
 // Character: import attribute int SpeechView
