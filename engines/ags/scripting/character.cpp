@@ -1590,11 +1590,9 @@ Script_Character_get_AnimationSpeed(AGSEngine *vm, Character *self,
 RuntimeValue
 Script_Character_set_AnimationSpeed(AGSEngine *vm, Character *self,
                                     const Common::Array<RuntimeValue> &params) {
-	int value = params[0]._signedValue;
-	UNUSED(value);
+	int animSpeed = params[0]._signedValue;
 
-	// FIXME
-	error("Character::set_AnimationSpeed unimplemented");
+	self->_animSpeed = animSpeed;
 
 	return RuntimeValue();
 }
