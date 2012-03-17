@@ -1224,8 +1224,7 @@ void ccInstance::runCodeFrom(uint32 start) {
 			break;
 		case SCMD_FMULREG:
 			// reg1 *= reg2 (float)
-			// FIXME
-			error("unimplemented %s", info.name);
+			_registers[int1]._floatValue *= _registers[int2]._floatValue;
 			break;
 		case SCMD_FDIVREG:
 			// reg1 /= reg2 (float)
