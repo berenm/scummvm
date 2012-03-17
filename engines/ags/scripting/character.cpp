@@ -2135,11 +2135,16 @@ Script_Character_get_ScaleMoveSpeed(AGSEngine *vm, Character *self,
 RuntimeValue
 Script_Character_set_ScaleMoveSpeed(AGSEngine *vm, Character *self,
                                     const Common::Array<RuntimeValue> &params) {
-	uint32 value = params[0]._value;
-	UNUSED(value);
+	uint adjustSpeed = params[0]._value;
 
-	// FIXME
-	error("Character::set_ScaleMoveSpeed unimplemented");
+	if (adjustSpeed > 1)
+		error("Character::set_ScaleMoveSpeed: value must be true or false (1 "
+		      "or 0), but got %d",
+		      adjustSpeed);
+
+	self->_flags &= ~CHF_SCALEMOVESPEED;
+	if (adjustSpeed)
+		self->_flags |= CHF_SCALEMOVESPEED;
 
 	return RuntimeValue();
 }
