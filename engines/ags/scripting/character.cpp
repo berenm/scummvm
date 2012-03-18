@@ -2109,10 +2109,7 @@ Script_Character_get_PreviousRoom(AGSEngine *vm, Character *self,
 RuntimeValue
 Script_Character_get_Room(AGSEngine *vm, Character *self,
                           const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Character::get_Room unimplemented");
-
-	return RuntimeValue();
+	return self->_room;
 }
 
 // Character: import attribute bool ScaleMoveSpeed
