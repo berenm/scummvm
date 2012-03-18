@@ -1568,10 +1568,7 @@ RuntimeValue Script_Character_set_ActiveInventory(
 RuntimeValue
 Script_Character_get_Animating(AGSEngine *vm, Character *self,
                                const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Character::get_Animating unimplemented");
-
-	return RuntimeValue();
+	return self->_animating ? 1 : 0;
 }
 
 // Character: import attribute int AnimationSpeed
