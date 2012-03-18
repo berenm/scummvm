@@ -1974,10 +1974,7 @@ RuntimeValue Script_Character_seti_InventoryQuantity(
 RuntimeValue
 Script_Character_get_Loop(AGSEngine *vm, Character *self,
                           const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Character::get_Loop unimplemented");
-
-	return RuntimeValue();
+	return self->_loop;
 }
 
 // Character: import attribute int Loop
