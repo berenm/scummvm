@@ -2051,10 +2051,7 @@ RuntimeValue Script_Character_set_MovementLinkedToAnimation(
 RuntimeValue
 Script_Character_get_Moving(AGSEngine *vm, Character *self,
                             const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Character::get_Moving unimplemented");
-
-	return RuntimeValue();
+	return self->_walking ? 1 : 0;
 }
 
 // Character: import attribute String Name
