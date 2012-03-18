@@ -2404,10 +2404,7 @@ RuntimeValue Script_Character_set_TurnBeforeWalking(
 RuntimeValue
 Script_Character_get_View(AGSEngine *vm, Character *self,
                           const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Character::get_View unimplemented");
-
-	return RuntimeValue();
+	return self->_view + 1;
 }
 
 // Character: readonly import attribute int WalkSpeedX
