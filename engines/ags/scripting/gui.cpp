@@ -29,6 +29,7 @@
 #include "engines/ags/gamefile.h"
 #include "engines/ags/gamestate.h"
 #include "engines/ags/graphics.h"
+#include "engines/ags/sprites.h"
 
 namespace AGS {
 
@@ -2341,11 +2342,14 @@ Script_GUI_get_BackgroundGraphic(AGSEngine *vm, GUIGroup *self,
 RuntimeValue
 Script_GUI_set_BackgroundGraphic(AGSEngine *vm, GUIGroup *self,
                                  const Common::Array<RuntimeValue> &params) {
-	int value = params[0]._signedValue;
-	UNUSED(value);
+	uint slot = params[0]._value;
 
-	// FIXME
-	error("GUI::set_BackgroundGraphic unimplemented");
+	if (slot >= vm->getSprites()->getSpriteCount())
+		error("GUI::set_BackgroundGraphic: sprite %d is too high (only have %d "
+		      "sprites)",
+		      slot, vm->getSprites()->getSpriteCount());
+
+	self->setBackgroundPicture(slot);
 
 	return RuntimeValue();
 }

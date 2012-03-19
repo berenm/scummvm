@@ -297,6 +297,14 @@ void GUIGroup::setSize(uint32 width, uint32 height) {
 	invalidate();
 }
 
+void GUIGroup::setBackgroundPicture(uint32 pic) {
+	if (pic == _bgPic)
+		return;
+
+	_bgPic = pic;
+	invalidate();
+}
+
 void GUIGroup::invalidate() {
 	_needsUpdate = true;
 }

@@ -301,6 +301,7 @@ public:
 
 	void setVisible(bool visible);
 	void setSize(uint32 width, uint32 height);
+	void setBackgroundPicture(uint32 pic);
 	void invalidate();
 
 	void sortControls();
