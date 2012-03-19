@@ -234,19 +234,19 @@ RuntimeValue Script_SetGUIPosition(AGSEngine *vm, ScriptObject *,
 RuntimeValue Script_SetGUISize(AGSEngine *vm, ScriptObject *,
                                const Common::Array<RuntimeValue> &params) {
 	uint guiId = params[0]._value;
-	int width = params[1]._signedValue;
-	UNUSED(width);
-	int height = params[2]._signedValue;
-	UNUSED(height);
+	uint width = params[1]._value;
+	uint height = params[2]._value;
+
+	if (width > vm->_graphics->_width || height > vm->_graphics->_height)
+		error("SetGUISize: Tried resizing to an invalid size (%dx%d)", width,
+		      height);
 
 	if (guiId >= vm->_gameFile->_guiGroups.size())
 		error("SetGUISize: GUI %d is too high (only have %d)", guiId,
 		      vm->_gameFile->_guiGroups.size());
 	GUIGroup *group = vm->_gameFile->_guiGroups[guiId];
 
-	// FIXME
-	UNUSED(group);
-	error("SetGUISize unimplemented");
+	group->setSize(width, height);
 
 	return RuntimeValue();
 }
@@ -435,18 +435,14 @@ RuntimeValue Script_SetLabelColor(AGSEngine *vm, ScriptObject *,
                                   const Common::Array<RuntimeValue> &params) {
 	uint guiId = params[0]._value;
 	uint objectId = params[1]._value;
-	int colour = params[2]._signedValue;
-	UNUSED(colour);
+	uint colour = params[2]._value;
 
 	GUIControl *control = getGUIControl("SetLabelColor", vm, guiId, objectId);
 	if (!control->isOfType(sotGUILabel))
 		error("SetLabelColor: Control %d isn't a label.", objectId);
 	GUILabel *label = (GUILabel *) control;
 
-	// FIXME
-	UNUSED(label);
-	error("SetLabelColor unimplemented");
-
+	label->setColor(colour);
 	return RuntimeValue();
 }
 
@@ -463,10 +459,7 @@ RuntimeValue Script_SetLabelText(AGSEngine *vm, ScriptObject *,
 		error("SetLabelText: Control %d isn't a label.", objectId);
 	GUILabel *label = (GUILabel *) control;
 
-	// FIXME
-	UNUSED(label);
-	error("SetLabelText unimplemented");
-
+	label->setText(vm->getTranslation(text->getString()));
 	return RuntimeValue();
 }
 
@@ -476,18 +469,18 @@ RuntimeValue Script_SetLabelFont(AGSEngine *vm, ScriptObject *,
                                  const Common::Array<RuntimeValue> &params) {
 	uint guiId = params[0]._value;
 	uint objectId = params[1]._value;
-	uint32 fonttype = params[2]._value;
-	UNUSED(fonttype);
+	uint32 fontId = params[2]._value;
 
 	GUIControl *control = getGUIControl("SetLabelFont", vm, guiId, objectId);
 	if (!control->isOfType(sotGUILabel))
 		error("SetLabelFont: Control %d isn't a label.", objectId);
 	GUILabel *label = (GUILabel *) control;
 
-	// FIXME
-	UNUSED(label);
-	error("SetLabelFont unimplemented");
+	if (fontId >= vm->_gameFile->_fonts.size())
+		error("SetLabelFont: font %d is invalid (only %d fonts)", fontId,
+		      vm->_gameFile->_fonts.size());
 
+	label->setFont(fontId);
 	return RuntimeValue();
 }
 
