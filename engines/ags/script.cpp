@@ -1176,7 +1176,7 @@ void ccInstance::runCodeFrom(uint32 start) {
 					popValue();
 				recoverFromCallAs = false;
 			}
-			if (externalStack.size() < int1)
+			if (externalStack.size() < (uint) int1)
 				error("script tried to farsubsp %d parameters, but there were "
 				      "only %d",
 				      int1, externalStack.size());
@@ -1281,8 +1281,11 @@ void ccInstance::runCodeFrom(uint32 start) {
 			break;
 		case SCMD_CREATESTRING:
 			// reg1 = new String(reg1)
-			_registers[int1] = createStringFrom(_registers[int1]);
+			ScriptString *tempStr;
+			tempStr = createStringFrom(_registers[int1]);
+			_registers[int1] = new ScriptMutableString(tempStr->getString());
 			_registers[int1]._object->DecRef();
+			tempStr->DecRef();
 			break;
 		case SCMD_STRINGSEQUAL:
 			// (char*)reg1 == (char*)reg2   reg1=1 if true, =0 if not
@@ -1341,6 +1344,7 @@ public:
 	}
 
 	void setString(const Common::String &text) {
+		// FIXME: check bounds
 		if (text.size() >= kOldScriptStringLength)
 			error("ScriptStackString: new string is too large (%d)",
 			      text.size());
@@ -1369,11 +1373,11 @@ public:
 
 		Common::String text;
 		for (uint i = 0; i < kOldScriptStringLength; ++i) {
-			if ((*_instance->_globalData)[i] == 0)
+			if ((*_instance->_globalData)[_offset + i] == 0)
 				break;
 			if (i == kOldScriptStringLength - 1)
 				error("ScriptDataString: string isn't null-terminated");
-			text += (char) (*_instance->_globalData)[i];
+			text += (char) (*_instance->_globalData)[_offset + i];
 		}
 		return text;
 	}
@@ -1383,6 +1387,7 @@ public:
 			error("ScriptDataString: new string is too large (%d)",
 			      text.size());
 
+		// FIXME: kill any objects?
 		memcpy(&(*_instance->_globalData)[_offset], text.c_str(),
 		       text.size() + 1);
 	}
@@ -1397,18 +1402,20 @@ ScriptString *ccInstance::createStringFrom(RuntimeValue &value) {
 		return new ScriptStackString(this, value._value);
 	else if (value._type == rvtScriptData) {
 		ccScript *script = value._instance->_script;
-		uint32 *fixup;
-		fixup = Common::find(script->_globalFixups.begin(),
-		                     script->_globalFixups.end(), value._value);
-		// FIXME: *wrong*, this should be a pointer?
-		// FIXME	argVal[v]._value = (*inst->_globalData)[argValue];
+		uint32 *fixup = Common::find(script->_globalFixups.begin(),
+		                             script->_globalFixups.end(), value._value);
 		if (fixup != script->_globalFixups.end())
-			error("string fixup fail");
+			error("createStringFrom called with (fixup) pointer to string");
 		return new ScriptDataString(value._instance, value._value);
 	} else if (value._type == rvtSystemObject &&
 	           value._object->isOfType(sotString)) {
+		if (value._value != 0)
+			error("createStringFrom failed to create a string from string "
+			      "object with offset %d",
+			      value._value);
 		ScriptString *string = (ScriptString *) value._object;
-		return new ScriptMutableString(string->getString());
+		string->IncRef();
+		return string;
 	}
 
 	error("createStringFrom failed to create a string from value of type %d",
@@ -1465,6 +1472,10 @@ ccInstance::callImportedFunction(const ScriptSystemFunctionInfo *function,
 			    !params[pos]._object->isOfType(sotString))
 				error("expected string for param %d of '%s', got type %d",
 				      pos + 1, function->name, params[pos]._type);
+			if (params[pos]._value != 0)
+				error("unexpected offset %d when creating string object for "
+				      "param %d of '%s'",
+				      params[pos]._value, pos + 1, function->name);
 			break;
 		default:
 			error("unknown entry in signature '%s' for '%s'",
