@@ -28,6 +28,7 @@
 #include "engines/ags/gui.h"
 #include "engines/ags/gamefile.h"
 #include "engines/ags/gamestate.h"
+#include "engines/ags/graphics.h"
 
 namespace AGS {
 
@@ -36,11 +37,11 @@ static GUIControl *getGUIControl(const char *funcName, AGSEngine *vm,
 	if (guiId >= vm->_gameFile->_guiGroups.size())
 		error("%s: GUI %d is too high (only have %d)", funcName, guiId,
 		      vm->_gameFile->_guiGroups.size());
-	GUIGroup &group = vm->_gameFile->_guiGroups[guiId];
-	if (objectId >= group._controls.size())
+	GUIGroup *group = vm->_gameFile->_guiGroups[guiId];
+	if (objectId >= group->_controls.size())
 		error("%s: Control %d is too high (only have %d)", funcName, objectId,
-		      group._controls.size());
-	return group._controls[objectId];
+		      group->_controls.size());
+	return group->_controls[objectId];
 }
 
 // import void DisableInterface()
@@ -82,7 +83,7 @@ Script_SetTextWindowGUI(AGSEngine *vm, ScriptObject *,
 	if (guiId >= vm->_gameFile->_guiGroups.size())
 		error("SetTextWindowGUI: GUI %d is too high (only have %d)", guiId,
 		      vm->_gameFile->_guiGroups.size());
-	GUIGroup &group = vm->_gameFile->_guiGroups[guiId];
+	GUIGroup *group = vm->_gameFile->_guiGroups[guiId];
 
 	// FIXME
 	UNUSED(group);
@@ -99,16 +100,16 @@ RuntimeValue Script_FindGUIID(AGSEngine *vm, ScriptObject *,
 	ScriptString *string = (ScriptString *) params[0]._object;
 	Common::String name = string->getString();
 
-	const Common::Array<GUIGroup> &groups = vm->_gameFile->_guiGroups;
+	const Common::Array<GUIGroup *> &groups = vm->_gameFile->_guiGroups;
 	for (uint i = 0; i < groups.size(); ++i) {
 		// check for exact match
-		if (groups[i]._name == name)
+		if (groups[i]->_name == name)
 			return i;
 
 		// check for old-style match
-		if (groups[i]._name.empty() || groups[i]._name[0] != 'g')
+		if (groups[i]->_name.empty() || groups[i]->_name[0] != 'g')
 			continue;
-		if (groups[i]._name.equalsIgnoreCase('g' + name))
+		if (groups[i]->_name.equalsIgnoreCase('g' + name))
 			return i;
 	}
 
@@ -179,7 +180,7 @@ RuntimeValue Script_InterfaceOn(AGSEngine *vm, ScriptObject *,
 	if (guiId >= vm->_gameFile->_guiGroups.size())
 		error("InterfaceOn: GUI %d is too high (only have %d)", guiId,
 		      vm->_gameFile->_guiGroups.size());
-	GUIGroup &group = vm->_gameFile->_guiGroups[guiId];
+	GUIGroup *group = vm->_gameFile->_guiGroups[guiId];
 
 	// FIXME
 	UNUSED(group);
@@ -197,7 +198,7 @@ RuntimeValue Script_InterfaceOff(AGSEngine *vm, ScriptObject *,
 	if (guiId >= vm->_gameFile->_guiGroups.size())
 		error("InterfaceOff: GUI %d is too high (only have %d)", guiId,
 		      vm->_gameFile->_guiGroups.size());
-	GUIGroup &group = vm->_gameFile->_guiGroups[guiId];
+	GUIGroup *group = vm->_gameFile->_guiGroups[guiId];
 
 	// FIXME
 	UNUSED(group);
@@ -219,7 +220,7 @@ RuntimeValue Script_SetGUIPosition(AGSEngine *vm, ScriptObject *,
 	if (guiId >= vm->_gameFile->_guiGroups.size())
 		error("SetGUIPosition: GUI %d is too high (only have %d)", guiId,
 		      vm->_gameFile->_guiGroups.size());
-	GUIGroup &group = vm->_gameFile->_guiGroups[guiId];
+	GUIGroup *group = vm->_gameFile->_guiGroups[guiId];
 
 	// FIXME
 	UNUSED(group);
@@ -241,7 +242,7 @@ RuntimeValue Script_SetGUISize(AGSEngine *vm, ScriptObject *,
 	if (guiId >= vm->_gameFile->_guiGroups.size())
 		error("SetGUISize: GUI %d is too high (only have %d)", guiId,
 		      vm->_gameFile->_guiGroups.size());
-	GUIGroup &group = vm->_gameFile->_guiGroups[guiId];
+	GUIGroup *group = vm->_gameFile->_guiGroups[guiId];
 
 	// FIXME
 	UNUSED(group);
@@ -259,7 +260,7 @@ RuntimeValue Script_CentreGUI(AGSEngine *vm, ScriptObject *,
 	if (guiId >= vm->_gameFile->_guiGroups.size())
 		error("CentreGUI: GUI %d is too high (only have %d)", guiId,
 		      vm->_gameFile->_guiGroups.size());
-	GUIGroup &group = vm->_gameFile->_guiGroups[guiId];
+	GUIGroup *group = vm->_gameFile->_guiGroups[guiId];
 
 	// FIXME
 	UNUSED(group);
@@ -277,9 +278,9 @@ RuntimeValue Script_IsGUIOn(AGSEngine *vm, ScriptObject *,
 	if (guiId >= vm->_gameFile->_guiGroups.size())
 		error("IsGUIOn: GUI %d is too high (only have %d)", guiId,
 		      vm->_gameFile->_guiGroups.size());
-	GUIGroup &group = vm->_gameFile->_guiGroups[guiId];
+	GUIGroup *group = vm->_gameFile->_guiGroups[guiId];
 
-	return (group._on >= 1) ? 1 : 0;
+	return (group->_on >= 1) ? 1 : 0;
 }
 
 // import void SetGUIBackgroundPic (int gui, int spriteSlot)
@@ -294,7 +295,7 @@ Script_SetGUIBackgroundPic(AGSEngine *vm, ScriptObject *,
 	if (guiId >= vm->_gameFile->_guiGroups.size())
 		error("SetGUIBackgroundPic: GUI %d is too high (only have %d)", guiId,
 		      vm->_gameFile->_guiGroups.size());
-	GUIGroup &group = vm->_gameFile->_guiGroups[guiId];
+	GUIGroup *group = vm->_gameFile->_guiGroups[guiId];
 
 	// FIXME
 	UNUSED(group);
@@ -315,7 +316,7 @@ Script_SetGUITransparency(AGSEngine *vm, ScriptObject *,
 	if (guiId >= vm->_gameFile->_guiGroups.size())
 		error("SetGUITransparency: GUI %d is too high (only have %d)", guiId,
 		      vm->_gameFile->_guiGroups.size());
-	GUIGroup &group = vm->_gameFile->_guiGroups[guiId];
+	GUIGroup *group = vm->_gameFile->_guiGroups[guiId];
 
 	// FIXME
 	UNUSED(group);
@@ -334,12 +335,12 @@ RuntimeValue Script_SetGUIClickable(AGSEngine *vm, ScriptObject *,
 	if (guiId >= vm->_gameFile->_guiGroups.size())
 		error("SetGUIClickable: GUI %d is too high (only have %d)", guiId,
 		      vm->_gameFile->_guiGroups.size());
-	GUIGroup &group = vm->_gameFile->_guiGroups[guiId];
+	GUIGroup *group = vm->_gameFile->_guiGroups[guiId];
 
 	if (clickable)
-		group._flags &= ~GUIF_NOCLICK;
+		group->_flags &= ~GUIF_NOCLICK;
 	else
-		group._flags |= GUIF_NOCLICK;
+		group->_flags |= GUIF_NOCLICK;
 
 	return RuntimeValue();
 }
@@ -355,7 +356,7 @@ RuntimeValue Script_SetGUIZOrder(AGSEngine *vm, ScriptObject *,
 	if (guiId >= vm->_gameFile->_guiGroups.size())
 		error("SetGUIZOrder: GUI %d is too high (only have %d)", guiId,
 		      vm->_gameFile->_guiGroups.size());
-	GUIGroup &group = vm->_gameFile->_guiGroups[guiId];
+	GUIGroup *group = vm->_gameFile->_guiGroups[guiId];
 
 	// FIXME
 	UNUSED(group);

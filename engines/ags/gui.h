@@ -30,6 +30,7 @@
 #include "common/array.h"
 #include "common/rect.h"
 #include "common/stream.h"
+#include "graphics/surface.h"
 
 #include "engines/ags/scriptobj.h"
 
@@ -50,6 +51,16 @@ namespace AGS {
 #define GUIDIS_BLACKOUT 2
 #define GUIDIS_UNCHANGED 4
 #define GUIDIS_GUIOFF 0x80
+
+#define POPUP_NONE 0
+#define POPUP_MOUSEY 1
+#define POPUP_SCRIPT 2
+#define POPUP_NOAUTOREM 3        // don't remove automatically during cutscene
+#define POPUP_NONEINITIALLYOFF 4 // normal GUI, initially off
+#define VTA_LEFT 0
+#define VTA_RIGHT 1
+#define VTA_CENTRE 2
+#define IFLG_TEXTWINDOW 1
 
 // GUIControl
 #define GUIF_DEFAULT 1
@@ -97,8 +108,8 @@ public:
 		return (objectType == sotGUIControl);
 	}
 
+	class GUIGroup *_parent;
 	uint32 _id;
-	uint32 _objectId;
 	uint32 _flags;
 
 	uint32 _x, _y;
@@ -278,7 +289,17 @@ protected:
 	uint32 getMaxNumEvents() { return 1; }
 };
 
-struct GUIGroup : public ScriptObject {
+class GUIGroup : public ScriptObject {
+public:
+	GUIGroup(AGSEngine *vm);
+	~GUIGroup();
+
+	void setVisible(bool visible);
+	void setSize(uint32 width, uint32 height);
+	void invalidate();
+
+	void sortControls();
+
 	bool isOfType(ScriptObjectType objectType) {
 		return (objectType == sotGUI);
 	}
@@ -311,6 +332,12 @@ struct GUIGroup : public ScriptObject {
 	Common::Array<GUIControl *> _controls;
 	Common::Array<uint32> _controlRefPtrs; // for re-building objs array
 	Common::Array<uint16> _controlDrawOrder;
+
+protected:
+	AGSEngine *_vm;
+	Graphics::Surface _surface;
+
+	bool _needsUpdate;
 };
 
 } // End of namespace AGS
