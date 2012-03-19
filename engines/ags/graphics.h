@@ -33,6 +33,10 @@ namespace Common {
 class SeekableReadStream;
 }
 
+namespace Graphics {
+class Font;
+}
+
 namespace AGS {
 
 class Drawable;
@@ -46,6 +50,9 @@ public:
 	bool getScreenSize();
 	bool initGraphics();
 	Graphics::PixelFormat getPixelFormat() const;
+
+	void loadFonts();
+	Graphics::Font *getFont(uint id);
 
 	void initPalette();
 	void newRoomPalette();
@@ -69,6 +76,8 @@ protected:
 
 	byte _palette[256 * 3];
 	Graphics::Surface _backBuffer;
+
+	Common::Array<Graphics::Font *> _fonts;
 
 	void draw(Drawable *item);
 
