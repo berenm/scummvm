@@ -191,6 +191,7 @@ public:
 	void setFont(uint32 font);
 	void setColor(uint32 color);
 	void setAlign(uint32 align);
+	const Common::String &getText() const { return _text; }
 	void setText(Common::String text);
 
 protected:
@@ -281,6 +282,14 @@ public:
 	}
 	const char *getObjectTypeName() { return "GUIButton"; }
 
+	uint32 getNormalGraphic() { return _pic; }
+	void setNormalGraphic(uint32 pic);
+	uint32 getMouseOverGraphic() { return _overPic; }
+	void setMouseOverGraphic(uint32 pic);
+	uint32 getPushedGraphic() { return _pushedPic; }
+	void setPushedGraphic(uint32 pic);
+
+protected:
 	Common::String _text;
 
 	uint32 _pic, _overPic, _pushedPic;
@@ -296,7 +305,8 @@ public:
 	// not persisted
 	uint32 _usePic;
 
-protected:
+	void stopAnimation();
+
 	uint32 getMaxNumEvents() { return 1; }
 };
 
@@ -321,7 +331,8 @@ public:
 	Common::String _name;
 	Common::String _clickEventHandler;
 
-	uint32 _x, _y, _width, _height;
+	int32 _x, _y;
+	uint32 _width, _height;
 
 	uint32 _focus; // which object has the focus
 

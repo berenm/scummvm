@@ -524,18 +524,9 @@ RuntimeValue Script_SetButtonPic(AGSEngine *vm, ScriptObject *,
 	GUIButton *button = (GUIButton *) control;
 
 	switch (picType) {
-	case 1:
-		// FIXME
-		warning("SetButtonPic unimplemented");
-		break;
-	case 2:
-		// FIXME
-		warning("SetButtonPic unimplemented");
-		break;
-	case 3:
-		// FIXME
-		warning("SetButtonPic unimplemented");
-		break;
+	case 1: button->setNormalGraphic(spriteSlot); break;
+	case 2: button->setMouseOverGraphic(spriteSlot); break;
+	case 3: button->setPushedGraphic(spriteSlot); break;
 	default: error("SetButtonPic: Picture type %d is invalid.", picType);
 	}
 
@@ -555,11 +546,13 @@ RuntimeValue Script_GetButtonPic(AGSEngine *vm, ScriptObject *,
 		error("GetButtonPic: Control %d isn't a button.", objectId);
 	GUIButton *button = (GUIButton *) control;
 
-	// FIXME
-	UNUSED(button);
-	error("GetButtonPic unimplemented");
+	switch (picType) {
+	case 1: return button->getNormalGraphic();
+	case 2: return button->getMouseOverGraphic();
+	case 3: return button->getPushedGraphic();
+	}
 
-	return RuntimeValue();
+	error("GetButtonPic: Picture type %d is invalid.", picType);
 }
 
 // import void AnimateButton(int gui, int object, int view, int loop, int delay,
@@ -919,10 +912,10 @@ Script_GUIControl_SetSize(AGSEngine *vm, GUIControl *self,
 RuntimeValue
 Script_GUIControl_get_AsButton(AGSEngine *vm, GUIControl *self,
                                const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("GUIControl::get_AsButton unimplemented");
-
-	return RuntimeValue();
+	if (self->isOfType(sotGUIButton))
+		return self;
+	else
+		return 0;
 }
 
 // GUIControl: readonly import attribute InvWindow* AsInvWindow
@@ -987,10 +980,7 @@ Script_GUIControl_get_AsTextBox(AGSEngine *vm, GUIControl *self,
 RuntimeValue
 Script_GUIControl_get_Clickable(AGSEngine *vm, GUIControl *self,
                                 const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("GUIControl::get_Clickable unimplemented");
-
-	return RuntimeValue();
+	return self->isClickable() ? 1 : 0;
 }
 
 // GUIControl: import attribute bool Clickable
@@ -1000,10 +990,8 @@ RuntimeValue
 Script_GUIControl_set_Clickable(AGSEngine *vm, GUIControl *self,
                                 const Common::Array<RuntimeValue> &params) {
 	uint32 value = params[0]._value;
-	UNUSED(value);
 
-	// FIXME
-	error("GUIControl::set_Clickable unimplemented");
+	self->setClickable((bool) value);
 
 	return RuntimeValue();
 }
@@ -1233,10 +1221,9 @@ RuntimeValue Script_Label_set_Font(AGSEngine *vm, GUILabel *self,
 // Gets/sets the text that is shown on the label.
 RuntimeValue Script_Label_get_Text(AGSEngine *vm, GUILabel *self,
                                    const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Label::get_Text unimplemented");
-
-	return RuntimeValue();
+	RuntimeValue ret = new ScriptMutableString(self->getText());
+	ret._object->DecRef();
+	return ret;
 }
 
 // Label: import attribute String Text
@@ -1244,10 +1231,8 @@ RuntimeValue Script_Label_get_Text(AGSEngine *vm, GUILabel *self,
 RuntimeValue Script_Label_set_Text(AGSEngine *vm, GUILabel *self,
                                    const Common::Array<RuntimeValue> &params) {
 	ScriptString *value = (ScriptString *) params[0]._object;
-	UNUSED(value);
 
-	// FIXME
-	error("Label::set_Text unimplemented");
+	self->setText(value->getString());
 
 	return RuntimeValue();
 }
@@ -1387,10 +1372,7 @@ Script_Button_get_Graphic(AGSEngine *vm, GUIButton *self,
 RuntimeValue
 Script_Button_get_MouseOverGraphic(AGSEngine *vm, GUIButton *self,
                                    const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Button::get_MouseOverGraphic unimplemented");
-
-	return RuntimeValue();
+	return self->getMouseOverGraphic();
 }
 
 // Button: import attribute int MouseOverGraphic
@@ -1399,11 +1381,9 @@ Script_Button_get_MouseOverGraphic(AGSEngine *vm, GUIButton *self,
 RuntimeValue
 Script_Button_set_MouseOverGraphic(AGSEngine *vm, GUIButton *self,
                                    const Common::Array<RuntimeValue> &params) {
-	int value = params[0]._signedValue;
-	UNUSED(value);
+	uint value = params[0]._value;
 
-	// FIXME
-	error("Button::set_MouseOverGraphic unimplemented");
+	self->setMouseOverGraphic(value);
 
 	return RuntimeValue();
 }
@@ -1414,10 +1394,7 @@ Script_Button_set_MouseOverGraphic(AGSEngine *vm, GUIButton *self,
 RuntimeValue
 Script_Button_get_NormalGraphic(AGSEngine *vm, GUIButton *self,
                                 const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Button::get_NormalGraphic unimplemented");
-
-	return RuntimeValue();
+	return self->getNormalGraphic();
 }
 
 // Button: import attribute int NormalGraphic
@@ -1426,11 +1403,9 @@ Script_Button_get_NormalGraphic(AGSEngine *vm, GUIButton *self,
 RuntimeValue
 Script_Button_set_NormalGraphic(AGSEngine *vm, GUIButton *self,
                                 const Common::Array<RuntimeValue> &params) {
-	int value = params[0]._signedValue;
-	UNUSED(value);
+	uint value = params[0]._value;
 
-	// FIXME
-	error("Button::set_NormalGraphic unimplemented");
+	self->setNormalGraphic(value);
 
 	return RuntimeValue();
 }
@@ -1440,10 +1415,7 @@ Script_Button_set_NormalGraphic(AGSEngine *vm, GUIButton *self,
 RuntimeValue
 Script_Button_get_PushedGraphic(AGSEngine *vm, GUIButton *self,
                                 const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Button::get_PushedGraphic unimplemented");
-
-	return RuntimeValue();
+	return self->getPushedGraphic();
 }
 
 // Button: import attribute int PushedGraphic
@@ -1451,11 +1423,9 @@ Script_Button_get_PushedGraphic(AGSEngine *vm, GUIButton *self,
 RuntimeValue
 Script_Button_set_PushedGraphic(AGSEngine *vm, GUIButton *self,
                                 const Common::Array<RuntimeValue> &params) {
-	int value = params[0]._signedValue;
-	UNUSED(value);
+	uint value = params[0]._value;
 
-	// FIXME
-	error("Button::set_PushedGraphic unimplemented");
+	self->setPushedGraphic(value);
 
 	return RuntimeValue();
 }
