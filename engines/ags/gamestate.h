@@ -43,6 +43,8 @@ public:
 	void setNormalFont(uint fontId);
 	void setSpeechFont(uint fontId);
 
+	uint32 userToInternalSkipSpeech(uint mode);
+
 	// player's current score
 	uint32 _score;
 	// set by ProcessClick to last cursor mode used
@@ -301,8 +303,6 @@ public:
 
 protected:
 	AGSEngine *_vm;
-
-	uint32 userToInternalSkipSpeech(uint mode);
 };
 
 } // End of namespace AGS

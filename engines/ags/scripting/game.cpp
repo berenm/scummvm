@@ -1006,11 +1006,13 @@ RuntimeValue Script_SetVoiceMode(AGSEngine *vm, ScriptObject *,
 // Sets how the player can skip speech lines.
 RuntimeValue Script_SetSkipSpeech(AGSEngine *vm, ScriptObject *,
                                   const Common::Array<RuntimeValue> &params) {
-	int skipFlag = params[0]._signedValue;
-	UNUSED(skipFlag);
+	uint skipFlag = params[0]._value;
 
-	// FIXME
-	error("SetSkipSpeech unimplemented");
+	if (skipFlag > 4)
+		error("SetSkipSpeech: invalid skip mode %d specified", skipFlag);
+
+	vm->_state->_cantSkipSpeech =
+	    vm->_state->userToInternalSkipSpeech(skipFlag);
 
 	return RuntimeValue();
 }
