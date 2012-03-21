@@ -86,9 +86,6 @@ void ccScript::readFrom(Common::SeekableReadStream *dta) {
 	for (uint i = 0; i < fixupsCount; ++i) {
 		// this is the code array index (i.e. not bytes)
 		uint32 fixupIndex = dta->readUint32LE();
-		if (fixupIndex >= _code.size())
-			error("fixup for %d is beyond code size %d", fixupIndex,
-			      _code.size());
 
 		if (fixupTypes[i] == FIXUP_DATADATA) {
 			// patch to global data
@@ -96,6 +93,9 @@ void ccScript::readFrom(Common::SeekableReadStream *dta) {
 			_globalFixups.push_back(fixupIndex);
 		} else if (fixupTypes[i] && fixupTypes[i] <= 6) {
 			// patch to code
+			if (fixupIndex >= _code.size())
+				error("fixup for %d is beyond code size %d", fixupIndex,
+				      _code.size());
 			if (_code[fixupIndex]._fixupType)
 				error("duplicate fixup (index %d, old type %d, new type %d)",
 				      fixupIndex, _code[fixupIndex]._fixupType, fixupTypes[i]);
@@ -311,7 +311,7 @@ void ccInstance::call(const Common::String &name,
 	_registers[SREG_SP]._value = 0;
 
 	// push parameters onto stack in reverse order
-	for (uint i = params.size(); i > 0; ++i)
+	for (uint i = params.size(); i > 0; --i)
 		pushValue(params[i - 1]);
 	// push return address onto stack
 	pushValue(0);
