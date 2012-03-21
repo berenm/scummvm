@@ -266,31 +266,6 @@ Script_System_get_CapsLock(AGSEngine *vm, ScriptObject *,
 	return RuntimeValue();
 }
 
-// System: readonly import static attribute AudioChannel *AudioChannels[]
-// Gets a specific audio channel instance.
-RuntimeValue
-Script_System_geti_AudioChannels(AGSEngine *vm, ScriptObject *,
-                                 const Common::Array<RuntimeValue> &params) {
-	int index = params[0]._signedValue;
-	UNUSED(index);
-
-	// FIXME
-	error("System::geti_AudioChannels unimplemented");
-
-	return RuntimeValue();
-}
-
-// System: readonly import static attribute int AudioChannelCount
-// Gets the number of audio channels supported by AGS.
-RuntimeValue
-Script_System_get_AudioChannelCount(AGSEngine *vm, ScriptObject *,
-                                    const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("System::get_AudioChannelCount unimplemented");
-
-	return RuntimeValue();
-}
-
 // System: readonly import static attribute int ColorDepth
 // Gets the colour depth that the game is running at.
 RuntimeValue
@@ -521,10 +496,6 @@ static const ScriptSystemFunctionInfo ourFunctionList[] = {
      sotNone},
     {"System::get_CapsLock", (ScriptAPIFunction *) &Script_System_get_CapsLock,
      "", sotNone},
-    {"System::geti_AudioChannels",
-     (ScriptAPIFunction *) &Script_System_geti_AudioChannels, "i", sotNone},
-    {"System::get_AudioChannelCount",
-     (ScriptAPIFunction *) &Script_System_get_AudioChannelCount, "", sotNone},
     {"System::get_ColorDepth",
      (ScriptAPIFunction *) &Script_System_get_ColorDepth, "", sotNone},
     {"System::get_Gamma", (ScriptAPIFunction *) &Script_System_get_Gamma, "",
