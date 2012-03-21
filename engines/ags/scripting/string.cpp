@@ -58,12 +58,11 @@ Script_String_IsNullOrEmpty(AGSEngine *vm, ScriptObject *,
 RuntimeValue Script_String_Append(AGSEngine *vm, ScriptString *self,
                                   const Common::Array<RuntimeValue> &params) {
 	ScriptString *appendText = (ScriptString *) params[0]._object;
-	UNUSED(appendText);
 
-	// FIXME
-	error("String::Append unimplemented");
-
-	return RuntimeValue();
+	RuntimeValue ret =
+	    new ScriptMutableString(self->getString() + appendText->getString());
+	ret._object->DecRef();
+	return ret;
 }
 
 // String: import String AppendChar(char extraChar)
@@ -72,12 +71,10 @@ RuntimeValue
 Script_String_AppendChar(AGSEngine *vm, ScriptString *self,
                          const Common::Array<RuntimeValue> &params) {
 	char extraChar = (char) params[0]._value;
-	UNUSED(extraChar);
 
-	// FIXME
-	error("String::AppendChar unimplemented");
-
-	return RuntimeValue();
+	RuntimeValue ret = new ScriptMutableString(self->getString() + extraChar);
+	ret._object->DecRef();
+	return ret;
 }
 
 // String: import int CompareTo(const string otherString, bool caseSensitive =
@@ -86,14 +83,12 @@ RuntimeValue
 Script_String_CompareTo(AGSEngine *vm, ScriptString *self,
                         const Common::Array<RuntimeValue> &params) {
 	ScriptString *otherString = (ScriptString *) params[0]._object;
-	UNUSED(otherString);
 	uint32 caseSensitive = params[1]._value;
-	UNUSED(caseSensitive);
 
-	// FIXME
-	error("String::CompareTo unimplemented");
-
-	return RuntimeValue();
+	if (caseSensitive)
+		return self->getString().compareToIgnoreCase(otherString->getString());
+	else
+		return self->getString().compareTo(otherString->getString());
 }
 
 // String: import int Contains(const string needle)
@@ -113,10 +108,9 @@ RuntimeValue Script_String_Contains(AGSEngine *vm, ScriptString *self,
 // Creates a copy of the string.
 RuntimeValue Script_String_Copy(AGSEngine *vm, ScriptString *self,
                                 const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("String::Copy unimplemented");
-
-	return RuntimeValue();
+	RuntimeValue ret = new ScriptMutableString(self->getString());
+	ret._object->DecRef();
+	return ret;
 }
 
 // String: import bool EndsWith(const string endsWithText, bool caseSensitive =
@@ -152,10 +146,11 @@ RuntimeValue Script_String_IndexOf(AGSEngine *vm, ScriptString *self,
 RuntimeValue
 Script_String_LowerCase(AGSEngine *vm, ScriptString *self,
                         const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("String::LowerCase unimplemented");
-
-	return RuntimeValue();
+	Common::String string = self->getString();
+	string.toLowercase();
+	RuntimeValue ret = new ScriptMutableString(string);
+	ret._object->DecRef();
+	return ret;
 }
 
 // String: import String Replace(const string lookForText, const string
@@ -244,10 +239,11 @@ RuntimeValue Script_String_Truncate(AGSEngine *vm, ScriptString *self,
 RuntimeValue
 Script_String_UpperCase(AGSEngine *vm, ScriptString *self,
                         const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("String::UpperCase unimplemented");
-
-	return RuntimeValue();
+	Common::String string = self->getString();
+	string.toUppercase();
+	RuntimeValue ret = new ScriptMutableString(string);
+	ret._object->DecRef();
+	return ret;
 }
 
 // String: readonly import attribute float AsFloat
@@ -266,10 +262,7 @@ Script_String_get_AsFloat(AGSEngine *vm, ScriptString *self,
 RuntimeValue
 Script_String_get_AsInt(AGSEngine *vm, ScriptString *self,
                         const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("String::get_AsInt unimplemented");
-
-	return RuntimeValue();
+	return atoi(self->getString().c_str());
 }
 
 // String: readonly import attribute char Chars[]
@@ -277,13 +270,14 @@ Script_String_get_AsInt(AGSEngine *vm, ScriptString *self,
 RuntimeValue
 Script_String_geti_Chars(AGSEngine *vm, ScriptString *self,
                          const Common::Array<RuntimeValue> &params) {
-	int index = params[0]._signedValue;
-	UNUSED(index);
+	uint index = params[0]._value;
 
-	// FIXME
-	error("String::geti_Chars unimplemented");
+	Common::String string = self->getString();
+	if (index >= string.size())
+		error("String::geti_Chars: char %d is too high (only have %d chars)",
+		      index, string.size());
 
-	return RuntimeValue();
+	return (uint)(byte) string[index];
 }
 
 // String: readonly import attribute int Length
@@ -373,7 +367,7 @@ RuntimeValue Script_StrGetCharAt(AGSEngine *vm, ScriptObject *,
 	if (position >= realString.size())
 		return 0;
 
-	return (uint) realString[position];
+	return (uint)(byte) realString[position];
 }
 
 // import void StrSetCharAt (string, int position, int newChar)
@@ -415,10 +409,10 @@ RuntimeValue Script_StrToLowerCase(AGSEngine *vm, ScriptObject *,
 RuntimeValue Script_StrToUpperCase(AGSEngine *vm, ScriptObject *,
                                    const Common::Array<RuntimeValue> &params) {
 	ScriptString *string = (ScriptString *) params[0]._object;
-	UNUSED(string);
 
-	// FIXME
-	error("StrToUpperCase unimplemented");
+	Common::String realString = string->getString();
+	realString.toUppercase();
+	string->setString(realString);
 
 	return RuntimeValue();
 }
