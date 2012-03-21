@@ -161,6 +161,7 @@ public:
 	bool isOfType(ScriptObjectType objectType) {
 		return (objectType == sotGUIControl || objectType == sotGUISlider);
 	}
+	const char *getObjectTypeName() { return "GUISlider"; }
 
 	uint32 _min, _max;
 	uint32 _value;
@@ -185,6 +186,7 @@ public:
 	bool isOfType(ScriptObjectType objectType) {
 		return (objectType == sotGUIControl || objectType == sotGUILabel);
 	}
+	const char *getObjectTypeName() { return "GUILabel"; }
 
 	void setFont(uint32 font);
 	void setColor(uint32 color);
@@ -208,6 +210,7 @@ public:
 	bool isOfType(ScriptObjectType objectType) {
 		return (objectType == sotGUIControl || objectType == sotGUITextBox);
 	}
+	const char *getObjectTypeName() { return "GUITextBox"; }
 
 	Common::String _text;
 	uint32 _font;
@@ -225,6 +228,7 @@ public:
 	bool isOfType(ScriptObjectType objectType) {
 		return (objectType == sotGUIControl || objectType == sotGUIListBox);
 	}
+	const char *getObjectTypeName() { return "GUIListBox"; }
 
 	Common::Array<Common::String> _items;
 	Common::Array<uint16> _itemSaveGameIndexes;
@@ -254,6 +258,7 @@ public:
 	bool isOfType(ScriptObjectType objectType) {
 		return (objectType == sotGUIControl || objectType == sotGUIInvWindow);
 	}
+	const char *getObjectTypeName() { return "GUIInvControl"; }
 
 	uint32 _charId; // whose inventory? (-1 = current player)
 	uint32 _itemWidth, _itemHeight;
@@ -274,6 +279,7 @@ public:
 	bool isOfType(ScriptObjectType objectType) {
 		return (objectType == sotGUIControl || objectType == sotGUIButton);
 	}
+	const char *getObjectTypeName() { return "GUIButton"; }
 
 	Common::String _text;
 
@@ -309,6 +315,7 @@ public:
 	bool isOfType(ScriptObjectType objectType) {
 		return (objectType == sotGUI);
 	}
+	const char *getObjectTypeName() { return "GUI"; }
 
 	char _vText[4]; // ??? - for compatibility
 	Common::String _name;

@@ -273,6 +273,7 @@ Room::Room(AGSEngine *vm, Common::SeekableReadStream *dta) :
 				dta->read(objectName, MAX_SCRIPT_NAME_LEN);
 				objectName[MAX_SCRIPT_NAME_LEN] = '\0';
 				_objects[i]->_scriptName = objectName;
+				debug(7, "object %d script '%s'", i, objectName);
 			}
 			break;
 		case BLOCKTYPE_ANIMBKGRND: {

@@ -73,10 +73,17 @@ public:
 	}
 	uint32 getRefCount() { return _refCount; }
 
+	virtual uint32 readUint32(uint offset) {
+		error("tried reading uint32 from offset %d on a %s", offset,
+		      getObjectTypeName());
+	}
+	virtual bool writeUint32(uint offset, uint value) { return false; }
+
 	// for resolving pointer arithmetic by scripts
 	virtual ScriptObject *getObjectAt(uint32 &offset) { return this; }
 
 	virtual bool isOfType(ScriptObjectType objectType) { return false; }
+	virtual const char *getObjectTypeName() = 0;
 
 protected:
 	uint32 _refCount;
@@ -90,6 +97,7 @@ public:
 	virtual bool isOfType(ScriptObjectType objectType) {
 		return (objectType == sotString);
 	}
+	const char *getObjectTypeName() { return "ScriptString"; }
 };
 
 class ScriptConstString : public ScriptString {
@@ -119,8 +127,10 @@ protected:
 // array of (system) script objects; for characters[], gui[], etc
 template <class T> class ScriptObjectArray : public ScriptObject {
 public:
-	ScriptObjectArray(Common::Array<T> &array, uint32 elementSize) :
-	    _array(array), _elementSize(elementSize) {}
+	ScriptObjectArray(Common::Array<T> &array, uint32 elementSize,
+	                  const char *objName) :
+	    _array(array),
+	    _elementSize(elementSize), _objName(objName) {}
 	virtual ScriptObject *getObjectAt(uint32 &offset) {
 		uint32 objectId = offset / _elementSize;
 		if (objectId >= _array.size())
@@ -128,17 +138,38 @@ public:
 		offset = offset % _elementSize;
 		return &_array[objectId];
 	}
+	virtual uint32 readUint32(uint offset) {
+		uint32 objectId = offset / _elementSize;
+		if (objectId >= _array.size())
+			error(
+			    "readUint32: offset %d is beyond end of array of %s (size %d)",
+			    offset, _objName, _array.size());
+		return _array[objectId].readUint32(offset % _elementSize);
+	}
+	virtual bool writeUint32(uint offset, uint value) {
+		uint32 objectId = offset / _elementSize;
+		if (objectId >= _array.size())
+			error(
+			    "writeUint32: offset %d is beyond end of array of %s (size %d)",
+			    offset, _objName, _array.size());
+		return _array[objectId].writeUint32(offset % _elementSize, value);
+	}
+
+	const char *getObjectTypeName() { return "ScriptObjectArray"; }
 
 protected:
 	uint32 _elementSize;
+	const char *_objName;
 	Common::Array<T> &_array;
 };
 
 // specialization of above for arrays containing pointers
 template <class T> class ScriptObjectArray<T *> : public ScriptObject {
 public:
-	ScriptObjectArray(Common::Array<T *> &array, uint32 elementSize) :
-	    _array(array), _elementSize(elementSize) {}
+	ScriptObjectArray(Common::Array<T *> &array, uint32 elementSize,
+	                  const char *objName) :
+	    _array(array),
+	    _elementSize(elementSize), _objName(objName) {}
 	virtual ScriptObject *getObjectAt(uint32 &offset) {
 		uint32 objectId = offset / _elementSize;
 		if (objectId >= _array.size())
@@ -146,9 +177,28 @@ public:
 		offset = offset % _elementSize;
 		return _array[objectId];
 	}
+	virtual uint32 readUint32(uint offset) {
+		uint32 objectId = offset / _elementSize;
+		if (objectId >= _array.size())
+			error(
+			    "readUint32: offset %d is beyond end of array of %s (size %d)",
+			    offset, _objName, _array.size());
+		return _array[objectId]->readUint32(offset % _elementSize);
+	}
+	virtual bool writeUint32(uint offset, uint value) {
+		uint32 objectId = offset / _elementSize;
+		if (objectId >= _array.size())
+			error(
+			    "writeUint32: offset %d is beyond end of array of %s (size %d)",
+			    offset, _objName, _array.size());
+		return _array[objectId]->writeUint32(offset % _elementSize, value);
+	}
+
+	const char *getObjectTypeName() { return "ScriptObjectArray<*>"; }
 
 protected:
 	uint32 _elementSize;
+	const char *_objName;
 	Common::Array<T *> &_array;
 };
 

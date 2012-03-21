@@ -54,6 +54,7 @@ public:
 	bool isOfType(ScriptObjectType objectType) {
 		return (objectType == sotAudioClip);
 	}
+	const char *getObjectTypeName() { return "AudioClip"; }
 
 	Common::String _scriptName;
 	Common::String _filename;
@@ -81,6 +82,7 @@ public:
 	bool isOfType(ScriptObjectType objectType) {
 		return (objectType == sotAudioChannel);
 	}
+	const char *getObjectTypeName() { return "AudioChannel"; }
 
 	bool isValid() { return _valid; }
 

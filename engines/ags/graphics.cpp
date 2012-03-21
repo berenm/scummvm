@@ -412,6 +412,7 @@ void AGSGraphics::loadFonts() {
 			    Graphics::kTTFSizeModeCharacter;
 			_fonts[i] = Graphics::loadTTFFont(*stream, fontSize, fontSizeMode,
 			                                  !antialias);
+			delete stream;
 			continue;
 		}
 		// try WFN
@@ -422,6 +423,7 @@ void AGSGraphics::loadFonts() {
 		if (!stream)
 			error("couldn't find font %d", i);
 		_fonts[i] = new WFNFont(stream);
+		delete stream;
 	}
 }
 

@@ -93,6 +93,8 @@ AGSEngine::~AGSEngine() {
 	delete _graphics;
 	delete _sprites;
 
+	delete _state;
+
 	delete _audio;
 	delete _gameFile;
 	delete _resourceMan;
@@ -255,7 +257,8 @@ void AGSEngine::createGlobalScript() {
 	assert(_scriptModules.empty());
 
 	_scriptState->addSystemObjectImport(
-	    "dialog", new ScriptObjectArray<DialogTopic>(_gameFile->_dialogs, 8));
+	    "dialog", new ScriptObjectArray<DialogTopic>(_gameFile->_dialogs, 8,
+	                                                 "DialogTopic"));
 	for (uint i = 0; i < _gameFile->_dialogs.size(); ++i)
 		_scriptState->addSystemObjectImport(_gameFile->_dialogs[i]._name,
 		                                    &_gameFile->_dialogs[i]);
@@ -334,7 +337,9 @@ void AGSEngine::loadNewRoom(uint32 id, Character *forChar) {
 
 	_scriptState->addSystemObjectImport(
 	    "object",
-	    new ScriptObjectArray<RoomObject *>(_currentRoom->_objects, 8), true);
+	    new ScriptObjectArray<RoomObject *>(_currentRoom->_objects, 8,
+	                                        "RoomObject"),
+	    true);
 
 	// FIXME
 
@@ -899,7 +904,8 @@ bool AGSEngine::init() {
 	addSystemScripting(this);
 
 	_scriptState->addSystemObjectImport(
-	    "character", new ScriptObjectArray<Character *>(_characters, 780));
+	    "character",
+	    new ScriptObjectArray<Character *>(_characters, 780, "Character"));
 	_scriptState->addSystemObjectImport("player",
 	                                    _characters[_gameFile->_playerChar]);
 	for (uint i = 0; i < _characters.size(); ++i) {
@@ -909,7 +915,8 @@ bool AGSEngine::init() {
 		_scriptState->addSystemObjectImport(charInfo->_scriptName, charInfo);
 	}
 	_scriptState->addSystemObjectImport(
-	    "gui", new ScriptObjectArray<GUIGroup *>(_gameFile->_guiGroups, 8));
+	    "gui",
+	    new ScriptObjectArray<GUIGroup *>(_gameFile->_guiGroups, 8, "GUI"));
 	for (uint i = 0; i < _gameFile->_guiGroups.size(); ++i) {
 		GUIGroup &group = *_gameFile->_guiGroups[i];
 		if (group._name.empty())
@@ -923,8 +930,8 @@ bool AGSEngine::init() {
 		}
 	}
 	_scriptState->addSystemObjectImport(
-	    "inventory",
-	    new ScriptObjectArray<InventoryItem>(_gameFile->_invItemInfo, 68));
+	    "inventory", new ScriptObjectArray<InventoryItem>(
+	                     _gameFile->_invItemInfo, 68, "InventoryItem"));
 	for (uint i = 0; i < _gameFile->_invItemInfo.size(); ++i) {
 		InventoryItem &invItem = _gameFile->_invItemInfo[i];
 		if (invItem._scriptName.empty())
