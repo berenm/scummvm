@@ -59,6 +59,9 @@ struct FullAnimation {
 
 struct RoomRegion : public ScriptObject {
 	RoomRegion() : _interaction(NULL), _lightLevel(0), _tintLevel(0) {}
+	bool isOfType(ScriptObjectType objectType) {
+		return (objectType == sotRegion);
+	}
 	const char *getObjectTypeName() { return "RoomRegion"; }
 
 	NewInteraction *_interaction;
@@ -78,6 +81,9 @@ struct RoomRegion : public ScriptObject {
 
 struct RoomObject : public ScriptObject, public Drawable {
 	RoomObject(AGSEngine *vm) : _vm(vm), _interaction(NULL), _flags(0) {}
+	bool isOfType(ScriptObjectType objectType) {
+		return (objectType == sotRoomObject);
+	}
 	const char *getObjectTypeName() { return "RoomObject"; }
 
 	// originally from room, immutable
@@ -143,6 +149,9 @@ struct RoomWalkArea {
 
 struct RoomHotspot : public ScriptObject {
 	RoomHotspot() : _interaction(NULL) {}
+	bool isOfType(ScriptObjectType objectType) {
+		return (objectType == sotHotspot);
+	}
 	const char *getObjectTypeName() { return "RoomHotspot"; }
 
 	Common::Point _walkToPos;
