@@ -320,6 +320,8 @@ public:
 	void setBackgroundPicture(uint32 pic);
 	void invalidate();
 
+	bool isMouseOver(const Common::Point &pos);
+
 	void sortControls();
 
 	bool isOfType(ScriptObjectType objectType) {
