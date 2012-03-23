@@ -314,10 +314,9 @@ Script_Game_get_DialogCount(AGSEngine *vm, ScriptObject *,
 RuntimeValue
 Script_Game_get_FileName(AGSEngine *vm, ScriptObject *,
                          const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Game::get_FileName unimplemented");
-
-	return RuntimeValue();
+	RuntimeValue ret = new ScriptMutableString(vm->getMasterArchive());
+	ret._object->DecRef();
+	return ret;
 }
 
 // Game: readonly import static attribute int FontCount
