@@ -35,6 +35,8 @@
 namespace AGS {
 
 struct Character : public ScriptObject {
+	Character();
+
 	bool isOfType(ScriptObjectType objectType) {
 		return (objectType == sotCharacter);
 	}
