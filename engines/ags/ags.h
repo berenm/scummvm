@@ -86,11 +86,11 @@ public:
 	// run_another
 	void queueScript(const Common::String &name, uint p1 = 0, uint p2 = 0);
 
-protected:
-	ccInstance *_instance;
-
 	Common::Array<PendingScript> _pendingScripts;
 	Common::Array<PostScriptAction> _pendingActions;
+
+protected:
+	ccInstance *_instance;
 };
 
 enum NewRoomState {
@@ -343,6 +343,7 @@ private:
 	bool runScriptFunction(ccInstance *instance, const Common::String &name,
 	                       const Common::Array<uint32> &params);
 	bool prepareTextScript(ccInstance *instance, const Common::String &name);
+	void postScriptCleanup();
 
 	const ADGameFileDescription *getGameFiles() const;
 	const char *getDetectedGameFile() const;
