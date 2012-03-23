@@ -217,10 +217,16 @@ Script_String_Substring(AGSEngine *vm, ScriptString *self,
 	uint index = params[0]._value;
 	uint length = params[1]._value;
 
-	if (index > self->getString().size())
-		error("String::Substring: invalid index");
+	Common::String string = self->getString();
+	if (index > string.size())
+		error("String::Substring: invalid index (%d, on string of length %d)",
+		      index, string.size());
+	if (index + length > string.size())
+		error("String::Substring: invalid length (%d, from index %d on string "
+		      "of length %d)",
+		      length, index, string.size());
 
-	Common::String result(self->getString().c_str() + index, length);
+	Common::String result(string.c_str() + index, length);
 	RuntimeValue ret = new ScriptMutableString(result);
 	ret._object->DecRef();
 	return ret;
