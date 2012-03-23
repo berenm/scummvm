@@ -181,9 +181,16 @@ public:
 	virtual void getDrawTint(int &lightLevel, int &luminance, byte &red,
 	                         byte &green, byte &blue) {}
 
+	bool isLoaded() { return _loaded; }
+
+	void loadFrom(Common::SeekableReadStream *dta);
+	void unload();
+
 protected:
 	AGSEngine *_vm;
+	bool _loaded;
 
+	void readData(Common::SeekableReadStream *dta);
 	void readMainBlock(Common::SeekableReadStream *dta);
 
 public:
