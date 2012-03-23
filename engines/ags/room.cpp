@@ -143,7 +143,7 @@ int RoomObject::getDrawOrder() {
 }
 
 const Graphics::Surface *RoomObject::getDrawSurface() {
-	return _vm->getSprites()->getSprite(_spriteId); // FIXME
+	return _vm->getSprites()->getSprite(_spriteId)->_surface; // FIXME
 }
 
 uint RoomObject::getDrawWidth() {
