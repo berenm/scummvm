@@ -48,6 +48,8 @@ public:
 	bool writeUint32(uint offset, uint value);
 
 	void followCharacter(Character *chr, int distance, uint eagerness);
+	void lockView(uint viewId);
+	void lockViewOffset(uint viewId, int xOffs, int yOffs);
 
 	uint32 _defView, _talkView, _view;
 	uint32 _room, _prevRoom;
@@ -73,7 +75,8 @@ public:
 	uint16 _blinkView, _blinkInterval; // design time
 	uint16 _blinkTimer, _blinkFrame;   // run time
 
-	uint16 _walkSpeedY, _picYOffs;
+	uint16 _walkSpeedY;
+	int16 _picYOffs;
 
 	int32 _z;
 
@@ -84,7 +87,7 @@ public:
 
 	uint32 _indexId; // used for object functions to know the id
 
-	uint16 _picXOffs;
+	int16 _picXOffs;
 	uint16 _walkWaitCounter;
 
 	uint16 _loop;
