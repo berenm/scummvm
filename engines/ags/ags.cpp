@@ -545,20 +545,20 @@ void AGSEngine::createGlobalScript() {
 	// with empty arrays for now, and replace them later.
 	_roomObjectState = new RoomObjectState;
 	_roomObjectState->_objectObject = new ScriptObjectArray<RoomObject *>(
-	    _roomObjectState->_invalidObjects, 8, "RoomObject");
+	    &_roomObjectState->_invalidObjects, 8, "RoomObject");
 	_scriptState->addSystemObjectImport("object",
 	                                    _roomObjectState->_objectObject);
 	_roomObjectState->_hotspotObject = new ScriptObjectArray<RoomHotspot>(
-	    _roomObjectState->_invalidHotspots, 8, "RoomHotspot");
+	    &_roomObjectState->_invalidHotspots, 8, "RoomHotspot");
 	_scriptState->addSystemObjectImport("hotspot",
 	                                    _roomObjectState->_hotspotObject);
 	_roomObjectState->_regionObject = new ScriptObjectArray<RoomRegion>(
-	    _roomObjectState->_invalidRegions, 8, "RoomRegion");
+	    &_roomObjectState->_invalidRegions, 8, "RoomRegion");
 	_scriptState->addSystemObjectImport("region",
 	                                    _roomObjectState->_regionObject);
 
 	_scriptState->addSystemObjectImport(
-	    "dialog", new ScriptObjectArray<DialogTopic>(_gameFile->_dialogs, 8,
+	    "dialog", new ScriptObjectArray<DialogTopic>(&_gameFile->_dialogs, 8,
 	                                                 "DialogTopic"));
 	for (uint i = 0; i < _gameFile->_dialogs.size(); ++i)
 		_scriptState->addSystemObjectImport(_gameFile->_dialogs[i]._name,
@@ -638,7 +638,7 @@ void AGSEngine::loadNewRoom(uint32 id, Character *forChar) {
 
 	// FIXME
 
-	_roomObjectState->_objectObject->setArray(_currentRoom->_objects);
+	_roomObjectState->_objectObject->setArray(&_currentRoom->_objects);
 	for (uint i = 0; i < _currentRoom->_objects.size(); ++i) {
 		RoomObject *obj = _currentRoom->_objects[i];
 		if (obj->_scriptName.empty())
@@ -646,7 +646,7 @@ void AGSEngine::loadNewRoom(uint32 id, Character *forChar) {
 		_scriptState->addSystemObjectImport(obj->_scriptName, obj);
 	}
 
-	_roomObjectState->_hotspotObject->setArray(_currentRoom->_hotspots);
+	_roomObjectState->_hotspotObject->setArray(&_currentRoom->_hotspots);
 	for (uint i = 0; i < _currentRoom->_hotspots.size(); ++i) {
 		RoomHotspot &hotspot = _currentRoom->_hotspots[i];
 		if (hotspot._scriptName.empty())
@@ -654,7 +654,7 @@ void AGSEngine::loadNewRoom(uint32 id, Character *forChar) {
 		_scriptState->addSystemObjectImport(hotspot._scriptName, &hotspot);
 	}
 
-	_roomObjectState->_regionObject->setArray(_currentRoom->_regions);
+	_roomObjectState->_regionObject->setArray(&_currentRoom->_regions);
 
 	// FIXME
 
@@ -679,11 +679,11 @@ void AGSEngine::unloadOldRoom() {
 	_currentRoom = NULL;
 
 	_roomObjectState->_objectObject->setArray(
-	    _roomObjectState->_invalidObjects);
+	    &_roomObjectState->_invalidObjects);
 	_roomObjectState->_hotspotObject->setArray(
-	    _roomObjectState->_invalidHotspots);
+	    &_roomObjectState->_invalidHotspots);
 	_roomObjectState->_regionObject->setArray(
-	    _roomObjectState->_invalidRegions);
+	    &_roomObjectState->_invalidRegions);
 	// FIXME: remove old exported objects
 
 	// FIXME: a lot of unimplemented stuff
@@ -1346,7 +1346,7 @@ bool AGSEngine::init() {
 
 	_scriptState->addSystemObjectImport(
 	    "character",
-	    new ScriptObjectArray<Character *>(_characters, 780, "Character"));
+	    new ScriptObjectArray<Character *>(&_characters, 780, "Character"));
 	_scriptState->addSystemObjectImport("player",
 	                                    _characters[_gameFile->_playerChar]);
 	for (uint i = 0; i < _characters.size(); ++i) {
@@ -1357,7 +1357,7 @@ bool AGSEngine::init() {
 	}
 	_scriptState->addSystemObjectImport(
 	    "gui",
-	    new ScriptObjectArray<GUIGroup *>(_gameFile->_guiGroups, 8, "GUI"));
+	    new ScriptObjectArray<GUIGroup *>(&_gameFile->_guiGroups, 8, "GUI"));
 	for (uint i = 0; i < _gameFile->_guiGroups.size(); ++i) {
 		GUIGroup &group = *_gameFile->_guiGroups[i];
 		if (group._name.empty())
@@ -1372,7 +1372,7 @@ bool AGSEngine::init() {
 	}
 	_scriptState->addSystemObjectImport(
 	    "inventory", new ScriptObjectArray<InventoryItem>(
-	                     _gameFile->_invItemInfo, 68, "InventoryItem"));
+	                     &_gameFile->_invItemInfo, 68, "InventoryItem"));
 	for (uint i = 0; i < _gameFile->_invItemInfo.size(); ++i) {
 		InventoryItem &invItem = _gameFile->_invItemInfo[i];
 		if (invItem._scriptName.empty())
