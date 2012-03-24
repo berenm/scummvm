@@ -2446,10 +2446,7 @@ Script_Character_get_WalkSpeedY(AGSEngine *vm, Character *self,
 // The character's current X-position.
 RuntimeValue Script_Character_get_x(AGSEngine *vm, Character *self,
                                     const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Character::get_x unimplemented");
-
-	return RuntimeValue();
+	return self->_x;
 }
 
 // Character: import attribute int x
@@ -2469,10 +2466,7 @@ RuntimeValue Script_Character_set_x(AGSEngine *vm, Character *self,
 // The character's current Y-position.
 RuntimeValue Script_Character_get_y(AGSEngine *vm, Character *self,
                                     const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Character::get_y unimplemented");
-
-	return RuntimeValue();
+	return self->_y;
 }
 
 // Character: import attribute int y
@@ -2492,10 +2486,7 @@ RuntimeValue Script_Character_set_y(AGSEngine *vm, Character *self,
 // The character's current Z-position.
 RuntimeValue Script_Character_get_z(AGSEngine *vm, Character *self,
                                     const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Character::get_z unimplemented");
-
-	return RuntimeValue();
+	return self->_z;
 }
 
 // Character: import attribute int z
