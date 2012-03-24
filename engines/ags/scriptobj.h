@@ -131,6 +131,7 @@ public:
 	                  const char *objName) :
 	    _array(array),
 	    _elementSize(elementSize), _objName(objName) {}
+	void setArray(Common::Array<T> &array) { _array = array; }
 	virtual ScriptObject *getObjectAt(uint32 &offset) {
 		uint32 objectId = offset / _elementSize;
 		if (objectId >= _array.size())
@@ -170,6 +171,7 @@ public:
 	                  const char *objName) :
 	    _array(array),
 	    _elementSize(elementSize), _objName(objName) {}
+	void setArray(Common::Array<T *> &array) { _array = array; }
 	virtual ScriptObject *getObjectAt(uint32 &offset) {
 		uint32 objectId = offset / _elementSize;
 		if (objectId >= _array.size())

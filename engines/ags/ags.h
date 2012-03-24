@@ -317,6 +317,7 @@ private:
 	ccInstance *_roomScript, *_roomScriptFork;
 
 	class GlobalScriptState *_scriptState;
+	struct RoomObjectState *_roomObjectState;
 
 	ScriptObject *_scriptMouseObject;
 	ScriptObject *_gameStateGlobalsObject;
