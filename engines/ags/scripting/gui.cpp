@@ -1073,10 +1073,7 @@ Script_GUIControl_get_OwningGUI(AGSEngine *vm, GUIControl *self,
 RuntimeValue
 Script_GUIControl_get_Visible(AGSEngine *vm, GUIControl *self,
                               const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("GUIControl::get_Visible unimplemented");
-
-	return RuntimeValue();
+	return self->isVisible() ? 1 : 0;
 }
 
 // GUIControl: import attribute bool Visible
@@ -1084,11 +1081,18 @@ Script_GUIControl_get_Visible(AGSEngine *vm, GUIControl *self,
 RuntimeValue
 Script_GUIControl_set_Visible(AGSEngine *vm, GUIControl *self,
                               const Common::Array<RuntimeValue> &params) {
-	uint32 value = params[0]._value;
-	UNUSED(value);
+	uint value = params[0]._value;
 
-	// FIXME
-	error("GUIControl::set_Visible unimplemented");
+	bool val = value ? 1 : 0;
+	if (val == self->isVisible())
+		return RuntimeValue();
+
+	if (val)
+		self->show();
+	else
+		self->hide();
+	self->_parent->controlPositionsChanged();
+	self->_parent->invalidate();
 
 	return RuntimeValue();
 }
