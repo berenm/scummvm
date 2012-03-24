@@ -248,6 +248,11 @@ public:
 	Character *getPlayerChar() { return _playerChar; }
 	Common::Array<Character *> _characters;
 
+	/** Prepend 'TARGET-' to the given filename. */
+	Common::String wrapFilename(const Common::String &name) const {
+		return _targetName + "-" + name;
+	};
+
 	int32 newRoomPos;
 	int32 newRoomX;
 	int32 newRoomY;
