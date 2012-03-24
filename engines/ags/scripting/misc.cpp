@@ -372,10 +372,8 @@ Script_System_get_ScrollLock(AGSEngine *vm, ScriptObject *,
 // Gets whether the player's system supports gamma adjustment.
 RuntimeValue Script_System_get_SupportsGammaControl(
     AGSEngine *vm, ScriptObject *, const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("System::get_SupportsGammaControl unimplemented");
-
-	return RuntimeValue();
+	// ScummVM doesn't support gamma (yet).
+	return 0;
 }
 
 // System: readonly import static attribute String Version
