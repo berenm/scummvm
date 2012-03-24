@@ -329,10 +329,7 @@ Script_Game_get_FileName(AGSEngine *vm, ScriptObject *,
 RuntimeValue
 Script_Game_get_FontCount(AGSEngine *vm, ScriptObject *,
                           const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Game::get_FontCount unimplemented");
-
-	return RuntimeValue();
+	return vm->_gameFile->_fonts.size();
 }
 
 // Game: readonly import static attribute String GlobalMessages[]
@@ -496,10 +493,7 @@ RuntimeValue Script_Game_set_Name(AGSEngine *vm, ScriptObject *,
 RuntimeValue
 Script_Game_get_NormalFont(AGSEngine *vm, ScriptObject *,
                            const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Game::get_NormalFont unimplemented");
-
-	return RuntimeValue();
+	return vm->_state->_normalFont;
 }
 
 // Game: import static attribute FontType NormalFont
@@ -507,11 +501,9 @@ Script_Game_get_NormalFont(AGSEngine *vm, ScriptObject *,
 RuntimeValue
 Script_Game_set_NormalFont(AGSEngine *vm, ScriptObject *,
                            const Common::Array<RuntimeValue> &params) {
-	uint32 value = params[0]._value;
-	UNUSED(value);
+	uint value = params[0]._value;
 
-	// FIXME
-	error("Game::set_NormalFont unimplemented");
+	vm->_state->setNormalFont(value);
 
 	return RuntimeValue();
 }
@@ -529,10 +521,7 @@ Script_Game_get_SkippingCutscene(AGSEngine *vm, ScriptObject *,
 RuntimeValue
 Script_Game_get_SpeechFont(AGSEngine *vm, ScriptObject *,
                            const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Game::get_SpeechFont unimplemented");
-
-	return RuntimeValue();
+	return vm->_state->_speechFont;
 }
 
 // Game: import static attribute FontType SpeechFont
@@ -540,11 +529,9 @@ Script_Game_get_SpeechFont(AGSEngine *vm, ScriptObject *,
 RuntimeValue
 Script_Game_set_SpeechFont(AGSEngine *vm, ScriptObject *,
                            const Common::Array<RuntimeValue> &params) {
-	uint32 value = params[0]._value;
-	UNUSED(value);
+	uint value = params[0]._value;
 
-	// FIXME
-	error("Game::set_SpeechFont unimplemented");
+	vm->_state->setSpeechFont(value);
 
 	return RuntimeValue();
 }
