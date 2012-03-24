@@ -71,4 +71,12 @@ bool Character::writeUint32(uint offset, uint value) {
 	return false;
 }
 
+void Character::followCharacter(Character *chr, int distance, uint eagerness) {
+	if (eagerness > 250)
+		error("followCharacter: invalid eagerness %d (must be 0-250)",
+		      eagerness);
+
+	// FIXME
+}
+
 } // End of namespace AGS
