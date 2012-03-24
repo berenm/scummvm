@@ -58,7 +58,8 @@ struct FullAnimation {
 };
 
 struct RoomRegion : public ScriptObject {
-	RoomRegion() : _interaction(NULL), _lightLevel(0), _tintLevel(0) {}
+	RoomRegion() :
+	    _interaction(NULL), _lightLevel(0), _tintLevel(0), _enabled(true) {}
 	bool isOfType(ScriptObjectType objectType) {
 		return (objectType == sotRegion);
 	}
@@ -68,6 +69,7 @@ struct RoomRegion : public ScriptObject {
 	InteractionScript _interactionScripts;
 	uint16 _lightLevel;
 	uint32 _tintLevel;
+	bool _enabled;
 };
 
 // object flags
