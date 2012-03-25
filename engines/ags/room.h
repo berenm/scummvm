@@ -180,8 +180,6 @@ public:
 	Room(AGSEngine *vm, Common::SeekableReadStream *dta);
 	~Room();
 
-	void convertCoordinatesToLowRes();
-
 	virtual Common::Point getDrawPos() { return Common::Point(0, 0); }
 	virtual int getDrawOrder() { return 0; }
 	virtual const Graphics::Surface *getDrawSurface();
