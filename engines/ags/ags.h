@@ -50,7 +50,7 @@ class ResourceManager;
 class Room;
 class ScriptObject;
 class SpriteSet;
-struct Character;
+class Character;
 class ccInstance;
 
 struct PendingScript {
