@@ -137,7 +137,8 @@ static Graphics::Surface readRLEImage(Common::SeekableReadStream *stream) {
 
 Common::Point RoomObject::getDrawPos() {
 	return Common::Point(_vm->multiplyUpCoordinate(_pos.x),
-	                     _vm->multiplyUpCoordinate(_pos.y));
+	                     _vm->multiplyUpCoordinate(_pos.y) -
+	                         _vm->getSprites()->getSpriteHeight(_spriteId));
 }
 
 int RoomObject::getDrawOrder() {
@@ -600,6 +601,11 @@ void Room::readMainBlock(Common::SeekableReadStream *dta) {
 		_objects[i]->_spriteId = dta->readUint16LE();
 		_objects[i]->_pos.x = dta->readUint16LE();
 		_objects[i]->_pos.y = dta->readUint16LE();
+		if (_version <= kAGSRoomVer300) {
+			uint spriteHeight =
+			    _vm->getSprites()->getSpriteHeight(_objects[i]->_spriteId);
+			_objects[i]->_pos.y += _vm->divideDownCoordinate(spriteHeight);
+		}
 		/*uint16 roomId = */ dta->readUint16LE();
 		_objects[i]->_on = dta->readUint16LE();
 	}
