@@ -184,9 +184,7 @@ RuntimeValue Script_InterfaceOn(AGSEngine *vm, ScriptObject *,
 		      vm->_gameFile->_guiGroups.size());
 	GUIGroup *group = vm->_gameFile->_guiGroups[guiId];
 
-	// FIXME
-	UNUSED(group);
-	warning("InterfaceOn unimplemented");
+	group->interfaceOn();
 
 	return RuntimeValue();
 }
@@ -202,9 +200,7 @@ RuntimeValue Script_InterfaceOff(AGSEngine *vm, ScriptObject *,
 		      vm->_gameFile->_guiGroups.size());
 	GUIGroup *group = vm->_gameFile->_guiGroups[guiId];
 
-	// FIXME
-	UNUSED(group);
-	warning("InterfaceOff unimplemented");
+	group->interfaceOff();
 
 	return RuntimeValue();
 }
@@ -272,7 +268,7 @@ RuntimeValue Script_CentreGUI(AGSEngine *vm, ScriptObject *,
 }
 
 // import int IsGUIOn (int gui)
-// Returns whether the specified GUI is enabled.
+// Returns whether the specified GUI is displayed.
 RuntimeValue Script_IsGUIOn(AGSEngine *vm, ScriptObject *,
                             const Common::Array<RuntimeValue> &params) {
 	uint guiId = params[0]._value;
@@ -282,7 +278,7 @@ RuntimeValue Script_IsGUIOn(AGSEngine *vm, ScriptObject *,
 		      vm->_gameFile->_guiGroups.size());
 	GUIGroup *group = vm->_gameFile->_guiGroups[guiId];
 
-	return (group->_on >= 1) ? 1 : 0;
+	return (group->_visible ? 1 : 0);
 }
 
 // import void SetGUIBackgroundPic (int gui, int spriteSlot)
@@ -2420,24 +2416,22 @@ Script_GUI_set_Transparency(AGSEngine *vm, GUIGroup *self,
 }
 
 // GUI: import attribute bool Visible
-// Gets/sets whether the GUI is visible.
+// Gets/sets whether the GUI is visible (or disabled(!), for mouse ypos popups).
 RuntimeValue Script_GUI_get_Visible(AGSEngine *vm, GUIGroup *self,
                                     const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("GUI::get_Visible unimplemented");
-
-	return RuntimeValue();
+	return (self->_visible || !self->_enabled) ? 1 : 0;
 }
 
 // GUI: import attribute bool Visible
-// Gets/sets whether the GUI is visible.
+// Gets/sets whether the GUI is visible (or enabled, for mouse ypos popups).
 RuntimeValue Script_GUI_set_Visible(AGSEngine *vm, GUIGroup *self,
                                     const Common::Array<RuntimeValue> &params) {
-	uint32 value = params[0]._value;
-	UNUSED(value);
+	uint value = params[0]._value;
 
-	// FIXME
-	error("GUI::set_Visible unimplemented");
+	if (value)
+		self->interfaceOn();
+	else
+		self->interfaceOff();
 
 	return RuntimeValue();
 }
