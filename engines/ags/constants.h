@@ -147,8 +147,6 @@ enum AGSRoomVersion {
 #define FFLG_SIZEMASK 0x003f
 #define FONT_OUTLINE_AUTO -10
 
-#define LOOPFLAG_RUNNEXTLOOP 1
-
 // CharacterInfo
 #define MAX_INV 301
 #define CHF_MANUALSCALING 1

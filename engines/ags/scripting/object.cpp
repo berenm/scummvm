@@ -26,6 +26,7 @@
  */
 
 #include "engines/ags/scripting/scripting.h"
+#include "engines/ags/constants.h"
 #include "engines/ags/room.h"
 
 namespace AGS {
@@ -522,19 +523,30 @@ Script_SetObjectIgnoreWalkbehinds(AGSEngine *vm, ScriptObject *,
 // current view.
 RuntimeValue Script_Object_Animate(AGSEngine *vm, RoomObject *self,
                                    const Common::Array<RuntimeValue> &params) {
-	int loop = params[0]._signedValue;
-	UNUSED(loop);
-	int delay = params[1]._signedValue;
-	UNUSED(delay);
-	uint32 repeatstyle = params[2]._value;
-	UNUSED(repeatstyle);
-	uint32 blockingstyle = params[3]._value;
-	UNUSED(blockingstyle);
-	uint32 direction = params[4]._value;
-	UNUSED(direction);
+	uint loop = params[0]._value;
+	uint delay = params[1]._value;
+	uint repeatStyle = params[2]._value;
+	uint blockingStyle = params[3]._value;
+	uint direction = params[4]._value;
 
-	// FIXME
-	error("Object::Animate unimplemented");
+	if (direction == FORWARDS)
+		direction = 0;
+	else if (direction == BACKWARDS)
+		direction = 1;
+	else
+		error("Object::Animate: invalid direction %d", direction);
+
+	self->animate(loop, delay, repeatStyle, direction);
+
+	if (blockingStyle == BLOCKING)
+		blockingStyle = 1;
+	else if (blockingStyle == IN_BACKGROUND)
+		blockingStyle = 0;
+	else if (blockingStyle != 0 && blockingStyle != 1)
+		error("Object::Animate: invalid blocking style %d", blockingStyle);
+
+	if (blockingStyle)
+		vm->blockUntil(kUntilObjCycleDone, self->_id);
 
 	return RuntimeValue();
 }
@@ -708,15 +720,11 @@ Script_Object_SetPosition(AGSEngine *vm, RoomObject *self,
 // Sets the object to use the specified view, ahead of doing an animation.
 RuntimeValue Script_Object_SetView(AGSEngine *vm, RoomObject *self,
                                    const Common::Array<RuntimeValue> &params) {
-	int view = params[0]._signedValue;
-	UNUSED(view);
+	uint view = params[0]._value;
 	int loop = params[1]._signedValue;
-	UNUSED(loop);
 	int frame = params[2]._signedValue;
-	UNUSED(frame);
 
-	// FIXME
-	error("Object::SetView unimplemented");
+	self->setObjectFrame(view, loop, frame);
 
 	return RuntimeValue();
 }
