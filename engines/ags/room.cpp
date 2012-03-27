@@ -300,8 +300,12 @@ Common::Point RoomObject::getDrawPos() {
 	                         _vm->getSprites()->getSpriteHeight(_spriteId));
 }
 
-int RoomObject::getDrawOrder() {
-	return _baseLine;
+int RoomObject::getDrawOrder() const {
+	uint order = _baseLine;
+	if (!order)
+		order = _pos.y;
+	return order +
+	       ((_flags & OBJF_NOWALKBEHINDS) ? _vm->getCurrentRoom()->_height : 0);
 }
 
 const Graphics::Surface *RoomObject::getDrawSurface() {
