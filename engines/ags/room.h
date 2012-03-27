@@ -84,7 +84,7 @@ struct RoomRegion : public ScriptObject {
 
 struct RoomObject : public ScriptObject, public Drawable {
 	RoomObject(AGSEngine *vm, uint id) :
-	    _vm(vm), _interaction(NULL), _flags(0), _id(id) {}
+	    _vm(vm), _interaction(NULL), _flags(0), _id(id), _cycling(0) {}
 	bool isOfType(ScriptObjectType objectType) {
 		return (objectType == sotRoomObject);
 	}
