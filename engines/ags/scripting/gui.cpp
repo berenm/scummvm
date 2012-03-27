@@ -1436,10 +1436,7 @@ Script_Button_set_PushedGraphic(AGSEngine *vm, GUIButton *self,
 RuntimeValue
 Script_Button_get_TextColor(AGSEngine *vm, GUIButton *self,
                             const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Button::get_TextColor unimplemented");
-
-	return RuntimeValue();
+	return self->getTextColor();
 }
 
 // Button: import attribute int TextColor
@@ -1447,11 +1444,9 @@ Script_Button_get_TextColor(AGSEngine *vm, GUIButton *self,
 RuntimeValue
 Script_Button_set_TextColor(AGSEngine *vm, GUIButton *self,
                             const Common::Array<RuntimeValue> &params) {
-	int value = params[0]._signedValue;
-	UNUSED(value);
+	uint value = params[0]._value;
 
-	// FIXME
-	error("Button::set_TextColor unimplemented");
+	self->setTextColor(value);
 
 	return RuntimeValue();
 }
