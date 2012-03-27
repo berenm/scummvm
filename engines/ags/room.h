@@ -89,6 +89,11 @@ struct RoomObject : public ScriptObject, public Drawable {
 	}
 	const char *getObjectTypeName() { return "RoomObject"; }
 
+	bool isVisible() const { return _visible; }
+	void setVisible(bool visible);
+
+	void stopMoving();
+
 	// originally from room, immutable
 	NewInteraction *_interaction;
 	InteractionScript _interactionScripts;
@@ -102,7 +107,10 @@ struct RoomObject : public ScriptObject, public Drawable {
 	// below originally from sprite
 	Common::Point _pos;
 	uint16 _spriteId;
-	uint16 _on;
+
+	// these replace _on
+	bool _visible;
+	bool _merged;
 
 	// constructed at runtime
 	uint16 _view, _loop, _frame;
