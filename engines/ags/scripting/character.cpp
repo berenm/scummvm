@@ -91,11 +91,9 @@ Script_SetActiveInventory(AGSEngine *vm, ScriptObject *,
 // Obsolete character function.
 RuntimeValue Script_NewRoom(AGSEngine *vm, ScriptObject *,
                             const Common::Array<RuntimeValue> &params) {
-	int roomNumber = params[0]._signedValue;
-	UNUSED(roomNumber);
+	uint roomNumber = params[0]._value;
 
-	// FIXME
-	error("NewRoom unimplemented");
+	vm->scheduleNewRoom(roomNumber);
 
 	return RuntimeValue();
 }
@@ -190,13 +188,10 @@ Script_RunCharacterInteraction(AGSEngine *vm, ScriptObject *,
 // Obsolete character function.
 RuntimeValue Script_DisplaySpeech(AGSEngine *vm, ScriptObject *,
                                   const Common::Array<RuntimeValue> &params) {
-	uint32 charid = params[0]._value;
-	UNUSED(charid);
+	uint charId = params[0]._value;
 	ScriptString *message = (ScriptString *) params[1]._object;
-	UNUSED(message);
 
-	// FIXME
-	error("DisplaySpeech unimplemented");
+	vm->displaySpeech(message->getString(), charId);
 
 	return RuntimeValue();
 }
