@@ -26,6 +26,9 @@
  */
 
 #include "engines/ags/scripting/scripting.h"
+#include "engines/ags/constants.h"
+#include "engines/ags/drawingsurface.h"
+#include "engines/ags/gamestate.h"
 #include "engines/ags/room.h"
 
 namespace AGS {
@@ -49,13 +52,24 @@ Script_Room_GetTextProperty(AGSEngine *vm, ScriptObject *,
 // manipulate the room background.
 RuntimeValue Script_Room_GetDrawingSurfaceForBackground(
     AGSEngine *vm, ScriptObject *, const Common::Array<RuntimeValue> &params) {
-	int backgroundNumber = params[0]._signedValue;
-	UNUSED(backgroundNumber);
+	uint backgroundNumber = params[0]._value;
 
-	// FIXME
-	error("Room::GetDrawingSurfaceForBackground unimplemented");
+	if (backgroundNumber == SCR_NO_VALUE)
+		backgroundNumber = vm->_state->_bgFrame;
 
-	return RuntimeValue();
+	Room *room = vm->getCurrentRoom();
+	if (backgroundNumber >= room->_backgroundScenes.size())
+		error("Room::GetDrawingSurfaceForBackground: background %d is too high "
+		      "(only %d backgrounds)",
+		      backgroundNumber, room->_backgroundScenes.size());
+
+	DrawingSurface *surface = new DrawingSurface(vm);
+	surface->_type = dstRoomBackground;
+	surface->_id = backgroundNumber;
+
+	RuntimeValue ret = surface;
+	ret._object->DecRef();
+	return ret;
 }
 
 // Room: readonly import static attribute int BottomEdge
