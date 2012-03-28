@@ -192,10 +192,12 @@ ccInstance::ccInstance(AGSEngine *vm, ccScript *script, bool autoImport,
 		// share memory space with an existing instance (ie. this is a
 		// thread/fork)
 		_globalData = fork->_globalData;
+		_globalObjects = fork->_globalObjects;
 		_flags |= INSTF_SHAREDATA;
 	} else {
 		// create our own memory space
 		_globalData = new Common::Array<byte>(script->_globalData);
+		_globalObjects = new Common::HashMap<uint32, RuntimeValue>();
 	}
 
 	// resolve all the imports
@@ -234,8 +236,10 @@ ccInstance::ccInstance(AGSEngine *vm, ccScript *script, bool autoImport,
 }
 
 ccInstance::~ccInstance() {
-	if (!(_flags & INSTF_SHAREDATA))
+	if (!(_flags & INSTF_SHAREDATA)) {
 		delete _globalData;
+		delete _globalObjects;
+	}
 }
 
 bool ccInstance::exportsSymbol(const Common::String &name) {
@@ -663,10 +667,11 @@ void ccInstance::runCodeFrom(uint32 start) {
 			case rvtScriptData:
 				// FIXME: bounds checks
 				instScript = tempVal._instance->_script;
-				if (instScript->_globalObjects.contains(tempVal._value)) {
+				if (tempVal._instance->_globalObjects->contains(
+				        tempVal._value)) {
 					// resolves to an object
 					_registers[int1] =
-					    instScript->_globalObjects[tempVal._value];
+					    (*tempVal._instance->_globalObjects)[tempVal._value];
 					break;
 				}
 				fixup = Common::find(instScript->_globalFixups.begin(),
@@ -676,6 +681,7 @@ void ccInstance::runCodeFrom(uint32 start) {
 				    &(*tempVal._instance->_globalData)[tempVal._value]);
 				if (fixup != instScript->_globalFixups.end()) {
 					// this resolves to another offset!
+					_registers[int1].invalidate();
 					_registers[int1]._type = rvtScriptData;
 					_registers[int1]._instance = tempVal._instance;
 				}
@@ -718,7 +724,7 @@ void ccInstance::runCodeFrom(uint32 start) {
 					// writing an object to script global data
 					WRITE_LE_UINT32(
 					    &(*tempVal._instance->_globalData)[tempVal._value], 0);
-					instScript->_globalObjects[tempVal._value] =
+					(*tempVal._instance->_globalObjects)[tempVal._value] =
 					    _registers[int1];
 					break;
 				}
@@ -727,6 +733,8 @@ void ccInstance::runCodeFrom(uint32 start) {
 					      "(value %d) on line %d",
 					      _registers[int1]._type, _registers[int1]._value,
 					      _lineNumber);
+				if (tempVal._instance->_globalObjects->contains(tempVal._value))
+					tempVal._instance->_globalObjects->erase(tempVal._value);
 				WRITE_LE_UINT32(
 				    &(*tempVal._instance->_globalData)[tempVal._value],
 				    _registers[int1]._value);
@@ -743,9 +751,9 @@ void ccInstance::runCodeFrom(uint32 start) {
 					      "on line %d",
 					      tempVal._value, _lineNumber);
 				_stack[tempVal._value] = _registers[int1];
-				_stack[tempVal._value + 1]._type = rvtInvalid;
-				_stack[tempVal._value + 2]._type = rvtInvalid;
-				_stack[tempVal._value + 3]._type = rvtInvalid;
+				_stack[tempVal._value + 1].invalidate();
+				_stack[tempVal._value + 2].invalidate();
+				_stack[tempVal._value + 3].invalidate();
 				break;
 			default:
 				error("script tried to MEMWRITE to runtime value of type %d "
@@ -898,7 +906,7 @@ void ccInstance::runCodeFrom(uint32 start) {
 			case rvtScriptData:
 				// FIXME: bounds checks
 				instScript = tempVal._instance->_script;
-				if (instScript->_globalObjects.contains(tempVal._value))
+				if (tempVal._instance->_globalObjects->contains(tempVal._value))
 					error("script tried MEMREADW on object on line %d",
 					      _lineNumber);
 				fixup = Common::find(instScript->_globalFixups.begin(),
@@ -1318,9 +1326,7 @@ void ccInstance::runCodeFrom(uint32 start) {
 			if (loopIterationCheckDisabledCount == 0)
 				loopIterationCheckDisabledCount++;
 			break;
-		default:
-			// FIXME
-			warning("runCodeFrom(): invalid instruction %d", instruction);
+		default: error("runCodeFrom(): invalid instruction %d", instruction);
 		}
 
 		if (_registers[SREG_SP]._type != rvtStackPointer ||
@@ -1366,11 +1372,9 @@ public:
 			      text.size());
 
 		for (uint i = 0; i < text.size(); ++i) {
-			_instance->_stack[_offset + i]._type = rvtInteger;
-			_instance->_stack[_offset + i]._value = text[i];
+			_instance->_stack[_offset + i] = (uint) text[i];
 		}
-		_instance->_stack[_offset + text.size()]._type = rvtInteger;
-		_instance->_stack[_offset + text.size()]._value = 0;
+		_instance->_stack[_offset + text.size()] = 0;
 	}
 
 protected:
@@ -1533,9 +1537,9 @@ void ccInstance::pushValue(const RuntimeValue &value) {
 		error("script caused VM stack overflow");
 
 	_stack[stackValue] = value;
-	_stack[stackValue + 1]._type = rvtInvalid;
-	_stack[stackValue + 2]._type = rvtInvalid;
-	_stack[stackValue + 3]._type = rvtInvalid;
+	_stack[stackValue + 1].invalidate();
+	_stack[stackValue + 2].invalidate();
+	_stack[stackValue + 3].invalidate();
 
 	_registers[SREG_SP]._value += 4;
 }
@@ -1571,8 +1575,9 @@ ScriptObject *ccInstance::getObjectFrom(const RuntimeValue &value) {
 		ccScript *instScript;
 		uint32 *fixup;
 		instScript = value._instance->_script;
-		if (instScript->_globalObjects.contains(value._value))
-			return getObjectFrom(instScript->_globalObjects[value._value]);
+		if (value._instance->_globalObjects->contains(value._value))
+			return getObjectFrom(
+			    (*value._instance->_globalObjects)[value._value]);
 
 		// no object, might still have a null pointer?
 		fixup = Common::find(instScript->_globalFixups.begin(),
@@ -1627,9 +1632,9 @@ void ccInstance::writePointer(const RuntimeValue &value, ScriptObject *object) {
 		// writing an object to script global data
 		WRITE_LE_UINT32(&(*value._instance->_globalData)[value._value], 0);
 		if (object)
-			instScript->_globalObjects[value._value] = object;
+			(*value._instance->_globalObjects)[value._value] = object;
 		else
-			instScript->_globalObjects.erase(value._value);
+			value._instance->_globalObjects->erase(value._value);
 		break;
 	case rvtSystemObject:
 		// FIXME: !!!
