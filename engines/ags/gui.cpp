@@ -506,7 +506,7 @@ void GUIButton::draw(Graphics::Surface *surface) {
 }
 
 GUIGroup::GUIGroup(AGSEngine *vm) :
-    _vm(vm), _width(0), _height(0), _needsUpdate(true) {
+    _vm(vm), _width(0), _height(0), _needsUpdate(true), _transparency(0) {
 }
 
 GUIGroup::~GUIGroup() {

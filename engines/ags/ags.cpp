@@ -1430,6 +1430,7 @@ bool AGSEngine::init() {
 
 	addSystemScripting(this);
 
+	// FIXME: don't leak all these!
 	_scriptState->addSystemObjectImport(
 	    "character",
 	    new ScriptObjectArray<Character *>(&_characters, 780, "Character"));
