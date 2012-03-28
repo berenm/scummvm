@@ -75,13 +75,13 @@ struct RoomObjectState {
 AGSEngine::AGSEngine(OSystem *syst, const AGSGameDescription *gameDesc) :
     Engine(syst), _gameDescription(gameDesc), _engineStartTime(0), _playTime(0),
     _resourceMan(0), _needsUpdate(true), _guiNeedsUpdate(true),
-    _poppedInterface((uint) -1), _startingRoom(0xffffffff),
-    _displayedRoom(0xffffffff), _gameScript(NULL), _gameScriptFork(NULL),
-    _dialogScriptsScript(NULL), _roomScript(NULL), _roomScriptFork(NULL),
-    _scriptMouseObject(NULL), _gameStateGlobalsObject(NULL),
-    _saveGameIndexObject(NULL), _scriptSystemObject(NULL),
-    _roomObjectState(NULL), _currentRoom(NULL), _framesPerSecond(40),
-    _lastFrameTime(0), _inNewRoomState(kNewRoomStateNone),
+    _backgroundNeedsUpdate(false), _poppedInterface((uint) -1),
+    _startingRoom(0xffffffff), _displayedRoom(0xffffffff), _gameScript(NULL),
+    _gameScriptFork(NULL), _dialogScriptsScript(NULL), _roomScript(NULL),
+    _roomScriptFork(NULL), _scriptMouseObject(NULL),
+    _gameStateGlobalsObject(NULL), _saveGameIndexObject(NULL),
+    _scriptSystemObject(NULL), _roomObjectState(NULL), _currentRoom(NULL),
+    _framesPerSecond(40), _lastFrameTime(0), _inNewRoomState(kNewRoomStateNone),
     _newRoomStateWas(kNewRoomStateNone), _inEntersScreenCounter(0),
     _leavesScreenRoomId(-1), _newRoomPos(0), _newRoomX(SCR_NO_VALUE),
     _newRoomY(SCR_NO_VALUE), _blockingUntil(kUntilNothing),
@@ -252,6 +252,11 @@ void AGSEngine::tickGame(bool checkControls) {
 	// FIXME: a whole bunch of update stuff
 
 	if (!_state->_fastForward) {
+		// TODO: workaround for Gemini Rue (which doesn't call Release)
+		if (_backgroundNeedsUpdate) {
+			_currentRoom->updateWalkBehinds();
+			_backgroundNeedsUpdate = false;
+		}
 		_graphics->draw();
 
 		// FIXME: hotspot stuff
