@@ -1411,17 +1411,14 @@ Script_Character_SetAsPlayer(AGSEngine *vm, Character *self,
 }
 
 // Character: import function SetIdleView(int view, int delay)
-// Changes the character's idle view.
+// Changes the character's idle view, or -1 to disable it completely.
 RuntimeValue
 Script_Character_SetIdleView(AGSEngine *vm, Character *self,
                              const Common::Array<RuntimeValue> &params) {
 	int view = params[0]._signedValue;
-	UNUSED(view);
-	int delay = params[1]._signedValue;
-	UNUSED(delay);
+	uint delay = params[1]._value;
 
-	// FIXME
-	error("Character::SetIdleView unimplemented");
+	self->setIdleView(view, delay);
 
 	return RuntimeValue();
 }
@@ -1457,8 +1454,7 @@ Script_Character_SetWalkSpeed(AGSEngine *vm, Character *self,
 RuntimeValue
 Script_Character_StopMoving(AGSEngine *vm, Character *self,
                             const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Character::StopMoving unimplemented");
+	self->stopMoving();
 
 	return RuntimeValue();
 }
