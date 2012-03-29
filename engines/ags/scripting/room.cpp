@@ -145,10 +145,7 @@ Script_Room_get_MusicOnLoad(AGSEngine *vm, ScriptObject *,
 RuntimeValue
 Script_Room_get_ObjectCount(AGSEngine *vm, ScriptObject *,
                             const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Room::get_ObjectCount unimplemented");
-
-	return RuntimeValue();
+	return vm->getCurrentRoom()->_objects.size();
 }
 
 // Room: readonly import static attribute int RightEdge
@@ -228,14 +225,9 @@ RuntimeValue Script_CallRoomScript(AGSEngine *vm, ScriptObject *,
 RuntimeValue Script_GetLocationType(AGSEngine *vm, ScriptObject *,
                                     const Common::Array<RuntimeValue> &params) {
 	int x = params[0]._signedValue;
-	UNUSED(x);
 	int y = params[1]._signedValue;
-	UNUSED(y);
 
-	// FIXME
-	error("GetLocationType unimplemented");
-
-	return RuntimeValue();
+	return vm->getLocationType(Common::Point(x, y));
 }
 
 // import int GetWalkableAreaAt(int screenX, int screenY)
