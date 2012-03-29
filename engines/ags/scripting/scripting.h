@@ -72,9 +72,10 @@ public:
 
 	void addImport(const Common::String &name, const ScriptImport &import,
 	               bool forceReplace = false);
+	void removeImport(const Common::String &name);
 	void addSystemFunctionImport(const ScriptSystemFunctionInfo *function);
-	void addSystemObjectImport(const Common::String &name, ScriptObject *object,
-	                           bool forceReplace = false);
+	void addSystemObjectImport(const Common::String &name,
+	                           ScriptObject *object);
 	void addSystemFunctionImportList(const ScriptSystemFunctionInfo *list,
 	                                 uint32 count);
 };
