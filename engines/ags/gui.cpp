@@ -30,6 +30,7 @@
 #include "engines/ags/gamefile.h"
 #include "engines/ags/graphics.h"
 #include "engines/ags/gui.h"
+#include "engines/ags/sprites.h"
 #include "engines/ags/util.h"
 
 #include "graphics/font.h"
@@ -209,16 +210,19 @@ void GUILabel::draw(Graphics::Surface *surface) {
 
 	uint y = 0;
 	for (uint i = 0; i < lines.size(); ++i) {
-		// TODO: fix align elsewhere?
-		Graphics::TextAlign align;
+		int x = _x;
+		uint textWidth = font->getStringWidth(lines[i]);
 		switch (_align) {
-		case GALIGN_LEFT: align = Graphics::kTextAlignLeft; break;
-		case GALIGN_CENTRE: align = Graphics::kTextAlignCenter; break;
-		case GALIGN_RIGHT: align = Graphics::kTextAlignRight; break;
+		case GALIGN_LEFT:
+			// nothing
+			break;
+		case GALIGN_CENTRE: x += _width / 2 - textWidth / 2; break;
+		case GALIGN_RIGHT: x = _width - textWidth; break;
 		default: error("GUILabel::draw: invalid alignment %d", _align);
 		}
-		// FIXME: draw with outline
-		font->drawString(surface, lines[i], _x, _y + y, _width, color, align);
+		_vm->_graphics->drawOutlinedString(_font, surface, lines[i], x, _y + y,
+		                                   _width, color);
+		// FIXME: font multiplier?
 		y += font->getFontHeight() + 1;
 		if (y > _height)
 			return;
@@ -423,6 +427,11 @@ void GUIButton::draw(Graphics::Surface *surface) {
 		// graphical button
 
 		// FIXME
+		Sprite *sprite = _vm->getSprites()->getSprite(_usePic);
+		_vm->_graphics->blit(sprite->_surface, surface, Common::Point(_x, _y),
+		                     0);
+
+		// FIXME
 	} else if (_text.size()) {
 		// text button
 
@@ -450,50 +459,48 @@ void GUIButton::draw(Graphics::Surface *surface) {
 	}
 
 	Graphics::Font *font = _vm->_graphics->getFont(_font);
+	// FIXME: This is the wrong height. Also, font multiplier?
 	uint fontHeight = font->getFontHeight();
+	// FIXME: font multiplier?
+	uint textWidth = font->getStringWidth(text);
 
-	Graphics::TextAlign align;
+	// We don't use Graphics::TextAlign here, because we have to be
+	// pixel-perfect.
 	switch (_textAlignment) {
 	case GBUT_ALIGN_TOPMIDDLE:
-		align = Graphics::kTextAlignCenter;
+		useX += (_width / 2 - textWidth / 2);
 		useY += 2;
 		break;
 	case GBUT_ALIGN_TOPLEFT:
-		align = Graphics::kTextAlignLeft;
 		useX += 2;
 		useY += 2;
 		break;
 	case GBUT_ALIGN_TOPRIGHT:
-		align = Graphics::kTextAlignRight;
-		useX -= 2;
+		useX += _width - textWidth - 2;
 		useY += 2;
 		break;
 	case GBUT_ALIGN_MIDDLELEFT:
-		align = Graphics::kTextAlignLeft;
 		useX += 2;
 		useY += (_height / 2) - ((fontHeight + 1) / 2);
 		break;
 	case GBUT_ALIGN_CENTRED:
-		align = Graphics::kTextAlignCenter;
+		useX += (_width / 2 - textWidth / 2);
 		useY += (_height / 2) - ((fontHeight + 1) / 2);
 		break;
 	case GBUT_ALIGN_MIDDLERIGHT:
-		align = Graphics::kTextAlignRight;
-		useX -= 2;
+		useX += _width - textWidth - 2;
 		useY += (_height / 2) - ((fontHeight + 1) / 2);
 		break;
 	case GBUT_ALIGN_BOTTOMLEFT:
-		align = Graphics::kTextAlignLeft;
 		useX += 2;
 		useY += _height - fontHeight - 2;
 		break;
 	case GBUT_ALIGN_BOTTOMMIDDLE:
-		align = Graphics::kTextAlignCenter;
+		useX += (_width / 2 - textWidth / 2);
 		useY += _height - fontHeight - 2;
 		break;
 	case GBUT_ALIGN_BOTTOMRIGHT:
-		align = Graphics::kTextAlignRight;
-		useX -= 2;
+		useX += _width - textWidth - 2;
 		useY += _height - fontHeight - 2;
 		break;
 	}
@@ -501,8 +508,8 @@ void GUIButton::draw(Graphics::Surface *surface) {
 	uint32 color = _vm->_graphics->resolveHardcodedColor(_textColor);
 	if (drawDisabled)
 		color = _vm->_graphics->resolveHardcodedColor(8);
-	// TODO: is this right?
-	font->drawString(surface, text, useX, useY, _width, color, align);
+	_vm->_graphics->drawOutlinedString(_font, surface, text, useX, useY, _width,
+	                                   color);
 }
 
 GUIGroup::GUIGroup(AGSEngine *vm) :
@@ -651,8 +658,10 @@ void GUIGroup::draw() {
 
 	if ((int) _bgPic > 0) {
 		// draw the background picture
-		// FIXME
-		warning("ignoring bgpic");
+		// TODO: don't discard sprite
+		Sprite *sprite = _vm->getSprites()->getSprite(_bgPic);
+		_vm->_graphics->blit(sprite->_surface, &_surface, Common::Point(0, 0),
+		                     0);
 	}
 
 	for (uint i = 0; i < _controls.size(); ++i) {

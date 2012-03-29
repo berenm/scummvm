@@ -62,6 +62,10 @@ public:
 	void initPalette();
 	void newRoomPalette();
 
+	void drawOutlinedString(uint fontId, Graphics::Surface *surface,
+	                        const Common::String &text, int x, int y,
+	                        uint width, uint32 color);
+
 	void draw();
 
 	// TODO: fix this (hack for SnowRain)
