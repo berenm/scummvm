@@ -31,6 +31,7 @@
 #include "engines/ags/gamefile.h"
 #include "engines/ags/gamestate.h"
 #include "engines/ags/graphics.h"
+#include "engines/ags/room.h"
 #include "engines/ags/sprites.h"
 
 namespace AGS {
@@ -170,14 +171,19 @@ RuntimeValue Script_GetGUIAt(AGSEngine *vm, ScriptObject *,
 RuntimeValue Script_GetGUIObjectAt(AGSEngine *vm, ScriptObject *,
                                    const Common::Array<RuntimeValue> &params) {
 	int x = params[0]._signedValue;
-	UNUSED(x);
 	int y = params[1]._signedValue;
-	UNUSED(y);
 
-	// FIXME
-	error("GetGUIObjectAt unimplemented");
+	uint guiId = vm->getGUIAt(Common::Point(x, y));
+	if (guiId == (uint) -1)
+		return 0;
+	GUIGroup *group = vm->_gameFile->_guiGroups[guiId];
 
-	return RuntimeValue();
+	vm->multiplyUpCoordinates(x, y);
+	GUIControl *control =
+	    group->getControlAt(Common::Point(x - group->_x, y - group->_y), false);
+	if (!control)
+		return -1;
+	return control->_id;
 }
 
 // import void InterfaceOn(int gui)
@@ -218,18 +224,18 @@ RuntimeValue Script_SetGUIPosition(AGSEngine *vm, ScriptObject *,
                                    const Common::Array<RuntimeValue> &params) {
 	uint guiId = params[0]._value;
 	int x = params[1]._signedValue;
-	UNUSED(x);
 	int y = params[2]._signedValue;
-	UNUSED(y);
+
+	if (x >= vm->getCurrentRoom()->_width || y >= vm->getCurrentRoom()->_height)
+		error("SetGUIPosition: (%d, %d) is outside room boundaries", x, y);
 
 	if (guiId >= vm->_gameFile->_guiGroups.size())
 		error("SetGUIPosition: GUI %d is too high (only have %d)", guiId,
 		      vm->_gameFile->_guiGroups.size());
 	GUIGroup *group = vm->_gameFile->_guiGroups[guiId];
 
-	// FIXME
-	UNUSED(group);
-	warning("SetGUIPosition unimplemented");
+	group->_x = vm->multiplyUpCoordinate(x);
+	group->_y = vm->multiplyUpCoordinate(y);
 
 	return RuntimeValue();
 }
@@ -861,14 +867,19 @@ RuntimeValue
 Script_GUIControl_GetAtScreenXY(AGSEngine *vm, ScriptObject *,
                                 const Common::Array<RuntimeValue> &params) {
 	int x = params[0]._signedValue;
-	UNUSED(x);
 	int y = params[1]._signedValue;
-	UNUSED(y);
 
-	// FIXME
-	error("GUIControl::GetAtScreenXY unimplemented");
+	uint guiId = vm->getGUIAt(Common::Point(x, y));
+	if (guiId == (uint) -1)
+		return 0;
+	GUIGroup *group = vm->_gameFile->_guiGroups[guiId];
 
-	return RuntimeValue();
+	vm->multiplyUpCoordinates(x, y);
+	GUIControl *control =
+	    group->getControlAt(Common::Point(x - group->_x, y - group->_y), false);
+	if (!control)
+		return 0;
+	return control;
 }
 
 // GUIControl: import void SendToBack()
@@ -931,10 +942,10 @@ Script_GUIControl_get_AsButton(AGSEngine *vm, GUIControl *self,
 RuntimeValue
 Script_GUIControl_get_AsInvWindow(AGSEngine *vm, GUIControl *self,
                                   const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("GUIControl::get_AsInvWindow unimplemented");
-
-	return RuntimeValue();
+	if (self->isOfType(sotGUIInvWindow))
+		return self;
+	else
+		return 0;
 }
 
 // GUIControl: readonly import attribute Label* AsLabel
@@ -942,10 +953,10 @@ Script_GUIControl_get_AsInvWindow(AGSEngine *vm, GUIControl *self,
 RuntimeValue
 Script_GUIControl_get_AsLabel(AGSEngine *vm, GUIControl *self,
                               const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("GUIControl::get_AsLabel unimplemented");
-
-	return RuntimeValue();
+	if (self->isOfType(sotGUILabel))
+		return self;
+	else
+		return 0;
 }
 
 // GUIControl: readonly import attribute ListBox* AsListBox
@@ -953,10 +964,10 @@ Script_GUIControl_get_AsLabel(AGSEngine *vm, GUIControl *self,
 RuntimeValue
 Script_GUIControl_get_AsListBox(AGSEngine *vm, GUIControl *self,
                                 const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("GUIControl::get_AsListBox unimplemented");
-
-	return RuntimeValue();
+	if (self->isOfType(sotGUIListBox))
+		return self;
+	else
+		return 0;
 }
 
 // GUIControl: readonly import attribute Slider* AsSlider
@@ -964,10 +975,10 @@ Script_GUIControl_get_AsListBox(AGSEngine *vm, GUIControl *self,
 RuntimeValue
 Script_GUIControl_get_AsSlider(AGSEngine *vm, GUIControl *self,
                                const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("GUIControl::get_AsSlider unimplemented");
-
-	return RuntimeValue();
+	if (self->isOfType(sotGUISlider))
+		return self;
+	else
+		return 0;
 }
 
 // GUIControl: readonly import attribute TextBox* AsTextBox
@@ -975,10 +986,10 @@ Script_GUIControl_get_AsSlider(AGSEngine *vm, GUIControl *self,
 RuntimeValue
 Script_GUIControl_get_AsTextBox(AGSEngine *vm, GUIControl *self,
                                 const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("GUIControl::get_AsTextBox unimplemented");
-
-	return RuntimeValue();
+	if (self->isOfType(sotGUITextBox))
+		return self;
+	else
+		return 0;
 }
 
 // GUIControl: import attribute bool Clickable
@@ -1184,10 +1195,8 @@ Script_GUIControl_set_Y(AGSEngine *vm, GUIControl *self,
 RuntimeValue Script_Label_GetText(AGSEngine *vm, GUILabel *self,
                                   const Common::Array<RuntimeValue> &params) {
 	ScriptString *buffer = (ScriptString *) params[0]._object;
-	UNUSED(buffer);
 
-	// FIXME
-	error("Label::GetText unimplemented");
+	buffer->setString(self->getText());
 
 	return RuntimeValue();
 }
@@ -1197,10 +1206,8 @@ RuntimeValue Script_Label_GetText(AGSEngine *vm, GUILabel *self,
 RuntimeValue Script_Label_SetText(AGSEngine *vm, GUILabel *self,
                                   const Common::Array<RuntimeValue> &params) {
 	ScriptString *text = (ScriptString *) params[0]._object;
-	UNUSED(text);
 
-	// FIXME
-	error("Label::SetText unimplemented");
+	self->setText(text->getString());
 
 	return RuntimeValue();
 }
@@ -1209,10 +1216,7 @@ RuntimeValue Script_Label_SetText(AGSEngine *vm, GUILabel *self,
 // Gets/sets the font that is used to draw the label text.
 RuntimeValue Script_Label_get_Font(AGSEngine *vm, GUILabel *self,
                                    const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Label::get_Font unimplemented");
-
-	return RuntimeValue();
+	return self->getFont();
 }
 
 // Label: import attribute FontType Font
@@ -1220,10 +1224,12 @@ RuntimeValue Script_Label_get_Font(AGSEngine *vm, GUILabel *self,
 RuntimeValue Script_Label_set_Font(AGSEngine *vm, GUILabel *self,
                                    const Common::Array<RuntimeValue> &params) {
 	uint32 value = params[0]._value;
-	UNUSED(value);
 
-	// FIXME
-	error("Label::set_Font unimplemented");
+	if (value >= vm->_gameFile->_fonts.size())
+		error("Label::set_Font: font %d is invalid (only %d fonts)", value,
+		      vm->_gameFile->_fonts.size());
+
+	self->setFont(value);
 
 	return RuntimeValue();
 }
@@ -1253,10 +1259,7 @@ RuntimeValue Script_Label_set_Text(AGSEngine *vm, GUILabel *self,
 RuntimeValue
 Script_Label_get_TextColor(AGSEngine *vm, GUILabel *self,
                            const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Label::get_TextColor unimplemented");
-
-	return RuntimeValue();
+	return self->getColor();
 }
 
 // Label: import attribute int TextColor
@@ -1264,11 +1267,9 @@ Script_Label_get_TextColor(AGSEngine *vm, GUILabel *self,
 RuntimeValue
 Script_Label_set_TextColor(AGSEngine *vm, GUILabel *self,
                            const Common::Array<RuntimeValue> &params) {
-	int value = params[0]._signedValue;
-	UNUSED(value);
+	uint value = params[0]._value;
 
-	// FIXME
-	error("Label::set_TextColor unimplemented");
+	self->setColor(value);
 
 	return RuntimeValue();
 }
@@ -2239,14 +2240,14 @@ RuntimeValue
 Script_GUI_GetAtScreenXY(AGSEngine *vm, ScriptObject *,
                          const Common::Array<RuntimeValue> &params) {
 	int x = params[0]._signedValue;
-	UNUSED(x);
 	int y = params[1]._signedValue;
-	UNUSED(y);
 
-	// FIXME
-	error("GUI::GetAtScreenXY unimplemented");
+	uint guiId = vm->getGUIAt(Common::Point(x, y));
 
-	return RuntimeValue();
+	if (guiId == (uint) -1)
+		return 0;
+	else
+		return vm->_gameFile->_guiGroups[guiId];
 }
 
 // GUI: import void SetPosition(int x, int y)
@@ -2254,12 +2255,13 @@ Script_GUI_GetAtScreenXY(AGSEngine *vm, ScriptObject *,
 RuntimeValue Script_GUI_SetPosition(AGSEngine *vm, GUIGroup *self,
                                     const Common::Array<RuntimeValue> &params) {
 	int x = params[0]._signedValue;
-	UNUSED(x);
 	int y = params[1]._signedValue;
-	UNUSED(y);
 
-	// FIXME
-	error("GUI::SetPosition unimplemented");
+	if (x >= vm->getCurrentRoom()->_width || y >= vm->getCurrentRoom()->_height)
+		error("GUI::SetPosition: (%d, %d) is outside room boundaries", x, y);
+
+	self->_x = vm->multiplyUpCoordinate(x);
+	self->_y = vm->multiplyUpCoordinate(y);
 
 	return RuntimeValue();
 }

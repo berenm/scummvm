@@ -28,6 +28,7 @@
 #ifndef AGS_AGS_H
 #define AGS_AGS_H
 
+#include "common/rect.h"
 #include "common/system.h"
 
 #include "engines/engine.h"
@@ -197,6 +198,7 @@ public:
 	void setCursorMode(uint32 newMode);
 	uint32 getCursorMode() { return _cursorMode; }
 
+	uint getGUIAt(const Common::Point &pos);
 	void removePopupInterface(uint guiId);
 
 	struct ViewLoopNew *getViewLoop(uint view, uint loop);
