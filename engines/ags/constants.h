@@ -30,6 +30,8 @@
 
 namespace AGS {
 
+enum kDebugLevels { kDebugLevelGame = 1 << 0 };
+
 extern const char *kGameDataNameV2;
 extern const char *kGameDataNameV3;
 
