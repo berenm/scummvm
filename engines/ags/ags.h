@@ -202,6 +202,7 @@ public:
 	void setCursorMode(uint32 newMode);
 	uint32 getCursorMode() { return _cursorMode; }
 
+	void resortGUIs();
 	uint getGUIAt(const Common::Point &pos);
 	void removePopupInterface(uint guiId);
 

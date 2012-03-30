@@ -88,16 +88,17 @@ Script_IsInterfaceEnabled(AGSEngine *vm, ScriptObject *,
 RuntimeValue
 Script_SetTextWindowGUI(AGSEngine *vm, ScriptObject *,
                         const Common::Array<RuntimeValue> &params) {
-	uint guiId = params[0]._value;
+	int guiId = params[0]._signedValue;
 
-	if (guiId >= vm->_gameFile->_guiGroups.size())
+	if (guiId < -1 || (uint) guiId >= vm->_gameFile->_guiGroups.size())
 		error("SetTextWindowGUI: GUI %d is too high (only have %d)", guiId,
 		      vm->_gameFile->_guiGroups.size());
-	GUIGroup *group = vm->_gameFile->_guiGroups[guiId];
+	if (guiId != -1 && !vm->_gameFile->_guiGroups[guiId]->isTextWindow())
+		error("SetTextWindowGUI: GUI %d is not a text window", guiId);
 
-	// FIXME
-	UNUSED(group);
-	error("SetTextWindowGUI unimplemented");
+	if (vm->_state->_speechTextWindowGUI == vm->getGameOption(OPT_TWCUSTOM))
+		vm->_state->_speechTextWindowGUI = guiId;
+	vm->_gameFile->_options[OPT_TWCUSTOM] = guiId;
 
 	return RuntimeValue();
 }
@@ -154,14 +155,9 @@ Script_SetInvDimensions(AGSEngine *vm, ScriptObject *,
 RuntimeValue Script_GetGUIAt(AGSEngine *vm, ScriptObject *,
                              const Common::Array<RuntimeValue> &params) {
 	int x = params[0]._signedValue;
-	UNUSED(x);
 	int y = params[1]._signedValue;
-	UNUSED(y);
 
-	// FIXME
-	error("GetGUIAt unimplemented");
-
-	return RuntimeValue();
+	return vm->getGUIAt(Common::Point(x, y));
 }
 
 // import int GetGUIObjectAt (int x, int y)
@@ -248,9 +244,8 @@ RuntimeValue Script_SetGUISize(AGSEngine *vm, ScriptObject *,
 	int width = params[1]._signedValue;
 	int height = params[2]._signedValue;
 
-	// FIXME: base width/height
-	if (width < 0 || width > vm->_graphics->_width || height < 0 ||
-	    height > vm->_graphics->_height)
+	if (width < 0 || width > vm->_graphics->_baseWidth || height < 0 ||
+	    height > vm->_graphics->_baseHeight)
 		error("SetGUISize: Tried resizing to an invalid size (%dx%d)", width,
 		      height);
 
@@ -276,9 +271,8 @@ RuntimeValue Script_CentreGUI(AGSEngine *vm, ScriptObject *,
 		      vm->_gameFile->_guiGroups.size());
 	GUIGroup *group = vm->_gameFile->_guiGroups[guiId];
 
-	// FIXME
-	UNUSED(group);
-	error("CentreGUI unimplemented");
+	group->_x = vm->_graphics->_width / 2 - group->_width / 2;
+	group->_y = vm->_graphics->_height / 2 - group->_height / 2;
 
 	return RuntimeValue();
 }
@@ -303,17 +297,19 @@ RuntimeValue
 Script_SetGUIBackgroundPic(AGSEngine *vm, ScriptObject *,
                            const Common::Array<RuntimeValue> &params) {
 	uint guiId = params[0]._value;
-	int spriteSlot = params[1]._signedValue;
-	UNUSED(spriteSlot);
+	uint spriteSlot = params[1]._signedValue;
+
+	if (spriteSlot >= vm->getSprites()->getSpriteCount())
+		error(
+		    "SetGUIBackgroundPic: sprite %d is too high (only have %d sprites)",
+		    spriteSlot, vm->getSprites()->getSpriteCount());
 
 	if (guiId >= vm->_gameFile->_guiGroups.size())
 		error("SetGUIBackgroundPic: GUI %d is too high (only have %d)", guiId,
 		      vm->_gameFile->_guiGroups.size());
 	GUIGroup *group = vm->_gameFile->_guiGroups[guiId];
 
-	// FIXME
-	UNUSED(group);
-	error("SetGUIBackgroundPic unimplemented");
+	group->setBackgroundPicture(spriteSlot);
 
 	return RuntimeValue();
 }
@@ -324,17 +320,19 @@ RuntimeValue
 Script_SetGUITransparency(AGSEngine *vm, ScriptObject *,
                           const Common::Array<RuntimeValue> &params) {
 	uint guiId = params[0]._value;
-	int amount = params[1]._signedValue;
-	UNUSED(amount);
+	uint amount = params[1]._value;
 
 	if (guiId >= vm->_gameFile->_guiGroups.size())
 		error("SetGUITransparency: GUI %d is too high (only have %d)", guiId,
 		      vm->_gameFile->_guiGroups.size());
 	GUIGroup *group = vm->_gameFile->_guiGroups[guiId];
 
-	// FIXME
-	UNUSED(group);
-	warning("SetGUITransparency unimplemented");
+	if (amount > 100)
+		error("SetGUITransparency: transparency value must be between 0 and "
+		      "100, but got %d",
+		      amount);
+
+	group->setTransparency(amount);
 
 	return RuntimeValue();
 }
@@ -364,17 +362,14 @@ RuntimeValue Script_SetGUIClickable(AGSEngine *vm, ScriptObject *,
 RuntimeValue Script_SetGUIZOrder(AGSEngine *vm, ScriptObject *,
                                  const Common::Array<RuntimeValue> &params) {
 	uint guiId = params[0]._value;
-	int z = params[1]._signedValue;
-	UNUSED(z);
+	uint z = params[1]._value;
 
 	if (guiId >= vm->_gameFile->_guiGroups.size())
 		error("SetGUIZOrder: GUI %d is too high (only have %d)", guiId,
 		      vm->_gameFile->_guiGroups.size());
 	GUIGroup *group = vm->_gameFile->_guiGroups[guiId];
 
-	// FIXME
-	UNUSED(group);
-	error("SetGUIZOrder unimplemented");
+	group->setZOrder(z);
 
 	return RuntimeValue();
 }
@@ -386,15 +381,11 @@ Script_SetGUIObjectEnabled(AGSEngine *vm, ScriptObject *,
                            const Common::Array<RuntimeValue> &params) {
 	uint guiId = params[0]._value;
 	uint objectId = params[1]._value;
-	int enable = params[2]._signedValue;
-	UNUSED(enable);
+	uint enable = params[2]._value;
 
 	GUIControl *control =
 	    getGUIControl("SetGUIObjectEnabled", vm, guiId, objectId);
-
-	// FIXME
-	UNUSED(control);
-	error("SetGUIObjectEnabled unimplemented");
+	control->setEnabled((bool) enable);
 
 	return RuntimeValue();
 }
@@ -407,16 +398,16 @@ Script_SetGUIObjectPosition(AGSEngine *vm, ScriptObject *,
 	uint guiId = params[0]._value;
 	uint objectId = params[1]._value;
 	int x = params[2]._signedValue;
-	UNUSED(x);
 	int y = params[3]._signedValue;
-	UNUSED(y);
 
 	GUIControl *control =
 	    getGUIControl("SetGUIObjectPosition", vm, guiId, objectId);
 
-	// FIXME
-	UNUSED(control);
-	error("SetGUIObjectPosition unimplemented");
+	control->_x = vm->multiplyUpCoordinate(x);
+	control->_y = vm->multiplyUpCoordinate(y);
+
+	control->_parent->controlPositionsChanged();
+	control->_parent->invalidate();
 
 	return RuntimeValue();
 }
@@ -428,17 +419,18 @@ Script_SetGUIObjectSize(AGSEngine *vm, ScriptObject *,
                         const Common::Array<RuntimeValue> &params) {
 	uint guiId = params[0]._value;
 	uint objectId = params[1]._value;
-	int width = params[2]._signedValue;
-	UNUSED(width);
-	int height = params[3]._signedValue;
-	UNUSED(height);
+	uint width = params[2]._value;
+	uint height = params[3]._value;
+
+	if (width < 2 || height < 2)
+		error("SetGUIObjectSize: new size %dx%d is too small (must be at least "
+		      "2x2)",
+		      width, height);
 
 	GUIControl *control =
 	    getGUIControl("SetGUIObjectSize", vm, guiId, objectId);
-
-	// FIXME
-	UNUSED(control);
-	error("SetGUIObjectSize unimplemented");
+	control->resize(vm->multiplyUpCoordinate(width),
+	                vm->multiplyUpCoordinate(height));
 
 	return RuntimeValue();
 }
@@ -505,16 +497,13 @@ RuntimeValue Script_SetButtonText(AGSEngine *vm, ScriptObject *,
 	uint guiId = params[0]._value;
 	uint objectId = params[1]._value;
 	ScriptString *text = (ScriptString *) params[2]._object;
-	UNUSED(text);
 
 	GUIControl *control = getGUIControl("SetButtonText", vm, guiId, objectId);
 	if (!control->isOfType(sotGUIButton))
 		error("SetButtonText: Control %d isn't a button.", objectId);
 	GUIButton *button = (GUIButton *) control;
 
-	// FIXME
-	UNUSED(button);
-	error("SetButtonText unimplemented");
+	button->setText(text->getString());
 
 	return RuntimeValue();
 }
@@ -631,15 +620,20 @@ RuntimeValue Script_GetSliderValue(AGSEngine *vm, ScriptObject *,
 // Undocumented.
 RuntimeValue Script_SetTextBoxFont(AGSEngine *vm, ScriptObject *,
                                    const Common::Array<RuntimeValue> &params) {
-	int gui = params[0]._signedValue;
-	UNUSED(gui);
-	int object = params[1]._signedValue;
-	UNUSED(object);
+	uint guiId = params[0]._value;
+	uint objectId = params[1]._value;
 	uint32 fonttype = params[2]._value;
-	UNUSED(fonttype);
 
-	// FIXME
-	error("SetTextBoxFont unimplemented");
+	if (fonttype >= vm->_gameFile->_fonts.size())
+		error("SetTextBoxFont: font %d is invalid (only %d fonts)", fonttype,
+		      vm->_gameFile->_fonts.size());
+
+	GUIControl *control = getGUIControl("SetTextBoxFont", vm, guiId, objectId);
+	if (!control->isOfType(sotGUITextBox))
+		error("SetTextBoxFont: Control %d isn't a textbox.", objectId);
+	GUITextBox *textbox = (GUITextBox *) control;
+
+	textbox->setFont(fonttype);
 
 	return RuntimeValue();
 }
@@ -648,15 +642,16 @@ RuntimeValue Script_SetTextBoxFont(AGSEngine *vm, ScriptObject *,
 // Undocumented.
 RuntimeValue Script_GetTextBoxText(AGSEngine *vm, ScriptObject *,
                                    const Common::Array<RuntimeValue> &params) {
-	int gui = params[0]._signedValue;
-	UNUSED(gui);
-	int object = params[1]._signedValue;
-	UNUSED(object);
+	uint guiId = params[0]._value;
+	uint objectId = params[1]._value;
 	ScriptString *buffer = (ScriptString *) params[2]._object;
-	UNUSED(buffer);
 
-	// FIXME
-	error("GetTextBoxText unimplemented");
+	GUIControl *control = getGUIControl("GetTextBoxText", vm, guiId, objectId);
+	if (!control->isOfType(sotGUITextBox))
+		error("GetTextBoxText: Control %d isn't a textbox.", objectId);
+	GUITextBox *textbox = (GUITextBox *) control;
+
+	buffer->setString(textbox->getText());
 
 	return RuntimeValue();
 }
@@ -665,15 +660,17 @@ RuntimeValue Script_GetTextBoxText(AGSEngine *vm, ScriptObject *,
 // Undocumented.
 RuntimeValue Script_SetTextBoxText(AGSEngine *vm, ScriptObject *,
                                    const Common::Array<RuntimeValue> &params) {
-	int gui = params[0]._signedValue;
-	UNUSED(gui);
-	int object = params[1]._signedValue;
-	UNUSED(object);
+	uint guiId = params[0]._value;
+	uint objectId = params[1]._value;
 	ScriptString *text = (ScriptString *) params[2]._object;
 	UNUSED(text);
 
-	// FIXME
-	error("SetTextBoxText unimplemented");
+	GUIControl *control = getGUIControl("SetTextBoxText", vm, guiId, objectId);
+	if (!control->isOfType(sotGUITextBox))
+		error("SetTextBoxText: Control %d isn't a textbox.", objectId);
+	GUITextBox *textbox = (GUITextBox *) control;
+
+	textbox->setText(text->getString());
 
 	return RuntimeValue();
 }
@@ -899,12 +896,13 @@ RuntimeValue
 Script_GUIControl_SetPosition(AGSEngine *vm, GUIControl *self,
                               const Common::Array<RuntimeValue> &params) {
 	int x = params[0]._signedValue;
-	UNUSED(x);
 	int y = params[1]._signedValue;
-	UNUSED(y);
 
-	// FIXME
-	error("GUIControl::SetPosition unimplemented");
+	self->_x = vm->multiplyUpCoordinate(x);
+	self->_y = vm->multiplyUpCoordinate(y);
+
+	self->_parent->controlPositionsChanged();
+	self->_parent->invalidate();
 
 	return RuntimeValue();
 }
@@ -914,13 +912,16 @@ Script_GUIControl_SetPosition(AGSEngine *vm, GUIControl *self,
 RuntimeValue
 Script_GUIControl_SetSize(AGSEngine *vm, GUIControl *self,
                           const Common::Array<RuntimeValue> &params) {
-	int width = params[0]._signedValue;
-	UNUSED(width);
-	int height = params[1]._signedValue;
-	UNUSED(height);
+	uint width = params[0]._value;
+	uint height = params[1]._value;
 
-	// FIXME
-	error("GUIControl::SetSize unimplemented");
+	if (width < 2 || height < 2)
+		error("GUIControl::SetSize: new size %dx%d is too small (must be at "
+		      "least 2x2)",
+		      width, height);
+
+	self->resize(vm->multiplyUpCoordinate(width),
+	             vm->multiplyUpCoordinate(height));
 
 	return RuntimeValue();
 }
@@ -1019,10 +1020,7 @@ Script_GUIControl_set_Clickable(AGSEngine *vm, GUIControl *self,
 RuntimeValue
 Script_GUIControl_get_Enabled(AGSEngine *vm, GUIControl *self,
                               const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("GUIControl::get_Enabled unimplemented");
-
-	return RuntimeValue();
+	return self->isDisabled() ? 0 : 1;
 }
 
 // GUIControl: import attribute bool Enabled
@@ -1031,10 +1029,8 @@ RuntimeValue
 Script_GUIControl_set_Enabled(AGSEngine *vm, GUIControl *self,
                               const Common::Array<RuntimeValue> &params) {
 	uint32 value = params[0]._value;
-	UNUSED(value);
 
-	// FIXME
-	error("GUIControl::set_Enabled unimplemented");
+	self->setEnabled((bool) value);
 
 	return RuntimeValue();
 }
@@ -1044,10 +1040,7 @@ Script_GUIControl_set_Enabled(AGSEngine *vm, GUIControl *self,
 RuntimeValue
 Script_GUIControl_get_Height(AGSEngine *vm, GUIControl *self,
                              const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("GUIControl::get_Height unimplemented");
-
-	return RuntimeValue();
+	return vm->divideDownCoordinate(self->_height);
 }
 
 // GUIControl: import attribute int Height
@@ -1055,11 +1048,9 @@ Script_GUIControl_get_Height(AGSEngine *vm, GUIControl *self,
 RuntimeValue
 Script_GUIControl_set_Height(AGSEngine *vm, GUIControl *self,
                              const Common::Array<RuntimeValue> &params) {
-	int value = params[0]._signedValue;
-	UNUSED(value);
+	uint value = params[0]._value;
 
-	// FIXME
-	error("GUIControl::set_Height unimplemented");
+	self->resize(self->_width, vm->multiplyUpCoordinate(value));
 
 	return RuntimeValue();
 }
@@ -1080,10 +1071,7 @@ Script_GUIControl_get_ID(AGSEngine *vm, GUIControl *self,
 RuntimeValue
 Script_GUIControl_get_OwningGUI(AGSEngine *vm, GUIControl *self,
                                 const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("GUIControl::get_OwningGUI unimplemented");
-
-	return RuntimeValue();
+	return self->_parent;
 }
 
 // GUIControl: import attribute bool Visible
@@ -1120,10 +1108,7 @@ Script_GUIControl_set_Visible(AGSEngine *vm, GUIControl *self,
 RuntimeValue
 Script_GUIControl_get_Width(AGSEngine *vm, GUIControl *self,
                             const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("GUIControl::get_Width unimplemented");
-
-	return RuntimeValue();
+	return vm->divideDownCoordinate(self->_width);
 }
 
 // GUIControl: import attribute int Width
@@ -1131,11 +1116,9 @@ Script_GUIControl_get_Width(AGSEngine *vm, GUIControl *self,
 RuntimeValue
 Script_GUIControl_set_Width(AGSEngine *vm, GUIControl *self,
                             const Common::Array<RuntimeValue> &params) {
-	int value = params[0]._signedValue;
-	UNUSED(value);
+	uint value = params[0]._value;
 
-	// FIXME
-	error("GUIControl::set_Width unimplemented");
+	self->resize(vm->multiplyUpCoordinate(value), self->_height);
 
 	return RuntimeValue();
 }
@@ -1145,10 +1128,7 @@ Script_GUIControl_set_Width(AGSEngine *vm, GUIControl *self,
 RuntimeValue
 Script_GUIControl_get_X(AGSEngine *vm, GUIControl *self,
                         const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("GUIControl::get_X unimplemented");
-
-	return RuntimeValue();
+	return vm->divideDownCoordinate(self->_x);
 }
 
 // GUIControl: import attribute int X
@@ -1157,10 +1137,11 @@ RuntimeValue
 Script_GUIControl_set_X(AGSEngine *vm, GUIControl *self,
                         const Common::Array<RuntimeValue> &params) {
 	int value = params[0]._signedValue;
-	UNUSED(value);
 
-	// FIXME
-	error("GUIControl::set_X unimplemented");
+	self->_x = vm->multiplyUpCoordinate(value);
+
+	self->_parent->controlPositionsChanged();
+	self->_parent->invalidate();
 
 	return RuntimeValue();
 }
@@ -1170,10 +1151,7 @@ Script_GUIControl_set_X(AGSEngine *vm, GUIControl *self,
 RuntimeValue
 Script_GUIControl_get_Y(AGSEngine *vm, GUIControl *self,
                         const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("GUIControl::get_Y unimplemented");
-
-	return RuntimeValue();
+	return vm->divideDownCoordinate(self->_y);
 }
 
 // GUIControl: import attribute int Y
@@ -1182,10 +1160,11 @@ RuntimeValue
 Script_GUIControl_set_Y(AGSEngine *vm, GUIControl *self,
                         const Common::Array<RuntimeValue> &params) {
 	int value = params[0]._signedValue;
-	UNUSED(value);
 
-	// FIXME
-	error("GUIControl::set_Y unimplemented");
+	self->_y = vm->multiplyUpCoordinate(value);
+
+	self->_parent->controlPositionsChanged();
+	self->_parent->invalidate();
 
 	return RuntimeValue();
 }
@@ -1298,10 +1277,8 @@ RuntimeValue Script_Button_Animate(AGSEngine *vm, GUIButton *self,
 RuntimeValue Script_Button_GetText(AGSEngine *vm, GUIButton *self,
                                    const Common::Array<RuntimeValue> &params) {
 	ScriptString *buffer = (ScriptString *) params[0]._object;
-	UNUSED(buffer);
 
-	// FIXME
-	error("Button::GetText unimplemented");
+	buffer->setString(self->getText());
 
 	return RuntimeValue();
 }
@@ -1311,10 +1288,8 @@ RuntimeValue Script_Button_GetText(AGSEngine *vm, GUIButton *self,
 RuntimeValue Script_Button_SetText(AGSEngine *vm, GUIButton *self,
                                    const Common::Array<RuntimeValue> &params) {
 	ScriptString *text = (ScriptString *) params[0]._object;
-	UNUSED(text);
 
-	// FIXME
-	error("Button::SetText unimplemented");
+	self->setText(text->getString());
 
 	return RuntimeValue();
 }
@@ -1348,10 +1323,7 @@ Script_Button_set_ClipImage(AGSEngine *vm, GUIButton *self,
 // Gets/sets the font used to display text on the button.
 RuntimeValue Script_Button_get_Font(AGSEngine *vm, GUIButton *self,
                                     const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Button::get_Font unimplemented");
-
-	return RuntimeValue();
+	return self->getFont();
 }
 
 // Button: import attribute FontType Font
@@ -1359,10 +1331,12 @@ RuntimeValue Script_Button_get_Font(AGSEngine *vm, GUIButton *self,
 RuntimeValue Script_Button_set_Font(AGSEngine *vm, GUIButton *self,
                                     const Common::Array<RuntimeValue> &params) {
 	uint32 value = params[0]._value;
-	UNUSED(value);
 
-	// FIXME
-	error("Button::set_Font unimplemented");
+	if (value >= vm->_gameFile->_fonts.size())
+		error("Button::set_Font: font %d is invalid (only %d fonts)", value,
+		      vm->_gameFile->_fonts.size());
+
+	self->setFont(value);
 
 	return RuntimeValue();
 }
@@ -1372,10 +1346,7 @@ RuntimeValue Script_Button_set_Font(AGSEngine *vm, GUIButton *self,
 RuntimeValue
 Script_Button_get_Graphic(AGSEngine *vm, GUIButton *self,
                           const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Button::get_Graphic unimplemented");
-
-	return RuntimeValue();
+	return self->getDisplayedGraphic();
 }
 
 // Button: import attribute int MouseOverGraphic
@@ -1615,10 +1586,8 @@ Script_Slider_set_Value(AGSEngine *vm, GUISlider *self,
 RuntimeValue Script_TextBox_GetText(AGSEngine *vm, GUITextBox *self,
                                     const Common::Array<RuntimeValue> &params) {
 	ScriptString *buffer = (ScriptString *) params[0]._object;
-	UNUSED(buffer);
 
-	// FIXME
-	error("TextBox::GetText unimplemented");
+	buffer->setString(self->getText());
 
 	return RuntimeValue();
 }
@@ -1628,10 +1597,8 @@ RuntimeValue Script_TextBox_GetText(AGSEngine *vm, GUITextBox *self,
 RuntimeValue Script_TextBox_SetText(AGSEngine *vm, GUITextBox *self,
                                     const Common::Array<RuntimeValue> &params) {
 	ScriptString *text = (ScriptString *) params[0]._object;
-	UNUSED(text);
 
-	// FIXME
-	error("TextBox::SetText unimplemented");
+	self->setText(text->getString());
 
 	return RuntimeValue();
 }
@@ -1641,10 +1608,7 @@ RuntimeValue Script_TextBox_SetText(AGSEngine *vm, GUITextBox *self,
 RuntimeValue
 Script_TextBox_get_Font(AGSEngine *vm, GUITextBox *self,
                         const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("TextBox::get_Font unimplemented");
-
-	return RuntimeValue();
+	return self->getFont();
 }
 
 // TextBox: import attribute FontType Font
@@ -1653,10 +1617,12 @@ RuntimeValue
 Script_TextBox_set_Font(AGSEngine *vm, GUITextBox *self,
                         const Common::Array<RuntimeValue> &params) {
 	uint32 value = params[0]._value;
-	UNUSED(value);
 
-	// FIXME
-	error("TextBox::set_Font unimplemented");
+	if (value >= vm->_gameFile->_fonts.size())
+		error("TextBox::set_Font: font %d is invalid (only %d fonts)", value,
+		      vm->_gameFile->_fonts.size());
+
+	self->setFont(value);
 
 	return RuntimeValue();
 }
@@ -1666,10 +1632,9 @@ Script_TextBox_set_Font(AGSEngine *vm, GUITextBox *self,
 RuntimeValue
 Script_TextBox_get_Text(AGSEngine *vm, GUITextBox *self,
                         const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("TextBox::get_Text unimplemented");
-
-	return RuntimeValue();
+	RuntimeValue ret = new ScriptMutableString(self->getText());
+	ret._object->DecRef();
+	return ret;
 }
 
 // TextBox: import attribute String Text
@@ -1678,10 +1643,8 @@ RuntimeValue
 Script_TextBox_set_Text(AGSEngine *vm, GUITextBox *self,
                         const Common::Array<RuntimeValue> &params) {
 	ScriptString *value = (ScriptString *) params[0]._object;
-	UNUSED(value);
 
-	// FIXME
-	error("TextBox::set_Text unimplemented");
+	self->setText(value->getString());
 
 	return RuntimeValue();
 }
@@ -1738,10 +1701,10 @@ Script_InvWindow_ScrollUp(AGSEngine *vm, GUIInvControl *self,
 RuntimeValue
 Script_InvWindow_get_CharacterToUse(AGSEngine *vm, GUIInvControl *self,
                                     const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("InvWindow::get_CharacterToUse unimplemented");
+	if (self->_charId == (uint) -1)
+		return 0;
 
-	return RuntimeValue();
+	return vm->_characters[self->_charId];
 }
 
 // InvWindow: import attribute Character* CharacterToUse
@@ -1749,14 +1712,19 @@ Script_InvWindow_get_CharacterToUse(AGSEngine *vm, GUIInvControl *self,
 RuntimeValue
 Script_InvWindow_set_CharacterToUse(AGSEngine *vm, GUIInvControl *self,
                                     const Common::Array<RuntimeValue> &params) {
-	if (!params[0]._object->isOfType(sotCharacter))
-		error("InvWindow::set_CharacterToUse got incorrect object type "
-		      "(expected a Character) for parameter 1");
-	Character *value = (Character *) params[0]._object;
-	UNUSED(value);
+	if (params[0]._type == rvtInteger) {
+		// null pointer
+		self->_charId = (uint) -1;
+	} else {
+		if (!params[0]._object->isOfType(sotCharacter))
+			error("InvWindow::set_CharacterToUse got incorrect object type "
+			      "(expected a Character) for parameter 1");
+		Character *value = (Character *) params[0]._object;
+		self->_charId = value->_indexId;
+	}
 
-	// FIXME
-	error("InvWindow::set_CharacterToUse unimplemented");
+	self->_topIndex = 0;
+	self->_parent->invalidate();
 
 	return RuntimeValue();
 }
@@ -1766,13 +1734,13 @@ Script_InvWindow_set_CharacterToUse(AGSEngine *vm, GUIInvControl *self,
 RuntimeValue
 Script_InvWindow_geti_ItemAtIndex(AGSEngine *vm, GUIInvControl *self,
                                   const Common::Array<RuntimeValue> &params) {
-	int index = params[0]._signedValue;
-	UNUSED(index);
+	uint index = params[0]._value;
 
-	// FIXME
-	error("InvWindow::geti_ItemAtIndex unimplemented");
+	Character *chr = self->getCharToDisplay();
+	if (index >= chr->_invOrder.size())
+		return 0;
 
-	return RuntimeValue();
+	return &vm->_gameFile->_invItemInfo[chr->_invOrder[index]];
 }
 
 // InvWindow: readonly import attribute int ItemCount
@@ -1780,10 +1748,9 @@ Script_InvWindow_geti_ItemAtIndex(AGSEngine *vm, GUIInvControl *self,
 RuntimeValue
 Script_InvWindow_get_ItemCount(AGSEngine *vm, GUIInvControl *self,
                                const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("InvWindow::get_ItemCount unimplemented");
+	Character *chr = self->getCharToDisplay();
 
-	return RuntimeValue();
+	return chr->_invOrder.size();
 }
 
 // InvWindow: import attribute int ItemHeight
@@ -1791,10 +1758,7 @@ Script_InvWindow_get_ItemCount(AGSEngine *vm, GUIInvControl *self,
 RuntimeValue
 Script_InvWindow_get_ItemHeight(AGSEngine *vm, GUIInvControl *self,
                                 const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("InvWindow::get_ItemHeight unimplemented");
-
-	return RuntimeValue();
+	return self->_itemHeight;
 }
 
 // InvWindow: import attribute int ItemHeight
@@ -1802,11 +1766,10 @@ Script_InvWindow_get_ItemHeight(AGSEngine *vm, GUIInvControl *self,
 RuntimeValue
 Script_InvWindow_set_ItemHeight(AGSEngine *vm, GUIInvControl *self,
                                 const Common::Array<RuntimeValue> &params) {
-	int value = params[0]._signedValue;
-	UNUSED(value);
+	uint value = params[0]._value;
 
-	// FIXME
-	error("InvWindow::set_ItemHeight unimplemented");
+	self->_itemHeight = value;
+	self->resized();
 
 	return RuntimeValue();
 }
@@ -1816,10 +1779,7 @@ Script_InvWindow_set_ItemHeight(AGSEngine *vm, GUIInvControl *self,
 RuntimeValue
 Script_InvWindow_get_ItemWidth(AGSEngine *vm, GUIInvControl *self,
                                const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("InvWindow::get_ItemWidth unimplemented");
-
-	return RuntimeValue();
+	return self->_itemWidth;
 }
 
 // InvWindow: import attribute int ItemWidth
@@ -1827,11 +1787,10 @@ Script_InvWindow_get_ItemWidth(AGSEngine *vm, GUIInvControl *self,
 RuntimeValue
 Script_InvWindow_set_ItemWidth(AGSEngine *vm, GUIInvControl *self,
                                const Common::Array<RuntimeValue> &params) {
-	int value = params[0]._signedValue;
-	UNUSED(value);
+	uint value = params[0]._value;
 
-	// FIXME
-	error("InvWindow::set_ItemWidth unimplemented");
+	self->_itemWidth = value;
+	self->resized();
 
 	return RuntimeValue();
 }
@@ -1841,10 +1800,7 @@ Script_InvWindow_set_ItemWidth(AGSEngine *vm, GUIInvControl *self,
 RuntimeValue
 Script_InvWindow_get_TopItem(AGSEngine *vm, GUIInvControl *self,
                              const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("InvWindow::get_TopItem unimplemented");
-
-	return RuntimeValue();
+	return self->_topIndex;
 }
 
 // InvWindow: import attribute int TopItem
@@ -1866,10 +1822,7 @@ Script_InvWindow_set_TopItem(AGSEngine *vm, GUIInvControl *self,
 RuntimeValue
 Script_InvWindow_get_ItemsPerRow(AGSEngine *vm, GUIInvControl *self,
                                  const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("InvWindow::get_ItemsPerRow unimplemented");
-
-	return RuntimeValue();
+	return self->_itemsPerLine;
 }
 
 // InvWindow: readonly import attribute int RowCount
@@ -1877,10 +1830,7 @@ Script_InvWindow_get_ItemsPerRow(AGSEngine *vm, GUIInvControl *self,
 RuntimeValue
 Script_InvWindow_get_RowCount(AGSEngine *vm, GUIInvControl *self,
                               const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("InvWindow::get_RowCount unimplemented");
-
-	return RuntimeValue();
+	return self->_numLines;
 }
 
 // ListBox: import bool AddItem(const string text)
@@ -2037,10 +1987,7 @@ Script_ListBox_ScrollUp(AGSEngine *vm, GUIListBox *self,
 RuntimeValue
 Script_ListBox_get_Font(AGSEngine *vm, GUIListBox *self,
                         const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("ListBox::get_Font unimplemented");
-
-	return RuntimeValue();
+	return self->getFont();
 }
 
 // ListBox: import attribute FontType Font
@@ -2049,10 +1996,12 @@ RuntimeValue
 Script_ListBox_set_Font(AGSEngine *vm, GUIListBox *self,
                         const Common::Array<RuntimeValue> &params) {
 	uint32 value = params[0]._value;
-	UNUSED(value);
 
-	// FIXME
-	error("ListBox::set_Font unimplemented");
+	if (value >= vm->_gameFile->_fonts.size())
+		error("ListBox::set_Font: font %d is invalid (only %d fonts)", value,
+		      vm->_gameFile->_fonts.size());
+
+	self->setFont(value);
 
 	return RuntimeValue();
 }
@@ -2392,12 +2341,7 @@ RuntimeValue Script_GUI_get_ID(AGSEngine *vm, GUIGroup *self,
 RuntimeValue
 Script_GUI_get_Transparency(AGSEngine *vm, GUIGroup *self,
                             const Common::Array<RuntimeValue> &params) {
-	if (self->_transparency == 0)
-		return 0;
-	if (self->_transparency == 255)
-		return 100;
-
-	return 100 - ((self->_transparency * 10) / 25);
+	return self->getTransparency();
 }
 
 // GUI: import attribute int Transparency
@@ -2412,12 +2356,7 @@ Script_GUI_set_Transparency(AGSEngine *vm, GUIGroup *self,
 		      "100, but got %d",
 		      trans);
 
-	if (trans == 0)
-		self->_transparency = 0;
-	else if (trans == 100)
-		self->_transparency = 255;
-	else
-		self->_transparency = ((100 - trans) * 25) / 10;
+	self->setTransparency(trans);
 
 	return RuntimeValue();
 }
@@ -2478,10 +2417,11 @@ RuntimeValue Script_GUI_get_X(AGSEngine *vm, GUIGroup *self,
 RuntimeValue Script_GUI_set_X(AGSEngine *vm, GUIGroup *self,
                               const Common::Array<RuntimeValue> &params) {
 	int value = params[0]._signedValue;
-	UNUSED(value);
 
-	// FIXME
-	error("GUI::set_X unimplemented");
+	if (value >= vm->getCurrentRoom()->_width)
+		error("GUI::set_X: %d is outside room boundaries", value);
+
+	self->_x = vm->multiplyUpCoordinate(value);
 
 	return RuntimeValue();
 }
@@ -2498,10 +2438,11 @@ RuntimeValue Script_GUI_get_Y(AGSEngine *vm, GUIGroup *self,
 RuntimeValue Script_GUI_set_Y(AGSEngine *vm, GUIGroup *self,
                               const Common::Array<RuntimeValue> &params) {
 	int value = params[0]._signedValue;
-	UNUSED(value);
 
-	// FIXME
-	error("GUI::set_Y unimplemented");
+	if (value >= vm->getCurrentRoom()->_height)
+		error("GUI::set_Y: %d is outside room boundaries", value);
+
+	self->_y = vm->multiplyUpCoordinate(value);
 
 	return RuntimeValue();
 }
@@ -2510,8 +2451,7 @@ RuntimeValue Script_GUI_set_Y(AGSEngine *vm, GUIGroup *self,
 // Gets/sets the GUI's z-order relative to other GUIs.
 RuntimeValue Script_GUI_get_ZOrder(AGSEngine *vm, GUIGroup *self,
                                    const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("GUI::get_ZOrder unimplemented");
+	return self->_zorder;
 
 	return RuntimeValue();
 }
@@ -2520,11 +2460,9 @@ RuntimeValue Script_GUI_get_ZOrder(AGSEngine *vm, GUIGroup *self,
 // Gets/sets the GUI's z-order relative to other GUIs.
 RuntimeValue Script_GUI_set_ZOrder(AGSEngine *vm, GUIGroup *self,
                                    const Common::Array<RuntimeValue> &params) {
-	int value = params[0]._signedValue;
-	UNUSED(value);
+	uint value = params[0]._value;
 
-	// FIXME
-	error("GUI::set_ZOrder unimplemented");
+	self->setZOrder(value);
 
 	return RuntimeValue();
 }
@@ -2766,7 +2704,7 @@ static const ScriptSystemFunctionInfo ourFunctionList[] = {
      (ScriptAPIFunction *) &Script_InvWindow_get_CharacterToUse, "",
      sotGUIInvWindow},
     {"InvWindow::set_CharacterToUse",
-     (ScriptAPIFunction *) &Script_InvWindow_set_CharacterToUse, "o",
+     (ScriptAPIFunction *) &Script_InvWindow_set_CharacterToUse, "t",
      sotGUIInvWindow},
     {"InvWindow::geti_ItemAtIndex",
      (ScriptAPIFunction *) &Script_InvWindow_geti_ItemAtIndex, "i",
