@@ -64,6 +64,9 @@ namespace AGS {
 #define VTA_CENTRE 2
 #define IFLG_TEXTWINDOW 1
 
+#define IBACT_SETMODE 1
+#define IBACT_SCRIPT 2
+
 // GUIControl
 #define GUIF_DEFAULT 1
 #define GUIF_CANCEL 2
@@ -339,6 +342,9 @@ public:
 	uint getTextColor() const { return _textColor; }
 	void setTextColor(uint color);
 
+	uint32 _leftClick, _rightClick;
+	uint32 _leftClickData, _rightClickData;
+
 protected:
 	Common::String _text;
 
@@ -348,8 +354,6 @@ protected:
 	uint32 _font;
 	uint32 _textColor;
 
-	uint32 _leftClick, _rightClick;
-	uint32 _leftClickData, _rightClickData;
 	uint32 _textAlignment;
 
 	// not persisted
