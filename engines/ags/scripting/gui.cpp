@@ -141,7 +141,7 @@ Script_SetInvDimensions(AGSEngine *vm, ScriptObject *,
 
 	// backwards compatibility
 	for (uint i = 0; i < vm->_gameFile->_guiInvControls.size(); ++i) {
-		vm->_gameFile->_guiInvControls[i]->resize(width, height);
+		vm->_gameFile->_guiInvControls[i]->resized();
 	}
 
 	vm->invalidateGUI();
