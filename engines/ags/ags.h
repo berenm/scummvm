@@ -34,6 +34,9 @@
 #include "engines/engine.h"
 #include "engines/game.h"
 
+// for RuntimeValue
+#include "engines/ags/script.h"
+
 struct ADGameFileDescription;
 
 namespace Common {
@@ -57,7 +60,7 @@ class ccInstance;
 struct PendingScript {
 	Common::String name;
 	bool isGameScript;
-	Common::Array<uint32> params;
+	Common::Array<RuntimeValue> params;
 };
 
 // actions which can't be run while scripts are running, and so must be queued
@@ -88,7 +91,7 @@ public:
 	                 const Common::String &name);
 	// run_another
 	void queueScript(const Common::String &name, bool isGameScript,
-	                 const Common::Array<uint32> &params);
+	                 const Common::Array<RuntimeValue> &params);
 
 	Common::Array<PendingScript> _pendingScripts;
 	Common::Array<PostScriptAction> _pendingActions;
@@ -219,13 +222,13 @@ public:
 	                          uint32 p1);
 	void queueOrRunTextScript(ccInstance *instance, const Common::String &name,
 	                          uint32 p1, uint32 p2);
-	void queueOrRunTextScript(
-	    ccInstance *instance, const Common::String &name,
-	    const Common::Array<uint32> &params = Common::Array<uint32>());
+	void queueOrRunTextScript(ccInstance *instance, const Common::String &name,
+	                          const Common::Array<RuntimeValue> &params =
+	                              Common::Array<RuntimeValue>());
 
-	void runTextScript(
-	    ccInstance *instance, const Common::String &name,
-	    const Common::Array<uint32> &params = Common::Array<uint32>());
+	void runTextScript(ccInstance *instance, const Common::String &name,
+	                   const Common::Array<RuntimeValue> &params =
+	                       Common::Array<RuntimeValue>());
 
 	struct ScriptImport resolveImport(const Common::String &name);
 	class GlobalScriptState *getScriptState();
@@ -403,7 +406,8 @@ private:
 	int runDialogRequest(uint request);
 
 	bool runScriptFunction(ccInstance *instance, const Common::String &name,
-	                       const Common::Array<uint32> &params);
+	                       const Common::Array<RuntimeValue> &params =
+	                           Common::Array<RuntimeValue>());
 	bool prepareTextScript(ccInstance *instance, const Common::String &name);
 	void postScriptCleanup();
 

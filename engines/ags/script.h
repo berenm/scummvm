@@ -221,7 +221,8 @@ public:
 
 	bool isRunning() { return (_pc != 0); }
 	bool exportsSymbol(const Common::String &name);
-	void call(const Common::String &name, const Common::Array<uint32> &params);
+	void call(const Common::String &name,
+	          const Common::Array<RuntimeValue> &params);
 
 	uint32 getReturnValue();
 

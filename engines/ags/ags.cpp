@@ -266,13 +266,10 @@ void AGSEngine::tickGame(bool checkControls) {
 		// FIXME: use repExecAlways on run_function_on_non_blocking_thread
 		for (uint i = 0; i < _scriptModules.size(); ++i) {
 			runScriptFunction(_scriptModuleForks[i],
-			                  "repeatedly_execute_always",
-			                  Common::Array<uint>());
+			                  "repeatedly_execute_always");
 		}
-		runScriptFunction(_gameScriptFork, "repeatedly_execute_always",
-		                  Common::Array<uint>());
-		runScriptFunction(_roomScriptFork, "repeatedly_execute_always",
-		                  Common::Array<uint>());
+		runScriptFunction(_gameScriptFork, "repeatedly_execute_always");
+		runScriptFunction(_roomScriptFork, "repeatedly_execute_always");
 
 		queueGameEvent(kEventTextScript, kTextScriptRepeatedlyExecute);
 		queueGameEvent(kEventRunEventBlock, kEventBlockRoom, 0, kRoomEventTick);
@@ -1839,7 +1836,7 @@ void AGSEngine::checkViewFrame(uint view, uint loop, uint frame) {
 
 void AGSEngine::queueOrRunTextScript(ccInstance *instance,
                                      const Common::String &name, uint32 p1) {
-	Common::Array<uint32> params;
+	Common::Array<RuntimeValue> params;
 	params.push_back(p1);
 	queueOrRunTextScript(instance, name, params);
 }
@@ -1847,15 +1844,15 @@ void AGSEngine::queueOrRunTextScript(ccInstance *instance,
 void AGSEngine::queueOrRunTextScript(ccInstance *instance,
                                      const Common::String &name, uint32 p1,
                                      uint32 p2) {
-	Common::Array<uint32> params;
+	Common::Array<RuntimeValue> params;
 	params.push_back(p1);
 	params.push_back(p2);
 	queueOrRunTextScript(instance, name, params);
 }
 
-void AGSEngine::queueOrRunTextScript(ccInstance *instance,
-                                     const Common::String &name,
-                                     const Common::Array<uint32> &params) {
+void AGSEngine::queueOrRunTextScript(
+    ccInstance *instance, const Common::String &name,
+    const Common::Array<RuntimeValue> &params) {
 	assert(instance == _gameScript || instance == _roomScript);
 
 	if (_runningScripts.size())
@@ -1866,7 +1863,7 @@ void AGSEngine::queueOrRunTextScript(ccInstance *instance,
 }
 
 void AGSEngine::runTextScript(ccInstance *instance, const Common::String &name,
-                              const Common::Array<uint32> &params) {
+                              const Common::Array<RuntimeValue> &params) {
 	// first, check for special cases
 	switch (params.size()) {
 	case 0:
@@ -2263,7 +2260,7 @@ int AGSEngine::runDialogScript(DialogTopic &topic, uint dialogId, uint offset,
 
 	int result = RUN_DIALOG_STAY;
 	if (_dialogScriptsScript) {
-		Common::Array<uint32> params;
+		Common::Array<RuntimeValue> params;
 		params.push_back(optionId);
 		runTextScript(_dialogScriptsScript,
 		              Common::String::format("_run_dialog%d", dialogId),
@@ -2398,7 +2395,7 @@ int AGSEngine::runDialogScript(DialogTopic &topic, uint dialogId, uint offset,
 int AGSEngine::runDialogRequest(uint request) {
 	_state->_stopDialogAtEnd = DIALOG_RUNNING;
 
-	Common::Array<uint32> params;
+	Common::Array<RuntimeValue> params;
 	params.push_back(request);
 	runScriptFunction(_gameScript, "dialog_request", params);
 
@@ -2484,7 +2481,7 @@ void AGSEngine::displaySpeechAt(int x, int y, int width, uint charId,
 
 bool AGSEngine::runScriptFunction(ccInstance *instance,
                                   const Common::String &name,
-                                  const Common::Array<uint32> &params) {
+                                  const Common::Array<RuntimeValue> &params) {
 	if (!prepareTextScript(instance, name))
 		return false;
 
@@ -2602,7 +2599,7 @@ void ExecutingScript::queueAction(PostScriptActionType type, uint data,
 }
 
 void ExecutingScript::queueScript(const Common::String &name, bool isGameScript,
-                                  const Common::Array<uint32> &params) {
+                                  const Common::Array<RuntimeValue> &params) {
 	PendingScript i;
 	i.name = name;
 	i.isGameScript = isGameScript;
