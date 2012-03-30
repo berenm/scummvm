@@ -795,8 +795,8 @@ void GameFile::readGui(Common::SeekableReadStream *dta) {
 		group._bgPic = dta->readUint32LE();
 		group._fgColor = dta->readUint32LE();
 		group._mouseOver = dta->readUint32LE();
-		group._mouseWasX = dta->readUint32LE();
-		group._mouseWasY = dta->readUint32LE();
+		/*group._mouseWasX =*/dta->readUint32LE();
+		/*group._mouseWasY =*/dta->readUint32LE();
 		group._mouseDownOn = dta->readUint32LE();
 		group._highlightObj = dta->readUint32LE();
 		group._flags = dta->readUint32LE();
@@ -898,6 +898,9 @@ void GameFile::readGui(Common::SeekableReadStream *dta) {
 			default: error("invalid GUI control type %d", type);
 			}
 
+			if (group._controls[i]->_parent)
+				error("GUI control was assigned to more than one group "
+				      "(corrupt game file?)");
 			group._controls[i]->_parent = &group;
 			group._controls[i]->_id = i;
 		}
