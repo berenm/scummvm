@@ -295,6 +295,9 @@ public:
 	int32 _newRoomX;
 	int32 _newRoomY;
 
+	// for CallRoomScript
+	void queueCustomRoomScript(uint32 param);
+
 private:
 	const AGSGameDescription *_gameDescription;
 
