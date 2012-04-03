@@ -253,6 +253,8 @@ public:
 	int divideDownCoordinate(int coord);
 	int divideDownCoordinateRoundUp(int coord);
 
+	void updateViewport();
+
 	void blockUntil(BlockUntilType untilType, uint untilId = 0);
 
 	void skipUntilCharacterStops(uint charId);

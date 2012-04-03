@@ -275,7 +275,9 @@ protected:
 };
 
 AGSGraphics::AGSGraphics(AGSEngine *vm) :
-    _vm(vm), _width(0), _height(0), _forceLetterbox(false), _vsync(false) {
+    _vm(vm), _width(0), _height(0), _forceLetterbox(false), _vsync(false),
+    _viewportX(0), _viewportY(0) {
+
 	_cursorObj = new CursorDrawable(_vm);
 }
 
@@ -548,7 +550,7 @@ void AGSGraphics::draw() {
 	Room *room = _vm->getCurrentRoom();
 
 	// draw the current room background
-	draw(_vm->getCurrentRoom());
+	draw(_vm->getCurrentRoom(), true);
 
 	// add the walkbehinds, objects and characters to an array, then sort it
 	Common::Array<Drawable *> drawables;
@@ -573,7 +575,7 @@ void AGSGraphics::draw() {
 	Common::sort(drawables.begin(), drawables.end(), DrawableLess());
 
 	for (uint i = 0; i < drawables.size(); ++i)
-		draw(drawables[i]);
+		draw(drawables[i], true);
 
 	// TODO: make this suck less
 	drawSnowRain();
@@ -607,10 +609,12 @@ void AGSGraphics::internalDraw(const Graphics::Surface *srcSurf,
 	blit(srcSurf, &_backBuffer, pos, transparency);
 }
 
-void AGSGraphics::draw(Drawable *item) {
+void AGSGraphics::draw(Drawable *item, bool useViewport) {
 	uint transparency = item->getDrawTransparency();
 
-	const Common::Point pos = item->getDrawPos();
+	Common::Point pos = item->getDrawPos();
+	if (useViewport)
+		pos -= Common::Point(_viewportX, _viewportY);
 	uint itemWidth = item->getDrawWidth();
 	uint itemHeight = item->getDrawHeight();
 	if (!itemWidth || !itemHeight)
@@ -622,31 +626,40 @@ void AGSGraphics::draw(Drawable *item) {
 }
 
 void AGSGraphics::blit(const Graphics::Surface *srcSurf,
-                       Graphics::Surface *destSurf, const Common::Point &pos,
+                       Graphics::Surface *destSurf, Common::Point pos,
                        uint transparency) {
 	if (transparency == 255)
 		return;
 
+	// ignore surfaces which are entirely off-screen
 	if (pos.x > destSurf->w)
 		return;
 	if (pos.y > destSurf->h)
 		return;
 
+	// work out if we want to start partially into a source surface,
+	// because some of it is off-screen
 	uint startX = 0, startY = 0;
-	if (pos.x < 0)
+	if (pos.x < 0) {
 		startX = -pos.x;
-	if (pos.y < 0)
+		pos.x = 0;
+	}
+	if (pos.y < 0) {
 		startY = -pos.y;
-	uint width = srcSurf->w, height = srcSurf->h;
+		pos.y = 0;
+	}
+
+	// work out how much of the surface we want to draw, given some
+	// of it might be off-screen
+	uint width = srcSurf->w - startX, height = srcSurf->h - startY;
 	if (pos.x + width > destSurf->w)
 		width = destSurf->w - pos.x;
 	if (pos.y + height > destSurf->h)
 		height = destSurf->h - pos.y;
 
 	if (srcSurf->format.bytesPerPixel == 1) {
-		for (uint y = 0; y < height - startY; ++y) {
-			byte *dest =
-			    (byte *) destSurf->getBasePtr(pos.x + startX, pos.y + y);
+		for (uint y = 0; y < height; ++y) {
+			byte *dest = (byte *) destSurf->getBasePtr(pos.x, pos.y + y);
 			const byte *src = (byte *) srcSurf->getBasePtr(startX, startY + y);
 			for (uint x = startX; x < width; ++x) {
 				byte data = *src++;
@@ -661,9 +674,9 @@ void AGSGraphics::blit(const Graphics::Surface *srcSurf,
 		if (!transparency) {
 			// simplified version of the loop below for the transparent==0
 			// (opaque) case
-			for (uint y = 0; y < height - startY; ++y) {
+			for (uint y = 0; y < height; ++y) {
 				uint16 *dest =
-				    (uint16 *) destSurf->getBasePtr(pos.x + startX, pos.y + y);
+				    (uint16 *) destSurf->getBasePtr(pos.x, pos.y + y);
 				const uint16 *src =
 				    (uint16 *) srcSurf->getBasePtr(startX, startY + y);
 				for (uint x = startX; x < width; ++x) {
@@ -678,9 +691,8 @@ void AGSGraphics::blit(const Graphics::Surface *srcSurf,
 
 		transparency = (transparency + 1) / 8;
 
-		for (uint y = 0; y < height - startY; ++y) {
-			uint16 *dest =
-			    (uint16 *) destSurf->getBasePtr(pos.x + startX, pos.y + y);
+		for (uint y = 0; y < height; ++y) {
+			uint16 *dest = (uint16 *) destSurf->getBasePtr(pos.x, pos.y + y);
 			const uint16 *src =
 			    (uint16 *) srcSurf->getBasePtr(startX, startY + y);
 			for (uint x = startX; x < width; ++x) {
@@ -723,6 +735,15 @@ uint32 AGSGraphics::getCurrentCursor() {
 
 void AGSGraphics::updateCachedMouseCursor() {
 	_cursorObj->updateCachedMouseCursor();
+}
+
+void AGSGraphics::checkViewportCoords() {
+	uint roomWidth = _vm->multiplyUpCoordinate(_vm->getCurrentRoom()->_width);
+	uint roomHeight = _vm->multiplyUpCoordinate(_vm->getCurrentRoom()->_height);
+	if (_viewportX + _width > roomWidth)
+		_viewportX = roomWidth - _width;
+	if (_viewportY + _height > roomHeight)
+		_viewportY = roomHeight - _height;
 }
 
 Drawable::Drawable() {

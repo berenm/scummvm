@@ -73,7 +73,7 @@ public:
 	                  const Common::Point &pos, uint transparency);
 
 	void blit(const Graphics::Surface *srcSurf, Graphics::Surface *destSurf,
-	          const Common::Point &pos, uint transparency);
+	          Common::Point pos, uint transparency);
 
 	void setMouseCursor(uint32 cursor);
 	void mouseSetHotspot(uint32 x, uint32 y);
@@ -81,11 +81,15 @@ public:
 
 	uint32 getCurrentCursor();
 
+	void checkViewportCoords();
+
 	uint16 _width, _height;
 	uint16 _baseWidth, _baseHeight;
 	uint32 _screenResolutionMultiplier;
 	uint16 _textMultiply;
 	bool _forceLetterbox;
+
+	uint _viewportX, _viewportY;
 
 	bool _vsync;
 
@@ -97,7 +101,7 @@ protected:
 
 	Common::Array<Graphics::Font *> _fonts;
 
-	void draw(Drawable *item);
+	void draw(Drawable *item, bool useViewport = false);
 
 	class CursorDrawable *_cursorObj;
 
