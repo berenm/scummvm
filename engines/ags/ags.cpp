@@ -2343,6 +2343,7 @@ Common::String AGSEngine::replaceMacroTokens(const Common::String &text) {
 			out += '@' + macroName;
 
 		hasMacro = false;
+		macroName.clear();
 	}
 
 	if (hasMacro)
