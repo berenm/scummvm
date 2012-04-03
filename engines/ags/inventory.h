@@ -39,6 +39,8 @@ struct InventoryItem : public ScriptObject {
 	}
 	const char *getObjectTypeName() { return "InventoryItem"; }
 
+	uint _id;
+
 	Common::String _name;
 	uint32 _pic;
 	uint32 _cursorPic;

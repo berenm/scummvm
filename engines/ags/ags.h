@@ -273,6 +273,7 @@ public:
 	void invalidateGUI() { _guiNeedsUpdate = true; }
 	void invalidateBackground() { _backgroundNeedsUpdate = true; }
 
+	uint getCurrentRoomId() { return _displayedRoom; }
 	Room *getCurrentRoom() { return _currentRoom; }
 	void scheduleNewRoom(uint roomId);
 
