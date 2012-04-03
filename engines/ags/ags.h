@@ -218,19 +218,8 @@ public:
 	class ViewFrame *getViewFrame(uint view, uint loop, uint frame);
 	void checkViewFrame(uint view, uint loop, uint frame);
 
-	void queueOrRunTextScript(ccInstance *instance, const Common::String &name,
-	                          uint32 p1);
-	void queueOrRunTextScript(ccInstance *instance, const Common::String &name,
-	                          uint32 p1, uint32 p2);
-	void queueOrRunTextScript(ccInstance *instance, const Common::String &name,
-	                          const Common::Array<RuntimeValue> &params =
-	                              Common::Array<RuntimeValue>());
-
-	void runTextScript(ccInstance *instance, const Common::String &name,
-	                   const Common::Array<RuntimeValue> &params =
-	                       Common::Array<RuntimeValue>());
-
-	struct ScriptImport resolveImport(const Common::String &name);
+	struct ScriptImport resolveImport(const Common::String &name,
+	                                  bool mustSucceed = true);
 	class GlobalScriptState *getScriptState();
 
 	Common::RandomSource *getRandomSource() { return _rnd; }
@@ -337,6 +326,18 @@ private:
 	NewRoomState _newRoomStateWas;
 
 	int _leavesScreenRoomId;
+
+	void queueOrRunTextScript(ccInstance *instance, const Common::String &name,
+	                          uint32 p1);
+	void queueOrRunTextScript(ccInstance *instance, const Common::String &name,
+	                          uint32 p1, uint32 p2);
+	void queueOrRunTextScript(ccInstance *instance, const Common::String &name,
+	                          const Common::Array<RuntimeValue> &params =
+	                              Common::Array<RuntimeValue>());
+
+	void runTextScript(ccInstance *instance, const Common::String &name,
+	                   const Common::Array<RuntimeValue> &params =
+	                       Common::Array<RuntimeValue>());
 
 	Common::Array<GameEvent> _queuedGameEvents;
 	void queueGameEvent(GameEventType type, uint data1 = 0,
