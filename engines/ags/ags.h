@@ -375,6 +375,7 @@ private:
 	class GlobalScriptState *_scriptState;
 	struct RoomObjectState *_roomObjectState;
 
+	ScriptObject *_scriptPlayerObject;
 	ScriptObject *_scriptMouseObject;
 	ScriptObject *_gameStateGlobalsObject;
 	ScriptObject *_saveGameIndexObject;
