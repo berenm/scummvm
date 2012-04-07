@@ -41,6 +41,13 @@ class SeekableAudioStream;
 
 namespace AGS {
 
+#define MAX_SOUND_CHANNELS 8
+
+#define SCHAN_SPEECH 0
+#define SCHAN_AMBIENT 1
+#define SCHAN_MUSIC 2
+#define SCHAN_NORMAL 3
+
 enum AudioFileType {
 	kAudioFileOGG = 1,
 	kAudioFileMP3 = 2,
@@ -88,6 +95,8 @@ public:
 	bool isValid() { return _valid; }
 
 	bool playSound(AudioClip *clip, bool repeat = false);
+	bool playSound(Common::SeekableReadStream *stream, AudioFileType fileType,
+	               bool repeat = false);
 	void stop(bool resetLegacyMusicSettings = true);
 	bool isPlaying();
 
@@ -137,6 +146,9 @@ public:
 
 	uint playSound(uint soundId, uint priority = 10);
 	bool playSoundOnChannel(uint soundId, uint channelId);
+
+	bool playSpeech(const Common::String &filename);
+
 	void playAmbientSound(uint channelId, uint soundId, uint volume,
 	                      const Common::Point &pos);
 	void stopAmbientSound(uint channelId);
@@ -149,6 +161,8 @@ public:
 
 	void setSoundVolume(uint volume);
 	void setSpeechVolume(uint volume);
+
+	bool hasSpeechResources() { return (bool) _speechResources; }
 
 	Common::Array<AudioClip> _audioClips;
 	Common::Array<AudioClipType> _audioClipTypes;
