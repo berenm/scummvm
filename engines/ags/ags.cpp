@@ -501,8 +501,7 @@ void AGSEngine::updateEvents(bool checkControls) {
 			break;
 		}
 
-		queueOrRunTextScript(_gameScript, "on_event", GE_GUI_MOUSEUP,
-		                     _clickWasOnGUI);
+		runOnEvent(GE_GUI_MOUSEUP, _clickWasOnGUI);
 	}
 
 	if (buttonClicked) {
@@ -520,8 +519,7 @@ void AGSEngine::updateEvents(bool checkControls) {
 			debugC(kDebugLevelGame, "mouse down over GUI %d", activeGUI);
 			// FIXME: not as it is in original
 			_gameFile->_guiGroups[activeGUI]->onMouseDown(mousePos);
-			queueOrRunTextScript(_gameScript, "on_event", GE_GUI_MOUSEDOWN,
-			                     activeGUI);
+			runOnEvent(GE_GUI_MOUSEDOWN, activeGUI);
 			_clickWasOnGUI = activeGUI;
 		} else if (!_state->_disabledUserInterface) {
 			queueGameEvent(kEventTextScript, kTextScriptOnMouseClick,
@@ -650,7 +648,12 @@ void AGSEngine::updateStuff() {
 
 	// FIXME: shadow areas
 
-	// FIXME: character updates
+	Common::Array<uint> sheepIds;
+	for (uint i = 0; i < _characters.size(); ++i)
+		if (_characters[i]->update())
+			sheepIds.push_back(i);
+
+	// FIXME: sheep
 
 	// FIXME: overlay timers
 
@@ -1161,8 +1164,7 @@ void AGSEngine::newRoom(uint roomId) {
 		                     kRoomEventPlayerLeavesScreen);
 
 	// Run the global OnRoomLeave event
-	queueOrRunTextScript(_gameScript, "on_event", GE_LEAVE_ROOM,
-	                     _displayedRoom);
+	runOnEvent(GE_LEAVE_ROOM, _displayedRoom);
 
 	// TODO: RunPluginHooks(AGSE_LEAVEROOM, _displayedRoom)
 
@@ -1208,11 +1210,39 @@ void AGSEngine::setAsPlayerChar(uint charId) {
 		_playerChar->_activeInv = (uint) -1;
 
 	if (_cursorMode == MODE_USE) {
-		/* FIXME: if (_playerChar->_activeInv == (uint)-1)
-		    setNextCursor();
+		if (_playerChar->_activeInv == (uint) -1)
+			setNextCursor();
 		else
-		    setActiveInventory(_playerChar->_activeInv); */
+			setActiveInventory(_playerChar->_activeInv);
 	}
+}
+
+void AGSEngine::addInventory(uint itemId) {
+	if (itemId >= _gameFile->_invItemInfo.size())
+		error("addInventory: itemId is too high (only %d items)",
+		      _gameFile->_invItemInfo.size());
+
+	_playerChar->addInventory(itemId);
+
+	_state->_invNumOrder = _playerChar->_invOrder.size();
+}
+
+void AGSEngine::loseInventory(uint itemId) {
+	if (itemId >= _gameFile->_invItemInfo.size())
+		error("loseInventory: itemId is too high (only %d items)",
+		      _gameFile->_invItemInfo.size());
+
+	_playerChar->loseInventory(itemId);
+
+	_state->_invNumOrder = _playerChar->_invOrder.size();
+}
+
+void AGSEngine::setActiveInventory(uint itemId) {
+	if (itemId >= _gameFile->_invItemInfo.size())
+		error("setActiveInventory: itemId is too high (only %d items)",
+		      _gameFile->_invItemInfo.size());
+
+	_playerChar->setActiveInventory(itemId);
 }
 
 // for CallRoomScript
@@ -1220,6 +1250,10 @@ void AGSEngine::queueCustomRoomScript(uint32 param) {
 	assert(!_runningScripts.empty());
 
 	queueOrRunTextScript(_roomScript, "on_call", param);
+}
+
+void AGSEngine::runOnEvent(uint32 p1, uint32 p2) {
+	queueOrRunTextScript(_gameScript, "on_event", p1, p2);
 }
 
 // 'setevent' in original
@@ -1297,8 +1331,7 @@ void AGSEngine::processGameEvent(const GameEvent &event) {
 
 			if (event.data3 == kRoomEventEntersScreen) {
 				_inEntersScreenCounter++;
-				queueOrRunTextScript(_gameScript, "on_event", GE_ENTER_ROOM,
-				                     _displayedRoom);
+				runOnEvent(GE_ENTER_ROOM, _displayedRoom);
 			}
 
 			// 2.x vs 3.x
@@ -1919,8 +1952,8 @@ uint AGSEngine::findNextEnabledCursor(uint32 startWith) {
 			if (testing == MODE_USE) {
 				// inventory cursor - use it if the player has an active item
 				// FIXME: inventory logic
-				// if (_playerChar->_activeInv != 0xffffffff)
-				// 	break;
+				if (_playerChar->_activeInv != (uint) -1)
+					break;
 			} else if (_gameFile->_cursors[testing]._flags & MCF_STANDARD) {
 				// standard enabled cursor - use this one
 				break;
@@ -1937,6 +1970,10 @@ uint AGSEngine::findNextEnabledCursor(uint32 startWith) {
 	return testing;
 }
 
+void AGSEngine::setNextCursor() {
+	setCursorMode(findNextEnabledCursor(_cursorMode + 1));
+}
+
 void AGSEngine::setCursorMode(uint32 newMode) {
 	if (newMode >= _gameFile->_cursors.size())
 		error("setCursorMode: invalid cursor mode %d (only %d cursors)",
@@ -1950,7 +1987,7 @@ void AGSEngine::setCursorMode(uint32 newMode) {
 
 	if (newMode == MODE_USE) {
 		// FIXME: inventory logic
-		// if (_playerChar->_activeInv == 0xffffffff) {
+		// if (_playerChar->_activeInv == (uint)-1) {
 		// 	findNextEnabledCursor(0);
 		// 	return;
 		// }
@@ -2499,7 +2536,24 @@ BlockUntilType AGSEngine::checkBlockingUntil() {
 }
 
 void AGSEngine::skipUntilCharacterStops(uint charId) {
-	// FIXME
+	if (charId >= _characters.size())
+		error("skipUntilCharacterStops: character %d is invalid", charId);
+
+	Character *chr = _characters[charId];
+	if (chr->_room != _displayedRoom)
+		error("skipUntilCharacterStops: character %d isn't in current room",
+		      charId);
+
+	// if they are not currently moving, do nothing
+	if (!chr->_walking)
+		return;
+
+	if (_state->_inCutscene)
+		error("skipUntilCharacterStops: can't be used within a cutscene");
+
+	_state->_endCutsceneMusic = (uint) -1;
+	_state->_fastForward = 2;
+	_state->_skipUntilCharStops = charId;
 }
 
 void AGSEngine::endSkippingUntilCharStops() {

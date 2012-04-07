@@ -27,6 +27,7 @@
 
 #include "engines/ags/scripting/scripting.h"
 #include "engines/ags/constants.h"
+#include "engines/ags/gamestate.h"
 #include "engines/ags/inventory.h"
 #include "engines/ags/room.h"
 
@@ -51,11 +52,9 @@ RuntimeValue Script_GetCharacterAt(AGSEngine *vm, ScriptObject *,
 // Obsolete character function.
 RuntimeValue Script_AddInventory(AGSEngine *vm, ScriptObject *,
                                  const Common::Array<RuntimeValue> &params) {
-	int item = params[0]._signedValue;
-	UNUSED(item);
+	uint item = params[0]._value;
 
-	// FIXME
-	error("AddInventory unimplemented");
+	vm->addInventory(item);
 
 	return RuntimeValue();
 }
@@ -64,11 +63,9 @@ RuntimeValue Script_AddInventory(AGSEngine *vm, ScriptObject *,
 // Obsolete character function.
 RuntimeValue Script_LoseInventory(AGSEngine *vm, ScriptObject *,
                                   const Common::Array<RuntimeValue> &params) {
-	int item = params[0]._signedValue;
-	UNUSED(item);
+	uint item = params[0]._value;
 
-	// FIXME
-	error("LoseInventory unimplemented");
+	vm->loseInventory(item);
 
 	return RuntimeValue();
 }
@@ -78,11 +75,9 @@ RuntimeValue Script_LoseInventory(AGSEngine *vm, ScriptObject *,
 RuntimeValue
 Script_SetActiveInventory(AGSEngine *vm, ScriptObject *,
                           const Common::Array<RuntimeValue> &params) {
-	int item = params[0]._signedValue;
-	UNUSED(item);
+	uint item = params[0]._value;
 
-	// FIXME
-	error("SetActiveInventory unimplemented");
+	vm->setActiveInventory(item);
 
 	return RuntimeValue();
 }
@@ -305,12 +300,14 @@ RuntimeValue
 Script_AddInventoryToCharacter(AGSEngine *vm, ScriptObject *,
                                const Common::Array<RuntimeValue> &params) {
 	uint32 charid = params[0]._value;
-	UNUSED(charid);
-	int item = params[1]._signedValue;
-	UNUSED(item);
+	uint item = params[1]._value;
 
-	// FIXME
-	error("AddInventoryToCharacter unimplemented");
+	if (charid >= vm->_characters.size())
+		error(
+		    "AddInventoryToCharacter: character %d is too high (only have %d)",
+		    charid, vm->_characters.size());
+
+	vm->_characters[charid]->addInventory(item);
 
 	return RuntimeValue();
 }
@@ -321,12 +318,14 @@ RuntimeValue
 Script_LoseInventoryFromCharacter(AGSEngine *vm, ScriptObject *,
                                   const Common::Array<RuntimeValue> &params) {
 	uint32 charid = params[0]._value;
-	UNUSED(charid);
-	int item = params[1]._signedValue;
-	UNUSED(item);
+	uint item = params[1]._value;
 
-	// FIXME
-	error("LoseInventoryFromCharacter unimplemented");
+	if (charid >= vm->_characters.size())
+		error("LoseInventoryFromCharacter: character %d is too high (only have "
+		      "%d)",
+		      charid, vm->_characters.size());
+
+	vm->_characters[charid]->loseInventory(item);
 
 	return RuntimeValue();
 }
@@ -337,16 +336,15 @@ RuntimeValue
 Script_AnimateCharacter(AGSEngine *vm, ScriptObject *,
                         const Common::Array<RuntimeValue> &params) {
 	uint32 charid = params[0]._value;
-	UNUSED(charid);
-	int loop = params[1]._signedValue;
-	UNUSED(loop);
-	int delay = params[2]._signedValue;
-	UNUSED(delay);
-	int repeat = params[3]._signedValue;
-	UNUSED(repeat);
+	uint loop = params[1]._value;
+	uint delay = params[2]._value;
+	uint repeat = params[3]._value;
 
-	// FIXME
-	error("AnimateCharacter unimplemented");
+	if (charid >= vm->_characters.size())
+		error("AnimateCharacter: character %d is too high (only have %d)",
+		      charid, vm->_characters.size());
+
+	vm->_characters[charid]->animate(loop, delay, repeat);
 
 	return RuntimeValue();
 }
@@ -357,20 +355,21 @@ RuntimeValue
 Script_AnimateCharacterEx(AGSEngine *vm, ScriptObject *,
                           const Common::Array<RuntimeValue> &params) {
 	uint32 charid = params[0]._value;
-	UNUSED(charid);
-	int loop = params[1]._signedValue;
-	UNUSED(loop);
-	int delay = params[2]._signedValue;
-	UNUSED(delay);
-	int repeat = params[3]._signedValue;
-	UNUSED(repeat);
-	int direction = params[4]._signedValue;
-	UNUSED(direction);
-	int blocking = params[5]._signedValue;
-	UNUSED(blocking);
+	uint loop = params[1]._value;
+	uint delay = params[2]._value;
+	uint repeat = params[3]._value;
+	uint direction = params[4]._value;
+	uint blocking = params[5]._value;
 
-	// FIXME
-	error("AnimateCharacterEx unimplemented");
+	if (charid >= vm->_characters.size())
+		error("AnimateCharacterEx: character %d is too high (only have %d)",
+		      charid, vm->_characters.size());
+
+	vm->_characters[charid]->animate(loop, delay, repeat, false,
+	                                 direction ? 1 : 0);
+
+	if (blocking)
+		vm->blockUntil(kUntilCharAnimDone, vm->_characters[charid]->_indexId);
 
 	return RuntimeValue();
 }
@@ -532,14 +531,14 @@ RuntimeValue Script_FaceCharacter(AGSEngine *vm, ScriptObject *,
 RuntimeValue Script_FaceLocation(AGSEngine *vm, ScriptObject *,
                                  const Common::Array<RuntimeValue> &params) {
 	uint32 charid = params[0]._value;
-	UNUSED(charid);
 	int x = params[1]._signedValue;
-	UNUSED(x);
 	int y = params[2]._signedValue;
-	UNUSED(y);
 
-	// FIXME
-	error("FaceLocation unimplemented");
+	if (charid >= vm->_characters.size())
+		error("MoveCharacter: character %d is too high (only have %d)", charid,
+		      vm->_characters.size());
+
+	vm->_characters[charid]->faceLocation(x, y);
 
 	return RuntimeValue();
 }
@@ -842,12 +841,14 @@ RuntimeValue
 Script_SetCharacterBaseline(AGSEngine *vm, ScriptObject *,
                             const Common::Array<RuntimeValue> &params) {
 	uint32 charid = params[0]._value;
-	UNUSED(charid);
 	int baseline = params[1]._signedValue;
-	UNUSED(baseline);
 
-	// FIXME
-	error("SetCharacterBaseline unimplemented");
+	if (charid >= vm->_characters.size())
+		error("SetCharacterBaseline: character %d is too high (only have %d)",
+		      charid, vm->_characters.size());
+
+	Character *c = vm->_characters[charid];
+	c->_baseline = baseline;
 
 	return RuntimeValue();
 }
@@ -919,12 +920,9 @@ Script_Character_AddInventory(AGSEngine *vm, Character *self,
 		error("Character::AddInventory got incorrect object type (expected a "
 		      "InventoryItem) for parameter 1");
 	InventoryItem *item = (InventoryItem *) params[0]._object;
-	UNUSED(item);
-	int addAtIndex = params[1]._signedValue;
-	UNUSED(addAtIndex);
+	uint addAtIndex = params[1]._value;
 
-	// FIXME
-	error("Character::AddInventory unimplemented");
+	self->addInventory(item->_id, addAtIndex);
 
 	return RuntimeValue();
 }
@@ -1010,6 +1008,8 @@ Script_Character_ChangeRoom(AGSEngine *vm, Character *self,
 
 		if (vm->getGameFileVersion() <= kAGSVer272) {
 			// Set position immediately on 2.x.
+			// "Fixed the player looking the wrong way after entering a room in
+			// the Ben Jordan games."
 			self->_x = x;
 			self->_y = y;
 		} else {
@@ -1079,14 +1079,14 @@ RuntimeValue
 Script_Character_FaceLocation(AGSEngine *vm, Character *self,
                               const Common::Array<RuntimeValue> &params) {
 	int x = params[0]._signedValue;
-	UNUSED(x);
 	int y = params[1]._signedValue;
-	UNUSED(y);
-	uint32 blockingstyle = params[2]._value;
-	UNUSED(blockingstyle);
+	uint32 blockingStyle = params[2]._value;
 
-	// FIXME
-	error("Character::FaceLocation unimplemented");
+	if (self->faceLocation(x, y)) {
+		if (blockingStyle == 1 || blockingStyle == BLOCKING)
+			vm->blockUntil(kUntilCharWalkDone, self->_indexId);
+		self->_frame = 0;
+	}
 
 	return RuntimeValue();
 }
@@ -1272,15 +1272,16 @@ Script_Character_LockViewAligned(AGSEngine *vm, Character *self,
 RuntimeValue
 Script_Character_LockViewFrame(AGSEngine *vm, Character *self,
                                const Common::Array<RuntimeValue> &params) {
-	int view = params[0]._signedValue;
-	UNUSED(view);
-	int loop = params[1]._signedValue;
-	UNUSED(loop);
-	int frame = params[2]._signedValue;
-	UNUSED(frame);
+	uint view = params[0]._value;
+	uint loop = params[1]._value;
+	uint frame = params[2]._value;
 
-	// FIXME
-	error("Character::LockViewFrame unimplemented");
+	self->lockView(view);
+
+	// FIXME: sanity checks (and ADJUST the view)
+
+	self->_loop = loop;
+	self->_frame = frame;
 
 	return RuntimeValue();
 }
@@ -1308,10 +1309,8 @@ Script_Character_LoseInventory(AGSEngine *vm, Character *self,
 		error("Character::LoseInventory got incorrect object type (expected a "
 		      "InventoryItem) for parameter 1");
 	InventoryItem *item = (InventoryItem *) params[0]._object;
-	UNUSED(item);
 
-	// FIXME
-	error("Character::LoseInventory unimplemented");
+	self->loseInventory(item->_id);
 
 	return RuntimeValue();
 }
@@ -1623,10 +1622,7 @@ Script_Character_get_Animating(AGSEngine *vm, Character *self,
 RuntimeValue
 Script_Character_get_AnimationSpeed(AGSEngine *vm, Character *self,
                                     const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Character::get_AnimationSpeed unimplemented");
-
-	return RuntimeValue();
+	return self->_animSpeed;
 }
 
 // Character: import attribute int AnimationSpeed
@@ -2311,10 +2307,7 @@ RuntimeValue Script_Character_set_SpeechAnimationDelay(
 RuntimeValue
 Script_Character_get_SpeechColor(AGSEngine *vm, Character *self,
                                  const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Character::get_SpeechColor unimplemented");
-
-	return RuntimeValue();
+	return self->_talkColor;
 }
 
 // Character: import attribute int SpeechColor
@@ -2322,11 +2315,9 @@ Script_Character_get_SpeechColor(AGSEngine *vm, Character *self,
 RuntimeValue
 Script_Character_set_SpeechColor(AGSEngine *vm, Character *self,
                                  const Common::Array<RuntimeValue> &params) {
-	int value = params[0]._signedValue;
-	UNUSED(value);
+	uint value = params[0]._value;
 
-	// FIXME
-	error("Character::set_SpeechColor unimplemented");
+	self->_talkColor = value;
 
 	return RuntimeValue();
 }
