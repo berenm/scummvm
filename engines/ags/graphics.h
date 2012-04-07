@@ -73,7 +73,7 @@ public:
 	                  const Common::Point &pos, uint transparency);
 
 	void blit(const Graphics::Surface *srcSurf, Graphics::Surface *destSurf,
-	          Common::Point pos, uint transparency);
+	          Common::Point pos, uint transparency, bool mirrored = false);
 
 	void setMouseCursor(uint32 cursor);
 	void mouseSetHotspot(uint32 x, uint32 y);

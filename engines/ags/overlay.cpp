@@ -849,7 +849,7 @@ uint ScreenOverlay::getDrawTransparency() {
 	return 0;
 }
 
-bool ScreenOverlay::isDrawVerticallyMirrored() {
+bool ScreenOverlay::isDrawMirrored() {
 	return false;
 }
 

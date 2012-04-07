@@ -1057,8 +1057,8 @@ uint Character::getDrawTransparency() {
 	return _transparency;
 }
 
-bool Character::isDrawVerticallyMirrored() {
-	return false; // FIXME
+bool Character::isDrawMirrored() {
+	return _vm->getViewFrame(_view, _loop, _frame)->_flags & VFLG_FLIPSPRITE;
 }
 
 int Character::getDrawLightLevel() {

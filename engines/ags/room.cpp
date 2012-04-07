@@ -339,8 +339,9 @@ uint RoomObject::getDrawTransparency() {
 	return _transparency;
 }
 
-bool RoomObject::isDrawVerticallyMirrored() {
-	return false; // FIXME
+bool RoomObject::isDrawMirrored() {
+	return (_view != (uint16) -1) &&
+	       (_vm->getViewFrame(_view, _loop, _frame)->_flags & VFLG_FLIPSPRITE);
 }
 
 int RoomObject::getDrawLightLevel() {
