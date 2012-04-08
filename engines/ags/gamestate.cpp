@@ -51,6 +51,7 @@ GameState::GameState(AGSEngine *vm) : _vm(vm) {
 	// not inited in original?!
 	_stopDialogAtEnd = DIALOG_NONE;
 	_mouseCursorHidden = false;
+	_usedInvOn = 0;
 
 	_globalScriptVars.resize(MAXGSVALUES);
 }
@@ -405,7 +406,9 @@ void GameState::init() {
 	// _guiDisabledStyle =
 	// convertGuiDisabledStyle(_vm->getGameOption(OPT_DISABLEOFF);
 
-	// FIXME: _walkableAreasOn -> 1, MAX_WALK_AREAS+1
+	_walkableAreasOn.resize(MAX_WALK_AREAS + 1);
+	for (uint i = 0; i < _walkableAreasOn.size(); ++i)
+		_walkableAreasOn[i] = 1;
 
 	_scriptTimers.resize(MAX_TIMERS);
 	for (uint i = 0; i < _scriptTimers.size(); ++i)

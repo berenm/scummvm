@@ -178,10 +178,13 @@ void RoomObject::setObjectFrame(uint viewId, int loopId, int frameId) {
 	if (frameId >= 0)
 		_frame = frameId;
 	if (_frame >= loopObj->_frames.size())
-		_frame = loopObj->_frames.size() - 1;
+		_frame = 0;
+	// TODO: why was this here?: _frame = loopObj->_frames.size() - 1;
 
 	if (_vm->getGameFileVersion() > kAGSVer272) {
 		// Skip check on 2.x
+		// "Fixes script error (invalid frame) in Ben There, Dan That! when
+		// entering the graveyard."
 		if (loopObj->_frames.empty())
 			error("RoomObject::setObjectFrame: loop %d of view %d is empty",
 			      _loop, _view);
@@ -529,7 +532,7 @@ uint Room::getHotspotAt(int x, int y) {
 	uint hotspotId = *(byte *) ptr;
 
 	if (hotspotId >= _hotspots.size())
-		error("An invalid pixel was found on the room hotspot mask (colour %d, "
+		error("An invalid pixel was found on the room hotspot mask (color %d, "
 		      "location: %d, %d)",
 		      hotspotId, x, y);
 	if (!_hotspots[hotspotId]._enabled)
@@ -601,7 +604,7 @@ uint Room::getRegionAt(int x, int y) {
 	uint regionId = *(byte *) ptr;
 
 	if (regionId >= _regions.size())
-		error("An invalid pixel was found on the room region mask (colour %d, "
+		error("An invalid pixel was found on the room region mask (color %d, "
 		      "location: %d, %d)",
 		      regionId, x, y);
 	if (!_regions[regionId]._enabled)
@@ -839,7 +842,6 @@ Room::~Room() {
 }
 
 #define NO_GAME_ID_IN_ROOM_FILE 16325
-#define MAX_WALK_AREAS 15
 
 void Room::readMainBlock(Common::SeekableReadStream *dta) {
 	_bytesPerPixel = 1;

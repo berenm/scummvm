@@ -440,10 +440,6 @@ bool AudioChannel::playSound(Common::SeekableReadStream *stream,
 	stream = newStream;
 
 	switch (fileType) {
-	case kAudioFileVOC:
-		_stream = Audio::makeVOCStream(stream, Audio::FLAG_UNSIGNED,
-		                               DisposeAfterUse::YES);
-		break;
 	case kAudioFileWAV: {
 		int size, rate;
 		byte rawFlags;
@@ -463,10 +459,16 @@ bool AudioChannel::playSound(Common::SeekableReadStream *stream,
 		_stream = Audio::makeVorbisStream(stream, DisposeAfterUse::YES);
 		break;
 #endif
+	case kAudioFileVOC:
+		_stream = Audio::makeVOCStream(stream, Audio::FLAG_UNSIGNED,
+		                               DisposeAfterUse::YES);
+		break;
+	case kAudioFileMIDI:
+	case kAudioFileMOD:
 	default:
 		// FIXME
-		error("AudioChannel::playSound: invalid clip file type %d",
-		      _clip->_fileType);
+		warning("AudioChannel::playSound: invalid clip file type %d", fileType);
+		return false;
 	}
 
 	// FIXME: argh
