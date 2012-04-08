@@ -40,12 +40,12 @@ RuntimeValue
 Script_Room_GetTextProperty(AGSEngine *vm, ScriptObject *,
                             const Common::Array<RuntimeValue> &params) {
 	ScriptString *property = (ScriptString *) params[0]._object;
-	UNUSED(property);
 
-	// FIXME
-	error("Room::GetTextProperty unimplemented");
-
-	return RuntimeValue();
+	Common::String string = vm->getStringProperty(
+	    property->getString(), vm->getCurrentRoom()->_properties);
+	RuntimeValue ret = new ScriptMutableString(string);
+	ret._object->DecRef();
+	return ret;
 }
 
 // Room: import static DrawingSurface* GetDrawingSurfaceForBackground(int
@@ -269,12 +269,9 @@ RuntimeValue Script_GetScalingAt(AGSEngine *vm, ScriptObject *,
 RuntimeValue Script_GetRoomProperty(AGSEngine *vm, ScriptObject *,
                                     const Common::Array<RuntimeValue> &params) {
 	ScriptString *property = (ScriptString *) params[0]._object;
-	UNUSED(property);
 
-	// FIXME
-	error("GetRoomProperty unimplemented");
-
-	return RuntimeValue();
+	return vm->getIntProperty(property->getString(),
+	                          vm->getCurrentRoom()->_properties);
 }
 
 // import void GetLocationName(int x, int y, string buffer)
@@ -422,15 +419,16 @@ Script_GetHotspotPointY(AGSEngine *vm, ScriptObject *,
 RuntimeValue
 Script_GetHotspotProperty(AGSEngine *vm, ScriptObject *,
                           const Common::Array<RuntimeValue> &params) {
-	int hotspot = params[0]._signedValue;
-	UNUSED(hotspot);
+	uint hotspot = params[0]._value;
 	ScriptString *property = (ScriptString *) params[1]._object;
-	UNUSED(property);
 
-	// FIXME
-	error("GetHotspotProperty unimplemented");
+	if (hotspot >= vm->getCurrentRoom()->_hotspots.size())
+		error("GetHotspotProperty: hotspot %d is too high (only have %d)",
+		      hotspot, vm->getCurrentRoom()->_hotspots.size());
 
-	return RuntimeValue();
+	return vm->getIntProperty(
+	    property->getString(),
+	    vm->getCurrentRoom()->_hotspots[hotspot]._properties);
 }
 
 // import void GetHotspotPropertyText(int hotspot, const string property, string
@@ -438,15 +436,17 @@ Script_GetHotspotProperty(AGSEngine *vm, ScriptObject *,
 RuntimeValue
 Script_GetHotspotPropertyText(AGSEngine *vm, ScriptObject *,
                               const Common::Array<RuntimeValue> &params) {
-	int hotspot = params[0]._signedValue;
-	UNUSED(hotspot);
+	uint hotspot = params[0]._value;
 	ScriptString *property = (ScriptString *) params[1]._object;
-	UNUSED(property);
 	ScriptString *buffer = (ScriptString *) params[2]._object;
-	UNUSED(buffer);
 
-	// FIXME
-	error("GetHotspotPropertyText unimplemented");
+	if (hotspot >= vm->getCurrentRoom()->_hotspots.size())
+		error("GetHotspotPropertyText: hotspot %d is too high (only have %d)",
+		      hotspot, vm->getCurrentRoom()->_hotspots.size());
+
+	buffer->setString(vm->getStringProperty(
+	    property->getString(),
+	    vm->getCurrentRoom()->_hotspots[hotspot]._properties));
 
 	return RuntimeValue();
 }
@@ -667,12 +667,10 @@ RuntimeValue
 Script_Hotspot_GetPropertyText(AGSEngine *vm, RoomHotspot *self,
                                const Common::Array<RuntimeValue> &params) {
 	ScriptString *property = (ScriptString *) params[0]._object;
-	UNUSED(property);
 	ScriptString *buffer = (ScriptString *) params[1]._object;
-	UNUSED(buffer);
 
-	// FIXME
-	error("Hotspot::GetPropertyText unimplemented");
+	buffer->setString(
+	    vm->getStringProperty(property->getString(), self->_properties));
 
 	return RuntimeValue();
 }
@@ -683,12 +681,8 @@ RuntimeValue
 Script_Hotspot_GetProperty(AGSEngine *vm, RoomHotspot *self,
                            const Common::Array<RuntimeValue> &params) {
 	ScriptString *property = (ScriptString *) params[0]._object;
-	UNUSED(property);
 
-	// FIXME
-	error("Hotspot::GetProperty unimplemented");
-
-	return RuntimeValue();
+	return vm->getIntProperty(property->getString(), self->_properties);
 }
 
 // Hotspot: import String GetTextProperty(const string property)
@@ -697,12 +691,12 @@ RuntimeValue
 Script_Hotspot_GetTextProperty(AGSEngine *vm, RoomHotspot *self,
                                const Common::Array<RuntimeValue> &params) {
 	ScriptString *property = (ScriptString *) params[0]._object;
-	UNUSED(property);
 
-	// FIXME
-	error("Hotspot::GetTextProperty unimplemented");
-
-	return RuntimeValue();
+	Common::String string =
+	    vm->getStringProperty(property->getString(), self->_properties);
+	RuntimeValue ret = new ScriptMutableString(string);
+	ret._object->DecRef();
+	return ret;
 }
 
 // Hotspot: import void RunInteraction(CursorMode)

@@ -118,15 +118,16 @@ Script_RunObjectInteraction(AGSEngine *vm, ScriptObject *,
 RuntimeValue
 Script_GetObjectProperty(AGSEngine *vm, ScriptObject *,
                          const Common::Array<RuntimeValue> &params) {
-	int object = params[0]._signedValue;
-	UNUSED(object);
+	uint object = params[0]._value;
 	ScriptString *property = (ScriptString *) params[1]._object;
-	UNUSED(property);
 
-	// FIXME
-	error("GetObjectProperty unimplemented");
+	if (object >= vm->getCurrentRoom()->_objects.size())
+		error("GetObjectProperty: object %d is too high (only have %d)", object,
+		      vm->getCurrentRoom()->_objects.size());
 
-	return RuntimeValue();
+	return vm->getIntProperty(
+	    property->getString(),
+	    vm->getCurrentRoom()->_objects[object]->_properties);
 }
 
 // import void GetObjectPropertyText(int object, const string property, string
@@ -134,15 +135,17 @@ Script_GetObjectProperty(AGSEngine *vm, ScriptObject *,
 RuntimeValue
 Script_GetObjectPropertyText(AGSEngine *vm, ScriptObject *,
                              const Common::Array<RuntimeValue> &params) {
-	int object = params[0]._signedValue;
-	UNUSED(object);
+	uint object = params[0]._value;
 	ScriptString *property = (ScriptString *) params[1]._object;
-	UNUSED(property);
 	ScriptString *buffer = (ScriptString *) params[2]._object;
-	UNUSED(buffer);
 
-	// FIXME
-	error("GetObjectPropertyText unimplemented");
+	if (object >= vm->getCurrentRoom()->_objects.size())
+		error("GetObjectPropertyText: object %d is too high (only have %d)",
+		      object, vm->getCurrentRoom()->_objects.size());
+
+	buffer->setString(vm->getStringProperty(
+	    property->getString(),
+	    vm->getCurrentRoom()->_objects[object]->_properties));
 
 	return RuntimeValue();
 }
@@ -595,12 +598,10 @@ RuntimeValue
 Script_Object_GetPropertyText(AGSEngine *vm, RoomObject *self,
                               const Common::Array<RuntimeValue> &params) {
 	ScriptString *property = (ScriptString *) params[0]._object;
-	UNUSED(property);
 	ScriptString *buffer = (ScriptString *) params[1]._object;
-	UNUSED(buffer);
 
-	// FIXME
-	error("Object::GetPropertyText unimplemented");
+	buffer->setString(
+	    vm->getStringProperty(property->getString(), self->_properties));
 
 	return RuntimeValue();
 }
@@ -611,12 +612,8 @@ RuntimeValue
 Script_Object_GetProperty(AGSEngine *vm, RoomObject *self,
                           const Common::Array<RuntimeValue> &params) {
 	ScriptString *property = (ScriptString *) params[0]._object;
-	UNUSED(property);
 
-	// FIXME
-	error("Object::GetProperty unimplemented");
-
-	return RuntimeValue();
+	return vm->getIntProperty(property->getString(), self->_properties);
 }
 
 // Object: import String GetTextProperty(const string property)
@@ -625,12 +622,12 @@ RuntimeValue
 Script_Object_GetTextProperty(AGSEngine *vm, RoomObject *self,
                               const Common::Array<RuntimeValue> &params) {
 	ScriptString *property = (ScriptString *) params[0]._object;
-	UNUSED(property);
 
-	// FIXME
-	error("Object::GetTextProperty unimplemented");
-
-	return RuntimeValue();
+	Common::String string =
+	    vm->getStringProperty(property->getString(), self->_properties);
+	RuntimeValue ret = new ScriptMutableString(string);
+	ret._object->DecRef();
+	return ret;
 }
 
 // Object: import bool IsCollidingWithObject(Object*)
