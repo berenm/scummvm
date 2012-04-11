@@ -1118,7 +1118,8 @@ Script_Character_FaceObject(AGSEngine *vm, Character *self,
 RuntimeValue
 Script_Character_FollowCharacter(AGSEngine *vm, Character *self,
                                  const Common::Array<RuntimeValue> &params) {
-	if (!params[0]._object->isOfType(sotCharacter))
+	if (params[0]._type == rvtSystemObject &&
+	    !params[0]._object->isOfType(sotCharacter))
 		error("Character::FollowCharacter got incorrect object type (expected "
 		      "a Character) for parameter 1");
 	Character *character = (Character *) params[0]._object;
@@ -2630,7 +2631,7 @@ static const ScriptSystemFunctionInfo ourFunctionList[] = {
     {"Character::FaceObject^2",
      (ScriptAPIFunction *) &Script_Character_FaceObject, "oi", sotCharacter},
     {"Character::FollowCharacter^3",
-     (ScriptAPIFunction *) &Script_Character_FollowCharacter, "oii",
+     (ScriptAPIFunction *) &Script_Character_FollowCharacter, "pii",
      sotCharacter},
     {"Character::GetAtScreenXY^2",
      (ScriptAPIFunction *) &Script_Character_GetAtScreenXY, "ii", sotNone},
