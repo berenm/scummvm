@@ -82,10 +82,13 @@ static void decompressLZSS(Common::SeekableReadStream *stream, byte *outBuf,
 
 static Graphics::Surface readLZSSImage(Common::SeekableReadStream *stream,
                                        Graphics::PixelFormat format,
-                                       byte *destPalette) {
-	Graphics::Surface surf;
-
+                                       byte *destPalette, uint32 imageBpp) {
 	stream->read(destPalette, 256 * 4);
+	for (uint i = 1; i < 256; ++i) {
+		destPalette[i * 3] = destPalette[i * 4] << 2;
+		destPalette[i * 3 + 1] = destPalette[i * 4 + 1] << 2;
+		destPalette[i * 3 + 2] = destPalette[i * 4 + 2] << 2;
+	}
 
 	uint32 uncompressedSize = stream->readUint32LE();
 	uint32 compressedSize = stream->readUint32LE();
@@ -108,13 +111,42 @@ static Graphics::Surface readLZSSImage(Common::SeekableReadStream *stream,
 		error(
 		    "readLZSSImage: %d bytes width and %d height doesn't match %d size",
 		    widthBytes, height, uncompressedSize);
-	if (widthBytes % format.bytesPerPixel != 0)
+	if (widthBytes % imageBpp != 0)
 		error("readLZSSImage: %d bytes width doesn't divide into %d bpp",
-		      widthBytes, format.bytesPerPixel);
-	surf.create(widthBytes / format.bytesPerPixel, height, format);
+		      widthBytes, imageBpp);
 
-	// FIXME: convert to correct format
+	Graphics::Surface surf;
+	Graphics::PixelFormat imgFormat;
+
+	switch (imageBpp) {
+	case 1:
+		// 8bpp
+		imgFormat = Graphics::PixelFormat::createFormatCLUT8();
+		break;
+	case 2:
+		// 16bpp: 565
+		imgFormat = Graphics::PixelFormat(2, 5, 6, 5, 0, 11, 5, 0, 0);
+		break;
+	case 4:
+		// 32bpp: RGB8888
+		imgFormat = Graphics::PixelFormat(4, 8, 8, 8, 0, 16, 8, 0, 0);
+		break;
+	default:
+		error("readLZSSImage: imageBpp of %d is invalid (must be 1, 2 or 4)",
+		      imageBpp);
+	}
+
+	surf.create(widthBytes / imageBpp, height, imgFormat);
 	memcpy(surf.getPixels(), buffer + 8, uncompressedSize - 8);
+
+	if (imgFormat != format) {
+		// Convert to correct format
+		// FIXME: destPalette doesn't have the game palette filled in
+		Graphics::Surface *convertedSurf = surf.convertTo(format, destPalette);
+		surf.free();
+		surf = *convertedSurf;
+		delete convertedSurf;
+	}
 
 	delete[] buffer;
 	return surf;
@@ -730,9 +762,9 @@ void Room::readData(Common::SeekableReadStream *dta) {
 			}
 			// we already read the first scene as part of the main block
 			for (uint i = 1; i < _backgroundScenes.size(); ++i)
-				_backgroundScenes[i]._scene =
-				    readLZSSImage(dta, _vm->_graphics->getPixelFormat(),
-				                  _backgroundScenes[i]._palette);
+				_backgroundScenes[i]._scene = readLZSSImage(
+				    dta, _vm->_graphics->getPixelFormat(),
+				    _backgroundScenes[i]._palette, _bytesPerPixel);
 		} break;
 		case BLOCKTYPE_PROPERTIES:
 			count = dta->readUint32LE();
@@ -1165,7 +1197,7 @@ void Room::readMainBlock(Common::SeekableReadStream *dta) {
 	if (_version >= 5)
 		_backgroundScenes[0]._scene =
 		    readLZSSImage(dta, _vm->_graphics->getPixelFormat(),
-		                  _backgroundScenes[0]._palette);
+		                  _backgroundScenes[0]._palette, _bytesPerPixel);
 	else
 		_backgroundScenes[0]._scene = readRLEImage(dta);
 
