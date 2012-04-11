@@ -102,13 +102,14 @@ Script_StopObjectMoving(AGSEngine *vm, ScriptObject *,
 RuntimeValue
 Script_RunObjectInteraction(AGSEngine *vm, ScriptObject *,
                             const Common::Array<RuntimeValue> &params) {
-	int object = params[0]._signedValue;
-	UNUSED(object);
+	uint object = params[0]._value;
 	uint32 cursormode = params[1]._value;
-	UNUSED(cursormode);
 
-	// FIXME
-	error("RunObjectInteraction unimplemented");
+	if (object >= vm->getCurrentRoom()->_objects.size())
+		error("RunObjectInteraction: object %d is too high (only have %d)",
+		      object, vm->getCurrentRoom()->_objects.size());
+
+	vm->runObjectInteraction(object, cursormode);
 
 	return RuntimeValue();
 }
@@ -223,13 +224,14 @@ RuntimeValue Script_ObjectOn(AGSEngine *vm, ScriptObject *,
 RuntimeValue
 Script_SetObjectBaseline(AGSEngine *vm, ScriptObject *,
                          const Common::Array<RuntimeValue> &params) {
-	int object = params[0]._signedValue;
-	UNUSED(object);
+	uint object = params[0]._value;
 	int baseline = params[1]._signedValue;
-	UNUSED(baseline);
 
-	// FIXME
-	error("SetObjectBaseline unimplemented");
+	if (object >= vm->getCurrentRoom()->_objects.size())
+		error("ObjectOn: object %d is too high (only have %d)", object,
+		      vm->getCurrentRoom()->_objects.size());
+
+	vm->getCurrentRoom()->_objects[object]->_baseline = baseline;
 
 	return RuntimeValue();
 }
@@ -364,15 +366,21 @@ Script_MoveObjectDirect(AGSEngine *vm, ScriptObject *,
 RuntimeValue
 Script_SetObjectPosition(AGSEngine *vm, ScriptObject *,
                          const Common::Array<RuntimeValue> &params) {
-	int object = params[0]._signedValue;
-	UNUSED(object);
+	uint object = params[0]._value;
 	int x = params[1]._signedValue;
-	UNUSED(x);
 	int y = params[2]._signedValue;
-	UNUSED(y);
 
-	// FIXME
-	error("SetObjectPosition unimplemented");
+	if (object >= vm->getCurrentRoom()->_objects.size())
+		error("SetObjectPosition: object %d is too high (only have %d)", object,
+		      vm->getCurrentRoom()->_objects.size());
+
+	RoomObject *obj = vm->getCurrentRoom()->_objects[object];
+
+	if (obj->_moving > 0)
+		error("SetObjectPosition: cannot set position while object is moving");
+
+	obj->_pos.x = x;
+	obj->_pos.y = y;
 
 	return RuntimeValue();
 }
@@ -412,26 +420,26 @@ RuntimeValue Script_GetObjectName(AGSEngine *vm, ScriptObject *,
 // Obsolete function for objects.
 RuntimeValue Script_GetObjectX(AGSEngine *vm, ScriptObject *,
                                const Common::Array<RuntimeValue> &params) {
-	int object = params[0]._signedValue;
-	UNUSED(object);
+	uint object = params[0]._value;
 
-	// FIXME
-	error("GetObjectX unimplemented");
+	if (object >= vm->getCurrentRoom()->_objects.size())
+		error("GetObjectX: object %d is too high (only have %d)", object,
+		      vm->getCurrentRoom()->_objects.size());
 
-	return RuntimeValue();
+	return vm->getCurrentRoom()->_objects[object]->_pos.x;
 }
 
 // import int GetObjectY(int object)
 // Obsolete function for objects.
 RuntimeValue Script_GetObjectY(AGSEngine *vm, ScriptObject *,
                                const Common::Array<RuntimeValue> &params) {
-	int object = params[0]._signedValue;
-	UNUSED(object);
+	uint object = params[0]._value;
 
-	// FIXME
-	error("GetObjectY unimplemented");
+	if (object >= vm->getCurrentRoom()->_objects.size())
+		error("GetObjectY: object %d is too high (only have %d)", object,
+		      vm->getCurrentRoom()->_objects.size());
 
-	return RuntimeValue();
+	return vm->getCurrentRoom()->_objects[object]->_pos.y;
 }
 
 // import int GetObjectGraphic(int object)
@@ -712,12 +720,14 @@ RuntimeValue
 Script_Object_SetPosition(AGSEngine *vm, RoomObject *self,
                           const Common::Array<RuntimeValue> &params) {
 	int x = params[0]._signedValue;
-	UNUSED(x);
 	int y = params[1]._signedValue;
-	UNUSED(y);
 
-	// FIXME
-	error("Object::SetPosition unimplemented");
+	if (self->_moving > 0)
+		error(
+		    "Object::SetPosition: cannot set position while object is moving");
+
+	self->_pos.x = x;
+	self->_pos.y = y;
 
 	return RuntimeValue();
 }
@@ -740,8 +750,10 @@ RuntimeValue Script_Object_SetView(AGSEngine *vm, RoomObject *self,
 RuntimeValue
 Script_Object_StopAnimating(AGSEngine *vm, RoomObject *self,
                             const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Object::StopAnimating unimplemented");
+	if (self->_cycling) {
+		self->_cycling = 0;
+		self->_wait = 0;
+	}
 
 	return RuntimeValue();
 }
@@ -869,10 +881,7 @@ Script_Object_set_BlockingWidth(AGSEngine *vm, RoomObject *self,
 RuntimeValue
 Script_Object_get_Clickable(AGSEngine *vm, RoomObject *self,
                             const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Object::get_Clickable unimplemented");
-
-	return RuntimeValue();
+	return (self->_flags & OBJF_NOINTERACT) ? 0 : 1;
 }
 
 // Object: import attribute bool Clickable
@@ -882,10 +891,11 @@ RuntimeValue
 Script_Object_set_Clickable(AGSEngine *vm, RoomObject *self,
                             const Common::Array<RuntimeValue> &params) {
 	uint32 value = params[0]._value;
-	UNUSED(value);
 
-	// FIXME
-	error("Object::set_Clickable unimplemented");
+	if (value)
+		self->_flags &= ~OBJF_NOINTERACT;
+	else
+		self->_flags |= OBJF_NOINTERACT;
 
 	return RuntimeValue();
 }
@@ -1096,10 +1106,7 @@ Script_Object_set_Visible(AGSEngine *vm, RoomObject *self,
 // Gets/sets the X co-ordinate of the object's bottom-left hand corner.
 RuntimeValue Script_Object_get_X(AGSEngine *vm, RoomObject *self,
                                  const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Object::get_X unimplemented");
-
-	return RuntimeValue();
+	return self->_pos.x;
 }
 
 // Object: import attribute int X
@@ -1107,10 +1114,11 @@ RuntimeValue Script_Object_get_X(AGSEngine *vm, RoomObject *self,
 RuntimeValue Script_Object_set_X(AGSEngine *vm, RoomObject *self,
                                  const Common::Array<RuntimeValue> &params) {
 	int value = params[0]._signedValue;
-	UNUSED(value);
 
-	// FIXME
-	error("Object::set_X unimplemented");
+	if (self->_moving > 0)
+		error("Object::set_X: cannot set position while object is moving");
+
+	self->_pos.x = value;
 
 	return RuntimeValue();
 }
@@ -1119,10 +1127,7 @@ RuntimeValue Script_Object_set_X(AGSEngine *vm, RoomObject *self,
 // Gets/sets the Y co-ordinate of the object's bottom-left hand corner.
 RuntimeValue Script_Object_get_Y(AGSEngine *vm, RoomObject *self,
                                  const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Object::get_Y unimplemented");
-
-	return RuntimeValue();
+	return self->_pos.y;
 }
 
 // Object: import attribute int Y
@@ -1130,10 +1135,11 @@ RuntimeValue Script_Object_get_Y(AGSEngine *vm, RoomObject *self,
 RuntimeValue Script_Object_set_Y(AGSEngine *vm, RoomObject *self,
                                  const Common::Array<RuntimeValue> &params) {
 	int value = params[0]._signedValue;
-	UNUSED(value);
 
-	// FIXME
-	error("Object::set_Y unimplemented");
+	if (self->_moving > 0)
+		error("Object::set_Y: cannot set position while object is moving");
+
+	self->_pos.y = value;
 
 	return RuntimeValue();
 }

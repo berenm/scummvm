@@ -26,9 +26,12 @@
  */
 
 #include "engines/ags/scripting/scripting.h"
+#include "engines/ags/character.h"
 #include "engines/ags/constants.h"
 #include "engines/ags/gamestate.h"
+#include "engines/ags/graphics.h"
 #include "engines/ags/inventory.h"
+#include "engines/ags/overlay.h"
 #include "engines/ags/room.h"
 
 namespace AGS {
@@ -38,14 +41,13 @@ namespace AGS {
 RuntimeValue Script_GetCharacterAt(AGSEngine *vm, ScriptObject *,
                                    const Common::Array<RuntimeValue> &params) {
 	int x = params[0]._signedValue;
-	UNUSED(x);
 	int y = params[1]._signedValue;
-	UNUSED(y);
 
-	// FIXME
-	error("GetCharacterAt unimplemented");
+	x += vm->divideDownCoordinate(vm->_graphics->_viewportX);
+	y += vm->divideDownCoordinate(vm->_graphics->_viewportY);
 
-	return RuntimeValue();
+	int charY;
+	return vm->getCharacterAt(Common::Point(x, y), charY);
 }
 
 // import void AddInventory(int item)
@@ -172,12 +174,14 @@ RuntimeValue
 Script_RunCharacterInteraction(AGSEngine *vm, ScriptObject *,
                                const Common::Array<RuntimeValue> &params) {
 	uint32 charid = params[0]._value;
-	UNUSED(charid);
 	uint32 cursormode = params[1]._value;
-	UNUSED(cursormode);
 
-	// FIXME
-	error("RunCharacterInteraction unimplemented");
+	if (charid >= vm->_characters.size())
+		error(
+		    "RunCharacterInteraction: character %d is too high (only have %d)",
+		    charid, vm->_characters.size());
+
+	vm->runCharacterInteraction(charid, cursormode);
 
 	return RuntimeValue();
 }

@@ -216,7 +216,7 @@ RuntimeValue Script_CallRoomScript(AGSEngine *vm, ScriptObject *,
 
 	// FIXME: vm->canRunDelayedCommand("CallRoomScript");
 
-	vm->_state->_roomScriptFinished = false;
+	vm->_state->_roomScriptFinished = 0;
 	vm->queueCustomRoomScript(value);
 
 	return RuntimeValue();
@@ -238,15 +238,20 @@ RuntimeValue Script_GetLocationType(AGSEngine *vm, ScriptObject *,
 RuntimeValue
 Script_GetWalkableAreaAt(AGSEngine *vm, ScriptObject *,
                          const Common::Array<RuntimeValue> &params) {
-	int screenX = params[0]._signedValue;
-	UNUSED(screenX);
-	int screenY = params[1]._signedValue;
-	UNUSED(screenY);
+	int x = params[0]._signedValue;
+	int y = params[1]._signedValue;
 
-	// FIXME
-	error("GetWalkableAreaAt unimplemented");
+	x += vm->divideDownCoordinate(vm->_graphics->_viewportX);
+	y += vm->divideDownCoordinate(vm->_graphics->_viewportY);
 
-	return RuntimeValue();
+	if (x < 0 || y < 0 || x >= vm->getCurrentRoom()->_width ||
+	    y >= vm->getCurrentRoom()->_height)
+		return 0;
+
+	x = vm->convertToLowRes(x);
+	y = vm->convertToLowRes(y);
+
+	return *(byte *) vm->getCurrentRoom()->_walkableMask.getBasePtr(x, y);
 }
 
 // import int GetScalingAt (int x, int y)
@@ -325,14 +330,9 @@ RuntimeValue Script_GetHotspotAt(AGSEngine *vm, ScriptObject *,
 RuntimeValue Script_GetObjectAt(AGSEngine *vm, ScriptObject *,
                                 const Common::Array<RuntimeValue> &params) {
 	int x = params[0]._signedValue;
-	UNUSED(x);
 	int y = params[1]._signedValue;
-	UNUSED(y);
 
-	// FIXME
-	error("GetObjectAt unimplemented");
-
-	return RuntimeValue();
+	return vm->getCurrentRoom()->getObjectAt(x, y);
 }
 
 // import int GetRegionAt (int x, int y)
@@ -349,11 +349,15 @@ RuntimeValue Script_GetRegionAt(AGSEngine *vm, ScriptObject *,
 // Obsolete hotspot function.
 RuntimeValue Script_DisableHotspot(AGSEngine *vm, ScriptObject *,
                                    const Common::Array<RuntimeValue> &params) {
-	int hotspot = params[0]._signedValue;
-	UNUSED(hotspot);
+	uint hotspot = params[0]._value;
 
-	// FIXME
-	error("DisableHotspot unimplemented");
+	if (hotspot >= vm->getCurrentRoom()->_hotspots.size())
+		error("DisableHotspot: hotspot %d is too high (only have %d)", hotspot,
+		      vm->getCurrentRoom()->_hotspots.size());
+
+	vm->getCurrentRoom()->_hotspots[hotspot]._enabled = false;
+
+	debugC(kDebugLevelGame, "hotspot %d disabled", hotspot);
 
 	return RuntimeValue();
 }
@@ -362,11 +366,15 @@ RuntimeValue Script_DisableHotspot(AGSEngine *vm, ScriptObject *,
 // Obsolete hotspot function.
 RuntimeValue Script_EnableHotspot(AGSEngine *vm, ScriptObject *,
                                   const Common::Array<RuntimeValue> &params) {
-	int hotspot = params[0]._signedValue;
-	UNUSED(hotspot);
+	uint hotspot = params[0]._value;
 
-	// FIXME
-	error("EnableHotspot unimplemented");
+	if (hotspot >= vm->getCurrentRoom()->_hotspots.size())
+		error("EnableHotspot: hotspot %d is too high (only have %d)", hotspot,
+		      vm->getCurrentRoom()->_hotspots.size());
+
+	vm->getCurrentRoom()->_hotspots[hotspot]._enabled = true;
+
+	debugC(kDebugLevelGame, "hotspot %d enabled", hotspot);
 
 	return RuntimeValue();
 }
@@ -456,13 +464,14 @@ Script_GetHotspotPropertyText(AGSEngine *vm, ScriptObject *,
 RuntimeValue
 Script_RunHotspotInteraction(AGSEngine *vm, ScriptObject *,
                              const Common::Array<RuntimeValue> &params) {
-	int hotspot = params[0]._signedValue;
-	UNUSED(hotspot);
+	uint hotspot = params[0]._value;
 	uint32 cursormode = params[1]._value;
-	UNUSED(cursormode);
 
-	// FIXME
-	error("RunHotspotInteraction unimplemented");
+	if (hotspot >= vm->getCurrentRoom()->_hotspots.size())
+		error("RunHotspotInteraction: hotspot %d is too high (only have %d)",
+		      hotspot, vm->getCurrentRoom()->_hotspots.size());
+
+	vm->runHotspotInteraction(hotspot, cursormode);
 
 	return RuntimeValue();
 }
@@ -471,11 +480,15 @@ Script_RunHotspotInteraction(AGSEngine *vm, ScriptObject *,
 // Obsolete region function.
 RuntimeValue Script_DisableRegion(AGSEngine *vm, ScriptObject *,
                                   const Common::Array<RuntimeValue> &params) {
-	int region = params[0]._signedValue;
-	UNUSED(region);
+	uint region = params[0]._value;
 
-	// FIXME
-	error("DisableRegion unimplemented");
+	if (region >= vm->getCurrentRoom()->_regions.size())
+		error("DisableRegion: region %d is too high (only have %d)", region,
+		      vm->getCurrentRoom()->_regions.size());
+
+	vm->getCurrentRoom()->_regions[region]._enabled = false;
+
+	debugC(kDebugLevelGame, "region %d disabled", region);
 
 	return RuntimeValue();
 }
@@ -484,11 +497,15 @@ RuntimeValue Script_DisableRegion(AGSEngine *vm, ScriptObject *,
 // Obsolete region function.
 RuntimeValue Script_EnableRegion(AGSEngine *vm, ScriptObject *,
                                  const Common::Array<RuntimeValue> &params) {
-	int region = params[0]._signedValue;
-	UNUSED(region);
+	uint region = params[0]._value;
 
-	// FIXME
-	error("EnableRegion unimplemented");
+	if (region >= vm->getCurrentRoom()->_regions.size())
+		error("EnableRegion: region %d is too high (only have %d)", region,
+		      vm->getCurrentRoom()->_regions.size());
+
+	vm->getCurrentRoom()->_regions[region]._enabled = true;
+
+	debugC(kDebugLevelGame, "region %d enabled", region);
 
 	return RuntimeValue();
 }
@@ -551,11 +568,16 @@ RuntimeValue Script_SetRegionTint(AGSEngine *vm, ScriptObject *,
 RuntimeValue
 Script_RemoveWalkableArea(AGSEngine *vm, ScriptObject *,
                           const Common::Array<RuntimeValue> &params) {
-	int area = params[0]._signedValue;
-	UNUSED(area);
+	uint area = params[0]._value;
 
-	// FIXME
-	error("RemoveWalkableArea unimplemented");
+	if (area < 1 || area > 15)
+		error("RemoveWalkableArea: invalid walkable area %d specified (must be "
+		      "1-15).",
+		      area);
+
+	vm->_state->_walkableAreasOn[area] = 0;
+	if (vm->getCurrentRoom())
+		vm->getCurrentRoom()->redoWalkableAreas();
 
 	return RuntimeValue();
 }
@@ -565,11 +587,16 @@ Script_RemoveWalkableArea(AGSEngine *vm, ScriptObject *,
 RuntimeValue
 Script_RestoreWalkableArea(AGSEngine *vm, ScriptObject *,
                            const Common::Array<RuntimeValue> &params) {
-	int area = params[0]._signedValue;
-	UNUSED(area);
+	uint area = params[0]._value;
 
-	// FIXME
-	error("RestoreWalkableArea unimplemented");
+	if (area < 1 || area > 15)
+		error("RemoveWalkableArea: invalid walkable area %d specified (must be "
+		      "1-15).",
+		      area);
+
+	vm->_state->_walkableAreasOn[area] = 1;
+	if (vm->getCurrentRoom())
+		vm->getCurrentRoom()->redoWalkableAreas();
 
 	return RuntimeValue();
 }
@@ -621,13 +648,20 @@ Script_EnableGroundLevelAreas(AGSEngine *vm, ScriptObject *,
 RuntimeValue
 Script_SetWalkBehindBase(AGSEngine *vm, ScriptObject *,
                          const Common::Array<RuntimeValue> &params) {
-	int area = params[0]._signedValue;
-	UNUSED(area);
-	int baseline = params[1]._signedValue;
-	UNUSED(baseline);
+	uint area = params[0]._value;
+	int baseline = params[1]._value;
 
-	// FIXME
-	error("SetWalkBehindBase unimplemented");
+	// FIXME: check bounds for baseline?
+
+	if (area < 1 || area >= vm->getCurrentRoom()->_walkBehinds.size())
+		error("SetWalkBehindBase: walk-behind area %d is invalid", area);
+
+	if (baseline != vm->getCurrentRoom()->_walkBehinds[area]._baseline) {
+		vm->getCurrentRoom()->_walkBehinds[area]._baseline = baseline;
+		vm->invalidateBackground();
+		debugC(kDebugLevelGame, "walk-behind %d baseline changed to %d", area,
+		       baseline);
+	}
 
 	return RuntimeValue();
 }
@@ -638,14 +672,10 @@ RuntimeValue
 Script_Hotspot_GetAtScreenXY(AGSEngine *vm, ScriptObject *,
                              const Common::Array<RuntimeValue> &params) {
 	int x = params[0]._signedValue;
-	UNUSED(x);
 	int y = params[1]._signedValue;
-	UNUSED(y);
 
-	// FIXME
-	error("Hotspot::GetAtScreenXY unimplemented");
-
-	return RuntimeValue();
+	uint hotspotId = vm->getCurrentRoom()->getHotspotAt(x, y);
+	return &vm->getCurrentRoom()->_hotspots[hotspotId];
 }
 
 // Hotspot: import void GetName(string buffer)
@@ -827,10 +857,7 @@ RuntimeValue Script_Region_Tint(AGSEngine *vm, RoomRegion *self,
 RuntimeValue
 Script_Region_get_Enabled(AGSEngine *vm, RoomRegion *self,
                           const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Region::get_Enabled unimplemented");
-
-	return RuntimeValue();
+	return self->_enabled ? 1 : 0;
 }
 
 // Region: import attribute bool Enabled
@@ -839,10 +866,8 @@ RuntimeValue
 Script_Region_set_Enabled(AGSEngine *vm, RoomRegion *self,
                           const Common::Array<RuntimeValue> &params) {
 	uint32 value = params[0]._value;
-	UNUSED(value);
 
-	// FIXME
-	error("Region::set_Enabled unimplemented");
+	self->_enabled = value ? true : false;
 
 	return RuntimeValue();
 }
