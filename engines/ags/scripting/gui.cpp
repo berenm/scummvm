@@ -140,6 +140,8 @@ Script_SetInvDimensions(AGSEngine *vm, ScriptObject *,
 
 	// backwards compatibility
 	for (uint i = 0; i < vm->_gameFile->_guiInvControls.size(); ++i) {
+		vm->_gameFile->_guiInvControls[i]->_itemWidth = width;
+		vm->_gameFile->_guiInvControls[i]->_itemHeight = height;
 		vm->_gameFile->_guiInvControls[i]->resized();
 	}
 
@@ -221,7 +223,8 @@ RuntimeValue Script_SetGUIPosition(AGSEngine *vm, ScriptObject *,
 	int x = params[1]._signedValue;
 	int y = params[2]._signedValue;
 
-	if (x >= vm->getCurrentRoom()->_width || y >= vm->getCurrentRoom()->_height)
+	if (vm->getCurrentRoom() && (x >= vm->getCurrentRoom()->_width ||
+	                             y >= vm->getCurrentRoom()->_height))
 		error("SetGUIPosition: (%d, %d) is outside room boundaries", x, y);
 
 	if (guiId >= vm->_gameFile->_guiGroups.size())
@@ -1059,10 +1062,7 @@ Script_GUIControl_set_Height(AGSEngine *vm, GUIControl *self,
 RuntimeValue
 Script_GUIControl_get_ID(AGSEngine *vm, GUIControl *self,
                          const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("GUIControl::get_ID unimplemented");
-
-	return RuntimeValue();
+	return self->_id;
 }
 
 // GUIControl: readonly import attribute GUI* OwningGUI
@@ -2205,7 +2205,8 @@ RuntimeValue Script_GUI_SetPosition(AGSEngine *vm, GUIGroup *self,
 	int x = params[0]._signedValue;
 	int y = params[1]._signedValue;
 
-	if (x >= vm->getCurrentRoom()->_width || y >= vm->getCurrentRoom()->_height)
+	if (vm->getCurrentRoom() && (x >= vm->getCurrentRoom()->_width ||
+	                             y >= vm->getCurrentRoom()->_height))
 		error("GUI::SetPosition: (%d, %d) is outside room boundaries", x, y);
 
 	self->_x = vm->multiplyUpCoordinate(x);
@@ -2219,12 +2220,15 @@ RuntimeValue Script_GUI_SetPosition(AGSEngine *vm, GUIGroup *self,
 RuntimeValue Script_GUI_SetSize(AGSEngine *vm, GUIGroup *self,
                                 const Common::Array<RuntimeValue> &params) {
 	int width = params[0]._signedValue;
-	UNUSED(width);
 	int height = params[1]._signedValue;
-	UNUSED(height);
 
-	// FIXME
-	error("GUI::SetSize unimplemented");
+	if (width < 0 || width > vm->_graphics->_baseWidth || height < 0 ||
+	    height > vm->_graphics->_baseHeight)
+		error("GUI::SetSize: Tried resizing to an invalid size (%dx%d)", width,
+		      height);
+
+	vm->multiplyUpCoordinates(width, height);
+	self->setSize(width, height);
 
 	return RuntimeValue();
 }
@@ -2245,9 +2249,9 @@ Script_GUI_get_BackgroundGraphic(AGSEngine *vm, GUIGroup *self,
 RuntimeValue
 Script_GUI_set_BackgroundGraphic(AGSEngine *vm, GUIGroup *self,
                                  const Common::Array<RuntimeValue> &params) {
-	uint slot = params[0]._value;
+	int slot = params[0]._value;
 
-	if (slot >= vm->getSprites()->getSpriteCount())
+	if (slot != -1 && (uint) slot >= vm->getSprites()->getSpriteCount())
 		error("GUI::set_BackgroundGraphic: sprite %d is too high (only have %d "
 		      "sprites)",
 		      slot, vm->getSprites()->getSpriteCount());
@@ -2309,10 +2313,7 @@ Script_GUI_get_ControlCount(AGSEngine *vm, GUIGroup *self,
 // Gets/sets the height of the GUI.
 RuntimeValue Script_GUI_get_Height(AGSEngine *vm, GUIGroup *self,
                                    const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("GUI::get_Height unimplemented");
-
-	return RuntimeValue();
+	return vm->divideDownCoordinate(self->_height);
 }
 
 // GUI: import attribute int Height
@@ -2320,10 +2321,8 @@ RuntimeValue Script_GUI_get_Height(AGSEngine *vm, GUIGroup *self,
 RuntimeValue Script_GUI_set_Height(AGSEngine *vm, GUIGroup *self,
                                    const Common::Array<RuntimeValue> &params) {
 	int value = params[0]._signedValue;
-	UNUSED(value);
 
-	// FIXME
-	error("GUI::set_Height unimplemented");
+	self->setSize(self->_width, vm->multiplyUpCoordinate(value));
 
 	return RuntimeValue();
 }
@@ -2385,10 +2384,7 @@ RuntimeValue Script_GUI_set_Visible(AGSEngine *vm, GUIGroup *self,
 // Gets/sets the width of the GUI.
 RuntimeValue Script_GUI_get_Width(AGSEngine *vm, GUIGroup *self,
                                   const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("GUI::get_Width unimplemented");
-
-	return RuntimeValue();
+	return vm->divideDownCoordinate(self->_width);
 }
 
 // GUI: import attribute int Width
@@ -2396,10 +2392,8 @@ RuntimeValue Script_GUI_get_Width(AGSEngine *vm, GUIGroup *self,
 RuntimeValue Script_GUI_set_Width(AGSEngine *vm, GUIGroup *self,
                                   const Common::Array<RuntimeValue> &params) {
 	int value = params[0]._signedValue;
-	UNUSED(value);
 
-	// FIXME
-	error("GUI::set_Width unimplemented");
+	self->setSize(vm->multiplyUpCoordinate(value), self->_height);
 
 	return RuntimeValue();
 }
@@ -2417,7 +2411,7 @@ RuntimeValue Script_GUI_set_X(AGSEngine *vm, GUIGroup *self,
                               const Common::Array<RuntimeValue> &params) {
 	int value = params[0]._signedValue;
 
-	if (value >= vm->getCurrentRoom()->_width)
+	if (vm->getCurrentRoom() && value >= vm->getCurrentRoom()->_width)
 		error("GUI::set_X: %d is outside room boundaries", value);
 
 	self->_x = vm->multiplyUpCoordinate(value);
@@ -2438,7 +2432,7 @@ RuntimeValue Script_GUI_set_Y(AGSEngine *vm, GUIGroup *self,
                               const Common::Array<RuntimeValue> &params) {
 	int value = params[0]._signedValue;
 
-	if (value >= vm->getCurrentRoom()->_height)
+	if (vm->getCurrentRoom() && value >= vm->getCurrentRoom()->_height)
 		error("GUI::set_Y: %d is outside room boundaries", value);
 
 	self->_y = vm->multiplyUpCoordinate(value);

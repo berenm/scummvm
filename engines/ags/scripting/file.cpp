@@ -295,10 +295,15 @@ RuntimeValue Script_File_Close(AGSEngine *vm, ScriptFile *self,
 // Reads an integer value from the file.
 RuntimeValue Script_File_ReadInt(AGSEngine *vm, ScriptFile *self,
                                  const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("File::ReadInt unimplemented");
+	if (self->_mode != 1)
+		error("File::ReadInt: File not opened in 'read' mode");
 
-	return RuntimeValue();
+	byte dataId = self->_inFile->readByte();
+	if (dataId != 'I')
+		error("File::ReadInt: expected an integer, but got '%c' instead",
+		      dataId);
+
+	return self->_inFile->readSint32LE();
 }
 
 // File: import int ReadRawChar()
@@ -378,7 +383,7 @@ RuntimeValue Script_File_WriteInt(AGSEngine *vm, ScriptFile *self,
 	int value = params[0]._signedValue;
 
 	if (self->_mode != 2 && self->_mode != 3)
-		error("File::WriteString: File not opened in 'write' mode");
+		error("File::WriteInt: File not opened in 'write' mode");
 
 	self->_outFile->writeSByte('I');
 	self->_outFile->writeSint32LE(value);

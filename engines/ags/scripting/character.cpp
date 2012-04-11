@@ -1883,10 +1883,7 @@ Script_Character_set_DiagonalLoops(AGSEngine *vm, Character *self,
 RuntimeValue
 Script_Character_get_Frame(AGSEngine *vm, Character *self,
                            const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Character::get_Frame unimplemented");
-
-	return RuntimeValue();
+	return self->_frame;
 }
 
 // Character: import attribute int Frame
@@ -1895,10 +1892,10 @@ RuntimeValue
 Script_Character_set_Frame(AGSEngine *vm, Character *self,
                            const Common::Array<RuntimeValue> &params) {
 	int value = params[0]._signedValue;
-	UNUSED(value);
 
-	// FIXME
-	error("Character::set_Frame unimplemented");
+	// TODO: sanity checks!
+
+	self->_frame = value;
 
 	return RuntimeValue();
 }
@@ -1918,10 +1915,7 @@ RuntimeValue Script_Character_get_HasExplicitTint(
 RuntimeValue
 Script_Character_get_ID(AGSEngine *vm, Character *self,
                         const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Character::get_ID unimplemented");
-
-	return RuntimeValue();
+	return self->_indexId;
 }
 
 // Character: readonly import attribute int IdleView
@@ -2012,26 +2006,32 @@ RuntimeValue Script_Character_set_IgnoreWalkbehinds(
 // Accesses the number of each inventory item that the character currently has.
 RuntimeValue Script_Character_geti_InventoryQuantity(
     AGSEngine *vm, Character *self, const Common::Array<RuntimeValue> &params) {
-	int index = params[0]._signedValue;
-	UNUSED(index);
+	uint index = params[0]._value;
 
-	// FIXME
-	error("Character::geti_InventoryQuantity unimplemented");
+	if (index < 1 || index >= vm->_gameFile->_invItemInfo.size())
+		error("Character::geti_InventoryQuantity: invalid inventory item index "
+		      "%d (only %d items)",
+		      index, vm->_gameFile->_invItemInfo.size());
 
-	return RuntimeValue();
+	return self->_inventory[index];
 }
 
 // Character: import attribute int InventoryQuantity[]
 // Accesses the number of each inventory item that the character currently has.
 RuntimeValue Script_Character_seti_InventoryQuantity(
     AGSEngine *vm, Character *self, const Common::Array<RuntimeValue> &params) {
-	int index = params[0]._signedValue;
-	UNUSED(index);
-	int value = params[1]._signedValue;
-	UNUSED(value);
+	uint index = params[0]._value;
+	uint value = params[1]._value;
 
-	// FIXME
-	error("Character::seti_InventoryQuantity unimplemented");
+	if (index < 1 || index >= vm->_gameFile->_invItemInfo.size())
+		error("Character::seti_InventoryQuantity: invalid inventory item index "
+		      "%d (only %d items)",
+		      index, vm->_gameFile->_invItemInfo.size());
+
+	if (value > 32000)
+		error("Character::seti_InventoryQuantity: value %d is too high", value);
+
+	self->_inventory[index] = value;
 
 	return RuntimeValue();
 }
@@ -2403,10 +2403,12 @@ Script_Character_set_ThinkView(AGSEngine *vm, Character *self,
 RuntimeValue
 Script_Character_get_Transparency(AGSEngine *vm, Character *self,
                                   const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Character::get_Transparency unimplemented");
-
-	return RuntimeValue();
+	if (self->_transparency == 0)
+		return 0;
+	else if (self->_transparency == 255)
+		return 100;
+	else
+		return 100 - ((self->_transparency * 10) / 25);
 }
 
 // Character: import attribute int Transparency
