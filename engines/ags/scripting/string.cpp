@@ -141,12 +141,19 @@ RuntimeValue Script_String_EndsWith(AGSEngine *vm, ScriptString *self,
 RuntimeValue Script_String_IndexOf(AGSEngine *vm, ScriptString *self,
                                    const Common::Array<RuntimeValue> &params) {
 	ScriptString *needle = (ScriptString *) params[0]._object;
-	UNUSED(needle);
 
-	// FIXME
-	error("String::IndexOf unimplemented");
+	// TODO: This is almost the same as StrContains.
+	Common::String haystackString = self->getString();
+	Common::String needleString = needle->getString();
+	haystackString.toLowercase();
+	needleString.toLowercase();
 
-	return RuntimeValue();
+	const char *haystackBuf = haystackString.c_str();
+	const char *offset = strstr(haystackBuf, needleString.c_str());
+	if (offset == NULL)
+		return RuntimeValue(-1);
+	else
+		return (uint)(offset - haystackBuf);
 }
 
 // String: import String LowerCase()
@@ -184,15 +191,23 @@ RuntimeValue Script_String_Replace(AGSEngine *vm, ScriptString *self,
 RuntimeValue
 Script_String_ReplaceCharAt(AGSEngine *vm, ScriptString *self,
                             const Common::Array<RuntimeValue> &params) {
-	int index = params[0]._signedValue;
-	UNUSED(index);
+	uint index = params[0]._value;
 	char newChar = (char) params[1]._value;
-	UNUSED(newChar);
 
-	// FIXME
-	error("String::ReplaceCharAt unimplemented");
+	Common::String string = self->getString();
 
-	return RuntimeValue();
+	if (index == string.size())
+		string += newChar;
+	else if (index < string.size())
+		string.setChar(newChar, index);
+	else
+		error("String::ReplaceCharAt: index %d is outside range of string "
+		      "(length %d)",
+		      index, string.size());
+
+	RuntimeValue ret = new ScriptMutableString(string);
+	ret._object->DecRef();
+	return ret;
 }
 
 // String: import bool StartsWith(const string startsWithText, bool
@@ -240,13 +255,16 @@ Script_String_Substring(AGSEngine *vm, ScriptString *self,
 // the end.
 RuntimeValue Script_String_Truncate(AGSEngine *vm, ScriptString *self,
                                     const Common::Array<RuntimeValue> &params) {
-	int length = params[0]._signedValue;
-	UNUSED(length);
+	uint length = params[0]._value;
 
-	// FIXME
-	error("String::Truncate unimplemented");
+	Common::String string = self->getString();
+	if (length >= string.size())
+		return self;
 
-	return RuntimeValue();
+	Common::String result(string.c_str(), length);
+	RuntimeValue ret = new ScriptMutableString(result);
+	ret._object->DecRef();
+	return ret;
 }
 
 // String: import String UpperCase()
