@@ -332,6 +332,7 @@ public:
 	Common::String wrapFilename(const Common::String &name) const {
 		return _targetName + "-" + name;
 	};
+	Graphics::Surface *getWalkableMaskFor(uint charId);
 
 	void addInventory(uint itemId);
 	void loseInventory(uint itemId);

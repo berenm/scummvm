@@ -27,6 +27,7 @@
 
 #include "engines/ags/scripting/scripting.h"
 #include "engines/ags/gui.h"
+#include "engines/ags/character.h"
 #include "engines/ags/constants.h"
 #include "engines/ags/gamefile.h"
 #include "engines/ags/gamestate.h"
@@ -53,7 +54,6 @@ static GUIControl *getGUIControl(const char *funcName, AGSEngine *vm,
 RuntimeValue
 Script_DisableInterface(AGSEngine *vm, ScriptObject *,
                         const Common::Array<RuntimeValue> &params) {
-	// FIXME
 	vm->_state->_disabledUserInterface++;
 	vm->invalidateGUI();
 	vm->_graphics->setMouseCursor(CURS_WAIT);
@@ -65,7 +65,6 @@ Script_DisableInterface(AGSEngine *vm, ScriptObject *,
 // Re-enables the player interface.
 RuntimeValue Script_EnableInterface(AGSEngine *vm, ScriptObject *,
                                     const Common::Array<RuntimeValue> &params) {
-	// FIXME
 	vm->invalidateGUI();
 	vm->_state->_disabledUserInterface--;
 	if (!vm->_state->_disabledUserInterface) {
