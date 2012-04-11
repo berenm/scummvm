@@ -298,8 +298,13 @@ public:
 	}
 	const char *getObjectTypeName() { return "GUIInvControl"; }
 
+	void onMouseEnter();
+	void onMouseLeave();
+	void onMouseUp();
+
 	Character *getCharToDisplay();
 	void resized();
+	uint getItemAt(const Common::Point &pos);
 
 	uint32 _charId; // whose inventory? (-1 = current player)
 	uint32 _itemWidth, _itemHeight;
@@ -313,6 +318,8 @@ public:
 
 protected:
 	uint32 getMaxNumEvents() const { return 1; }
+
+	void recalculateNumCells();
 };
 
 class GUIButton : public GUIControl {
