@@ -2171,7 +2171,7 @@ uint AGSEngine::getGUIAt(const Common::Point &pos) {
 			continue;
 		if (p.x >= group->_x && p.y >= group->_y &&
 		    p.x <= group->_x + (int) group->_width &&
-		    p.y > group->_y + (int) group->_height)
+		    p.y <= group->_y + (int) group->_height)
 			return (uint) group->_id;
 	}
 
@@ -2217,7 +2217,7 @@ Common::String AGSEngine::getLocationName(const Common::Point &pos) {
 
 	// don't reset the loc name if we got passed out-of-bounds coordinates
 	Common::Point p =
-	    pos - Common::Point(divideDownCoordinate(_graphics->_viewportX),
+	    pos + Common::Point(divideDownCoordinate(_graphics->_viewportX),
 	                        divideDownCoordinate(_graphics->_viewportY));
 	if (p.x < 0 || p.x >= _currentRoom->_width || p.y < 0 ||
 	    p.y >= _currentRoom->_height)
@@ -2276,12 +2276,14 @@ uint AGSEngine::getLocationType(const Common::Point &pos, bool throughGUI,
 // or whether it returns 0
 uint AGSEngine::getLocationType(const Common::Point &pos, uint &id,
                                 bool throughGUI, bool allowHotspot0) {
+	id = 0;
+
 	// If it's not in ProcessClick, then return 0 when over a GUI
 	if (!throughGUI && getGUIAt(pos) != (uint) -1)
 		return 0;
 
 	Common::Point p =
-	    pos - Common::Point(divideDownCoordinate(_graphics->_viewportX),
+	    pos + Common::Point(divideDownCoordinate(_graphics->_viewportX),
 	                        divideDownCoordinate(_graphics->_viewportY));
 	if (p.x < 0 || p.y < 0 || p.x >= _currentRoom->_width ||
 	    p.y >= _currentRoom->_height)
@@ -2295,7 +2297,7 @@ uint AGSEngine::getLocationType(const Common::Point &pos, uint &id,
 	uint charAt = (uint) -1;
 	uint hotspotAt = _currentRoom->getHotspotAt(p.x, p.y);
 	// getObjectAt adjusts the parameters itself, so use the unmodified pos.
-	uint objectYPos = 0;
+	int objectYPos = 0;
 	uint objAt = _currentRoom->getObjectAt(pos.x, pos.y, objectYPos);
 
 	p.x = multiplyUpCoordinate(p.x);
@@ -2306,7 +2308,7 @@ uint AGSEngine::getLocationType(const Common::Point &pos, uint &id,
 	byte walkBehindId =
 	    *(byte *) _currentRoom->_walkBehindMask.getBasePtr(p.x, p.y);
 
-	uint walkBase = 0;
+	int walkBase = 0;
 	if (walkBehindId > 0 && walkBehindId < _currentRoom->_walkBehinds.size()) {
 		walkBase = _currentRoom->_walkBehinds[walkBehindId]._baseline;
 		// // if it's an Ignore Walkbehinds object, then ignore the walkbehind
@@ -2345,8 +2347,6 @@ uint AGSEngine::getLocationType(const Common::Point &pos, uint &id,
 		id = charAt;
 	else if (winner == LOCTYPE_OBJ)
 		id = objAt;
-	else
-		id = 0;
 
 	return winner;
 }
