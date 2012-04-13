@@ -120,7 +120,7 @@ bool Character::writeUint32(uint offset, uint value) {
 uint16 Character::readUint16(uint offset) {
 	if (offset >= 112 && offset <= 112 + (MAX_INV * 2)) {
 		if (offset % 2 != 0)
-			error("GameState::characterUint16: offset %d is invalid", offset);
+			error("Character::readUint16: offset %d is invalid", offset);
 		offset = (offset - 112) / 2;
 		return _inventory[offset];
 	}
@@ -158,6 +158,14 @@ uint16 Character::readUint16(uint offset) {
 }
 
 bool Character::writeUint16(uint offset, uint16 value) {
+	if (offset >= 112 && offset <= 112 + (MAX_INV * 2)) {
+		if (offset % 2 != 0)
+			error("Character::writeUint16: offset %d is invalid", offset);
+		offset = (offset - 112) / 2;
+		_inventory[offset] = value;
+		return true;
+	}
+
 	switch (offset) {
 	case 36: _following = value; break;
 	case 38: _followInfo = value; break;
