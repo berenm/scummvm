@@ -60,6 +60,8 @@ public:
 	bool hasUpDownLoops();
 
 	void walk(int x, int y, bool ignoreWalkable, bool autoWalkAnims);
+	void walkStraight(int x, int y);
+	void addWaypoint(int x, int y);
 	void followCharacter(Character *chr, int distance, uint eagerness);
 	void stopMoving();
 	bool faceLocation(int x, int y);
@@ -176,9 +178,10 @@ public:
 	virtual void getDrawTint(int &lightLevel, int &luminance, byte &red,
 	                         byte &green, byte &blue);
 
+	MoveList _moveList;
+
 protected:
 	AGSEngine *_vm;
-	MoveList _moveList;
 
 	void fixPlayerSprite();
 	int needMoveSteps();

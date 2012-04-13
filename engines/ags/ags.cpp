@@ -1150,6 +1150,9 @@ void AGSEngine::unloadOldRoom() {
 	// cancel any pending room events
 	_queuedGameEvents.clear();
 
+	for (uint i = 0; i < _state->_walkableAreasOn.size(); ++i)
+		_state->_walkableAreasOn[i] = 1;
+
 	_state->_bgFrame = 0;
 	_state->_bgFrameLocked = 0;
 	_state->_offsetsLocked = 0;
@@ -1210,6 +1213,7 @@ void AGSEngine::scheduleNewRoom(uint roomId) {
 	if (_displayedRoom == 0xffffffff) {
 		// called from game_start; change the room where the game will start
 		_playerChar->_room = roomId;
+		return;
 	}
 
 	debugC(kDebugLevelGame, "Room change requested to room %d", roomId);
@@ -1217,6 +1221,7 @@ void AGSEngine::scheduleNewRoom(uint roomId) {
 	endSkippingUntilCharStops();
 	// FIXME
 	// can_run_delayed_command();
+
 	if (_state->_stopDialogAtEnd != DIALOG_NONE) {
 		if (_state->_stopDialogAtEnd == DIALOG_RUNNING)
 			_state->_stopDialogAtEnd = DIALOG_NEWROOM + roomId;
@@ -1246,10 +1251,9 @@ void AGSEngine::scheduleNewRoom(uint roomId) {
 		// change should abort it
 		if (0 < _playerChar->_walking &&
 		    _playerChar->_walking < TURNING_AROUND) {
-			// FIXME
 			// nasty hack - make sure it doesn't move the character
 			// to a walkable area
-			// mls[playerchar->walking].direct = 1;
+			_playerChar->_moveList._direct = true;
 			_playerChar->stopMoving();
 		}
 	}
@@ -2140,7 +2144,13 @@ bool AGSEngine::runHotspotInteraction(uint hotspotId, uint mode,
 	    (getGameOption(OPT_WALKONLOOK) || mode != MODE_LOOK)) {
 		// If we should implicitly walk to the hotspot, do so.
 		if (mode != MODE_WALK && !checkOnly) {
-		} // FIXME: _playerChar->moveToHotspot(hotspotId);
+			const Common::Point &walkToPos =
+			    _currentRoom->_hotspots[hotspotId]._walkToPos;
+			if (walkToPos.x >= 1) {
+				_playerChar->walk(walkToPos.x, walkToPos.y, false, true);
+				blockUntil(kUntilCharWalkDone, _playerChar->_indexId);
+			}
+		}
 	}
 
 	if (!checkOnly)

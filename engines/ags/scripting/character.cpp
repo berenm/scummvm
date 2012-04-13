@@ -405,14 +405,14 @@ RuntimeValue
 Script_MoveCharacterDirect(AGSEngine *vm, ScriptObject *,
                            const Common::Array<RuntimeValue> &params) {
 	uint32 charid = params[0]._value;
-	UNUSED(charid);
 	int x = params[1]._signedValue;
-	UNUSED(x);
 	int y = params[2]._signedValue;
-	UNUSED(y);
 
-	// FIXME
-	error("MoveCharacterDirect unimplemented");
+	if (charid >= vm->_characters.size())
+		error("MoveCharacterDirect: character %d is too high (only have %d)",
+		      charid, vm->_characters.size());
+
+	vm->_characters[charid]->walk(x, y, true, true);
 
 	return RuntimeValue();
 }
@@ -423,14 +423,14 @@ RuntimeValue
 Script_MoveCharacterPath(AGSEngine *vm, ScriptObject *,
                          const Common::Array<RuntimeValue> &params) {
 	uint32 charid = params[0]._value;
-	UNUSED(charid);
 	int x = params[1]._signedValue;
-	UNUSED(x);
 	int y = params[2]._signedValue;
-	UNUSED(y);
 
-	// FIXME
-	error("MoveCharacterPath unimplemented");
+	if (charid >= vm->_characters.size())
+		error("MoveCharacterPath: character %d is too high (only have %d)",
+		      charid, vm->_characters.size());
+
+	vm->_characters[charid]->addWaypoint(x, y);
 
 	return RuntimeValue();
 }
@@ -441,14 +441,14 @@ RuntimeValue
 Script_MoveCharacterStraight(AGSEngine *vm, ScriptObject *,
                              const Common::Array<RuntimeValue> &params) {
 	uint32 charid = params[0]._value;
-	UNUSED(charid);
 	int x = params[1]._signedValue;
-	UNUSED(x);
 	int y = params[2]._signedValue;
-	UNUSED(y);
 
-	// FIXME
-	error("MoveCharacterStraight unimplemented");
+	if (charid >= vm->_characters.size())
+		error("MoveCharacterStraight: character %d is too high (only have %d)",
+		      charid, vm->_characters.size());
+
+	vm->_characters[charid]->walkStraight(x, y);
 
 	return RuntimeValue();
 }
@@ -459,12 +459,23 @@ RuntimeValue
 Script_MoveCharacterToHotspot(AGSEngine *vm, ScriptObject *,
                               const Common::Array<RuntimeValue> &params) {
 	uint32 charid = params[0]._value;
-	UNUSED(charid);
-	int hotspot = params[1]._signedValue;
-	UNUSED(hotspot);
+	uint hotspot = params[1]._value;
 
-	// FIXME
-	error("MoveCharacterToHotspot unimplemented");
+	if (charid >= vm->_characters.size())
+		error("MoveCharacterToHotspot: character %d is too high (only have %d)",
+		      charid, vm->_characters.size());
+
+	if (hotspot >= vm->getCurrentRoom()->_hotspots.size())
+		error("MoveCharacterToHotspot: hotspot %d is too high (only have %d)",
+		      hotspot, vm->getCurrentRoom()->_hotspots.size());
+
+	const Common::Point walkToPos =
+	    vm->getCurrentRoom()->_hotspots[hotspot]._walkToPos;
+	if (walkToPos.x < 1)
+		return RuntimeValue();
+
+	vm->_characters[charid]->walk(walkToPos.x, walkToPos.y, false, true);
+	vm->blockUntil(kUntilCharWalkDone, charid);
 
 	return RuntimeValue();
 }
@@ -475,12 +486,22 @@ RuntimeValue
 Script_MoveCharacterToObject(AGSEngine *vm, ScriptObject *,
                              const Common::Array<RuntimeValue> &params) {
 	uint32 charid = params[0]._value;
-	UNUSED(charid);
-	int object = params[1]._signedValue;
-	UNUSED(object);
+	uint object = params[1]._value;
 
-	// FIXME
-	error("MoveCharacterToObject unimplemented");
+	if (charid >= vm->_characters.size())
+		error("MoveCharacterToObject: character %d is too high (only have %d)",
+		      charid, vm->_characters.size());
+
+	// be forgiving here, to allow things like MoveCharacterToObject(EGO,
+	// GetObjectAt(...));
+	if (object >= vm->getCurrentRoom()->_objects.size())
+		return RuntimeValue();
+
+	RoomObject *obj = vm->getCurrentRoom()->_objects[object];
+
+	vm->_characters[charid]->walk(obj->_pos.x + 5, obj->_pos.y + 6, false,
+	                              true);
+	vm->blockUntil(kUntilCharWalkDone, charid);
 
 	return RuntimeValue();
 }
@@ -491,16 +512,23 @@ RuntimeValue
 Script_MoveCharacterBlocking(AGSEngine *vm, ScriptObject *,
                              const Common::Array<RuntimeValue> &params) {
 	uint32 charid = params[0]._value;
-	UNUSED(charid);
 	int x = params[1]._signedValue;
-	UNUSED(x);
 	int y = params[2]._signedValue;
-	UNUSED(y);
-	int direct = params[3]._signedValue;
-	UNUSED(direct);
+	uint direct = params[3]._value;
 
-	// FIXME
-	error("MoveCharacterBlocking unimplemented");
+	if (charid >= vm->_characters.size())
+		error("MoveCharacterBlocking: character %d is too high (only have %d)",
+		      charid, vm->_characters.size());
+
+	// check if they try to move the player when Hide Player Char is
+	// ticked -- otherwise this will hang the game
+	if (vm->_characters[charid]->_on != 1)
+		error("MoveCharacterBlocking: character %d is turned off (is Hide "
+		      "Player Character selected?) and cannot be moved",
+		      charid);
+
+	vm->_characters[charid]->walk(x, y, (bool) direct, true);
+	vm->blockUntil(kUntilCharWalkDone, charid);
 
 	return RuntimeValue();
 }
@@ -988,12 +1016,9 @@ RuntimeValue
 Script_Character_AddWaypoint(AGSEngine *vm, Character *self,
                              const Common::Array<RuntimeValue> &params) {
 	int x = params[0]._signedValue;
-	UNUSED(x);
 	int y = params[1]._signedValue;
-	UNUSED(y);
 
-	// FIXME
-	error("Character::AddWaypoint unimplemented");
+	self->addWaypoint(x, y);
 
 	return RuntimeValue();
 }
@@ -1085,12 +1110,13 @@ Script_Character_FaceCharacter(AGSEngine *vm, Character *self,
 		error("Character::FaceCharacter got incorrect object type (expected a "
 		      "Character) for parameter 1");
 	Character *character = (Character *) params[0]._object;
-	UNUSED(character);
-	uint32 blockingstyle = params[1]._value;
-	UNUSED(blockingstyle);
+	uint32 blockingStyle = params[1]._value;
 
-	// FIXME
-	error("Character::FaceCharacter unimplemented");
+	if (self->faceLocation(character->_x, character->_y)) {
+		if (blockingStyle == 1 || blockingStyle == BLOCKING)
+			vm->blockUntil(kUntilCharWalkDone, self->_indexId);
+		self->_frame = 0;
+	}
 
 	return RuntimeValue();
 }
@@ -1157,14 +1183,14 @@ RuntimeValue
 Script_Character_GetAtScreenXY(AGSEngine *vm, ScriptObject *,
                                const Common::Array<RuntimeValue> &params) {
 	int x = params[0]._signedValue;
-	UNUSED(x);
 	int y = params[1]._signedValue;
-	UNUSED(y);
 
-	// FIXME
-	error("Character::GetAtScreenXY unimplemented");
+	int charY;
+	uint charId = vm->getCharacterAt(Common::Point(x, y), charY);
+	if (charId == (uint) -1)
+		return 0;
 
-	return RuntimeValue();
+	return vm->_characters[charId];
 }
 
 // Character: import function GetProperty(const string property)
@@ -1215,12 +1241,8 @@ Script_Character_HasInventory(AGSEngine *vm, Character *self,
 		error("Character::HasInventory got incorrect object type (expected a "
 		      "InventoryItem) for parameter 1");
 	InventoryItem *item = (InventoryItem *) params[0]._object;
-	UNUSED(item);
 
-	// FIXME
-	error("Character::HasInventory unimplemented");
-
-	return RuntimeValue();
+	return (self->_inventory[item->_id] > 0) ? 1 : 0;
 }
 
 // Character: import function IsCollidingWithChar(Character*)
@@ -1343,13 +1365,29 @@ RuntimeValue Script_Character_Move(AGSEngine *vm, Character *self,
 	UNUSED(x);
 	int y = params[1]._signedValue;
 	UNUSED(y);
-	uint32 blockingstyle = params[2]._value;
-	UNUSED(blockingstyle);
-	uint32 walkwhere = params[3]._value;
-	UNUSED(walkwhere);
+	uint32 blockingStyle = params[2]._value;
+	uint32 walkWhere = params[3]._value;
 
-	// FIXME
-	error("Character::Move unimplemented");
+	// TODO: almost identical to Character::Walk
+
+	if (self->_on != 1)
+		error("Character::Move: character is turned off and cannot be moved");
+
+	if (walkWhere == ANYWHERE)
+		walkWhere = 1;
+	else if (walkWhere == WALKABLE_AREAS)
+		walkWhere = 0;
+	else if (walkWhere != 0 && walkWhere != 1)
+		error("Character::Move: %d is not a valid value for WalkWhere",
+		      walkWhere);
+
+	self->walk(x, y, (bool) walkWhere, false);
+
+	if (blockingStyle == BLOCKING || blockingStyle == 1)
+		vm->blockUntil(kUntilCharWalkDone, self->_indexId);
+	else if (blockingStyle != IN_BACKGROUND && blockingStyle != 0)
+		error("Character::Move: %d is not a valid value for BlockingStyle",
+		      blockingStyle);
 
 	return RuntimeValue();
 }
@@ -1580,14 +1618,17 @@ RuntimeValue
 Script_Character_WalkStraight(AGSEngine *vm, Character *self,
                               const Common::Array<RuntimeValue> &params) {
 	int x = params[0]._signedValue;
-	UNUSED(x);
 	int y = params[1]._signedValue;
-	UNUSED(y);
-	uint32 blockingstyle = params[2]._value;
-	UNUSED(blockingstyle);
+	uint32 blockingStyle = params[2]._value;
 
-	// FIXME
-	error("Character::WalkStraight unimplemented");
+	self->walkStraight(x, y);
+
+	if (blockingStyle == BLOCKING || blockingStyle == 1)
+		vm->blockUntil(kUntilCharWalkDone, self->_indexId);
+	else if (blockingStyle != IN_BACKGROUND && blockingStyle != 0)
+		error("Character::WalkStraight: %d is not a valid value for "
+		      "BlockingStyle",
+		      blockingStyle);
 
 	return RuntimeValue();
 }
@@ -1606,38 +1647,18 @@ RuntimeValue Script_Character_get_ActiveInventory(
 // Gets/sets the character's current inventory item. null if no item selected.
 RuntimeValue Script_Character_set_ActiveInventory(
     AGSEngine *vm, Character *self, const Common::Array<RuntimeValue> &params) {
-	vm->invalidateGUI();
+	uint itemId = 0;
 
-	if (params[0]._type == rvtInteger) {
-		// null pointer
+	if (params[0]._type != rvtInteger) {
+		if (!params[0]._object->isOfType(sotInventoryItem))
+			error("Character::set_ActiveInventory got incorrect object type "
+			      "(expected a InventoryItem) for parameter 1");
+		InventoryItem *value = (InventoryItem *) params[0]._object;
 
-		self->_activeInv = (uint) -1;
-
-		if (vm->getPlayerChar() == self) {
-			if (vm->getCursorMode() == MODE_USE)
-				vm->setCursorMode(0);
-		}
-
-		return RuntimeValue();
+		itemId = value->_id;
 	}
 
-	if (!params[0]._object->isOfType(sotInventoryItem))
-		error("Character::set_ActiveInventory got incorrect object type "
-		      "(expected a InventoryItem) for parameter 1");
-	InventoryItem *value = (InventoryItem *) params[0]._object;
-
-	if (self->_inventory[value->_id] < 1)
-		error("Character::set_ActiveInventory: character '%s' has no items "
-		      "with id %d in inventory",
-		      self->_scriptName.c_str(), value->_id);
-
-	self->_activeInv = value->_id;
-
-	if (vm->getPlayerChar() == self) {
-		// if it's the player character, update mouse cursor
-		// FIXME: update_inv_cursor
-		vm->setCursorMode(MODE_USE);
-	}
+	self->setActiveInventory(itemId);
 
 	return RuntimeValue();
 }
@@ -2732,7 +2753,7 @@ static const ScriptSystemFunctionInfo ourFunctionList[] = {
      (ScriptAPIFunction *) &Script_Character_get_ActiveInventory, "",
      sotCharacter},
     {"Character::set_ActiveInventory",
-     (ScriptAPIFunction *) &Script_Character_set_ActiveInventory, "t",
+     (ScriptAPIFunction *) &Script_Character_set_ActiveInventory, "p",
      sotCharacter},
     {"Character::get_Animating",
      (ScriptAPIFunction *) &Script_Character_get_Animating, "", sotCharacter},
