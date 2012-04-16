@@ -76,6 +76,8 @@ public:
 	          Common::Point pos, uint transparency, bool mirrored = false,
 	          bool useAlpha = false);
 
+	void setExtraDrawable(Drawable *drawable) { _extraDrawable = drawable; }
+
 	void setMouseCursor(uint32 cursor);
 	void mouseSetHotspot(uint32 x, uint32 y);
 	void setCursorGraphic(uint32 spriteId);
@@ -96,6 +98,8 @@ public:
 
 protected:
 	AGSEngine *_vm;
+
+	Drawable *_extraDrawable;
 
 	byte _palette[256 * 3];
 	Graphics::Surface _backBuffer;

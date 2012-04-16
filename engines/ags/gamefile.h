@@ -155,6 +155,8 @@ struct DialogTopic : public ScriptObject {
 	}
 	const char *getObjectTypeName() { return "DialogTopic"; }
 
+	uint _id;
+
 	Common::Array<DialogOption> _options;
 	Common::Array<byte> _code;
 
