@@ -652,7 +652,7 @@ void AGSEngine::processInterfaceClick(uint guiId, uint controlId,
 		// click on GUI background
 		params.push_back(group);
 		params.push_back(mouseButtonId);
-		runTextScript(_gameScript, group->_clickEventHandler);
+		runTextScript(_gameScript, group->_clickEventHandler, params);
 		return;
 	}
 
@@ -1720,9 +1720,9 @@ bool AGSEngine::runInteractionScript(InteractionScript *scripts, uint eventId,
 	}
 
 	if (roomWas != _state->_roomChanges)
-		return false;
+		return true;
 
-	return true;
+	return false;
 }
 
 // run a 2.x-style interaction event
@@ -1749,8 +1749,9 @@ bool AGSEngine::runInteractionEvent(NewInteraction *interaction, uint eventId,
 		return true;
 
 	uint commandsRunCount = 0;
-	bool ret = runInteractionCommandList(interaction->_events[eventId],
-	                                     commandsRunCount);
+	bool ret = runInteractionCommandList(
+	    interaction->_events[eventId], interaction->_events[eventId]._response,
+	    commandsRunCount);
 
 	// a failed inventory interaction
 	if ((commandsRunCount == 0) && isInventory)
@@ -1810,6 +1811,35 @@ enum {
 	kActionIfPlayerHasBeenToRoom = 47
 };
 
+#define VALTYPE_LITERALINT 1
+#define VALTYPE_VARIABLE 2
+#define VALTYPE_BOOLEAN 3
+#define VALTYPE_CHARNUM 4
+#define LOCAL_VARIABLE_OFFSET 10000
+
+uint AGSEngine::getInteractionValue(const NewInteractionValue &value) {
+	if (value._type != VALTYPE_VARIABLE)
+		return value._val;
+
+	// interaction variable
+	if (value._val >= LOCAL_VARIABLE_OFFSET) {
+		uint val = value._val - LOCAL_VARIABLE_OFFSET;
+
+		if (val >= _currentRoom->_localVars.size())
+			error(
+			    "getInteractionValue: invalid local variable %d (only have %d)",
+			    val, _currentRoom->_localVars.size());
+
+		return _currentRoom->_localVars[val]._value;
+	}
+
+	if (value._val >= _gameFile->_globalVars.size())
+		error("getInteractionValue: invalid global variable %d (only have %d)",
+		      value._val, _gameFile->_globalVars.size());
+
+	return _gameFile->_globalVars[value._val]._value;
+}
+
 Common::String makeTextScriptName(const Common::String &base, uint id,
                                   uint val) {
 	Common::String string = Common::String::format(base.c_str(), id);
@@ -1818,17 +1848,18 @@ Common::String makeTextScriptName(const Common::String &base, uint id,
 }
 
 bool AGSEngine::runInteractionCommandList(NewInteractionEvent &event,
+                                          NewInteractionCommandList *list,
                                           uint &commandsRunCount) {
-	assert(event._response);
+	assert(list);
 
-	const Common::Array<NewInteractionCommand> &commands =
-	    event._response->_commands;
+	const Common::Array<NewInteractionCommand> &commands = list->_commands;
 
 	for (uint i = 0; i < commands.size(); ++i) {
 		commandsRunCount++;
 		uint roomWas = _state->_roomChanges;
 
-		debug(6, "runInteractionCommandList: action %d", commands[i]._type);
+		const NewInteractionCommand &command = commands[i];
+		debug(6, "runInteractionCommandList: action %d", command._type);
 
 		switch (commands[i]._type) {
 		case kActionDoNothing: break;
@@ -1836,16 +1867,14 @@ bool AGSEngine::runInteractionCommandList(NewInteractionEvent &event,
 			if (_eventBlockBaseName.contains("character") ||
 			    _eventBlockBaseName.contains("inventory")) {
 				// global script (character or inventory)
-				Common::String name =
-				    makeTextScriptName(_eventBlockBaseName, _eventBlockId,
-				                       commands[i]._args[0]._val);
+				Common::String name = makeTextScriptName(
+				    _eventBlockBaseName, _eventBlockId, command._args[0]._val);
 				queueOrRunTextScript(_gameScript, name);
 			} else {
 				// room script
 				// TODO: bounds check?
-				Common::String name =
-				    makeTextScriptName(_eventBlockBaseName, _eventBlockId,
-				                       commands[i]._args[0]._val);
+				Common::String name = makeTextScriptName(
+				    _eventBlockBaseName, _eventBlockId, command._args[0]._val);
 				queueOrRunTextScript(_roomScript, name);
 			}
 			break;
@@ -1906,16 +1935,38 @@ bool AGSEngine::runInteractionCommandList(NewInteractionEvent &event,
 			// FIXME
 			break;
 		case kActionIfInventoryItemUsed:
-			// FIXME
+			if (_state->_usedInv != getInteractionValue(command._args[0])) {
+				commandsRunCount--;
+				break;
+			}
+			if (!getGameOption(OPT_NOLOSEINV))
+				loseInventory(_state->_usedInv);
+			if (runInteractionCommandList(event, command._children,
+			                              commandsRunCount))
+				return true;
 			break;
 		case kActionIfHasInventoryItem:
-			// FIXME
+			if (_playerChar
+			        ->_inventory[getInteractionValue(command._args[0])] == 0)
+				break;
+			if (runInteractionCommandList(event, command._children,
+			                              commandsRunCount))
+				return true;
 			break;
 		case kActionIfCharacterMoving:
-			// FIXME
+			if (!_characters[getInteractionValue(command._args[0])]->_walking)
+				break;
+			if (runInteractionCommandList(event, command._children,
+			                              commandsRunCount))
+				return true;
 			break;
 		case kActionIfVariablesEqual:
-			// FIXME
+			if (getInteractionValue(command._args[0]) ==
+			    getInteractionValue(command._args[1]))
+				break;
+			if (runInteractionCommandList(event, command._children,
+			                              commandsRunCount))
+				return true;
 			break;
 		case kActionStopCharacterWalking:
 			// FIXME

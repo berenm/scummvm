@@ -735,10 +735,8 @@ RuntimeValue
 Script_Hotspot_RunInteraction(AGSEngine *vm, RoomHotspot *self,
                               const Common::Array<RuntimeValue> &params) {
 	uint32 cursormode = params[0]._value;
-	UNUSED(cursormode);
 
-	// FIXME
-	error("Hotspot::RunInteraction unimplemented");
+	vm->runHotspotInteraction(self->_id, cursormode);
 
 	return RuntimeValue();
 }
@@ -767,10 +765,7 @@ Script_Hotspot_set_Enabled(AGSEngine *vm, RoomHotspot *self,
 // Gets the ID of the hotspot.
 RuntimeValue Script_Hotspot_get_ID(AGSEngine *vm, RoomHotspot *self,
                                    const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Hotspot::get_ID unimplemented");
-
-	return RuntimeValue();
+	return self->_id;
 }
 
 // Hotspot: readonly import attribute String Name

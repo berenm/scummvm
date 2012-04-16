@@ -436,7 +436,9 @@ private:
 	bool runInteractionEvent(struct NewInteraction *interaction, uint eventId,
 	                         uint fallback = (uint) -1,
 	                         bool isInventory = false, bool checkOnly = false);
+	uint getInteractionValue(const struct NewInteractionValue &value);
 	bool runInteractionCommandList(struct NewInteractionEvent &event,
+	                               struct NewInteractionCommandList *list,
 	                               uint &commandsRunCount);
 	void runUnhandledEvent(uint eventId);
 	bool runClaimableEvent(const Common::String &name,

@@ -213,6 +213,7 @@ struct RoomHotspot : public ScriptObject {
 	}
 	const char *getObjectTypeName() { return "RoomHotspot"; }
 
+	uint _id;
 	Common::Point _walkToPos;
 	Common::String _name;
 	Common::String _scriptName;
