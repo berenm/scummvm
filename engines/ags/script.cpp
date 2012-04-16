@@ -183,12 +183,14 @@ void ccScript::readFrom(Common::SeekableReadStream *dta) {
 }
 
 ccInstance::ccInstance(AGSEngine *vm, ccScript *script, bool autoImport,
-                       ccInstance *fork) :
+                       ccInstance *fork, ScriptState *oldState) :
     _vm(vm),
     _script(script) {
+
 	_flags = 0;
 
 	if (fork) {
+		assert(!oldState);
 		// share memory space with an existing instance (ie. this is a
 		// thread/fork)
 		_globalData = fork->_globalData;
@@ -198,6 +200,12 @@ ccInstance::ccInstance(AGSEngine *vm, ccScript *script, bool autoImport,
 		// create our own memory space
 		_globalData = new Common::Array<byte>(script->_globalData);
 		_globalObjects = new Common::HashMap<uint32, RuntimeValue>();
+
+		if (oldState) {
+			*_globalData = oldState->_globalData;
+			*_globalObjects = oldState->_globalObjects;
+			delete oldState;
+		}
 	}
 
 	// resolve all the imports
@@ -371,6 +379,16 @@ void ccInstance::call(const Common::String &name,
 	_pc = 0;
 
 	// FIXME: abort/free cleanup
+}
+
+ScriptState *ccInstance::saveState() {
+	ScriptState *state = new ScriptState;
+
+	state->_globalData = *_globalData;
+	state->_globalObjects = *_globalObjects;
+	// FIXME: sanity-check objects
+
+	return state;
 }
 
 uint32 ccInstance::getReturnValue() {

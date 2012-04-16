@@ -1009,8 +1009,9 @@ void AGSEngine::loadNewRoom(uint32 id, Character *forChar) {
 	} else {
 		// This is a brand-new room.
 		_currentRoom = new Room(this, stream);
-		// FIXME: discard room if we shouldn't keep it
-		_loadedRooms[id] = _currentRoom;
+		// We only preserve the state of low-numbered rooms.
+		if (id < MAX_ROOMS)
+			_loadedRooms[id] = _currentRoom;
 	}
 
 	// (note: convertCoordinatesToLowRes call was here, now in Room)
@@ -1055,7 +1056,24 @@ void AGSEngine::loadNewRoom(uint32 id, Character *forChar) {
 	if (forChar) {
 		// if it's not a Restore Game
 
-		// FIXME: following
+		for (uint i = 0; i < _characters.size(); ++i) {
+			Character *chr = _characters[i];
+
+			// Check if this is a following character who is still lurking
+			// in the previous room.
+			if (chr->_following < 0 || (int) chr->_room >= 0)
+				continue;
+
+			if ((uint) chr->_following == _gameFile->_playerChar &&
+			    forChar->_prevRoom == id) {
+				// They're following the player, and the player went back
+				// to the previous room; make sure they stay there.
+				chr->_room = id;
+			} else {
+				// They're following someone else, so just force them to move.
+				chr->_room = _characters[chr->_following]->_room;
+			}
+		}
 
 		_graphics->_viewportX = 0;
 		_graphics->_viewportY = 0;
@@ -1068,11 +1086,12 @@ void AGSEngine::loadNewRoom(uint32 id, Character *forChar) {
 	}
 
 	// compile_room_script
-	_roomScript = new ccInstance(this, _currentRoom->_compiledScript);
+	_roomScript = new ccInstance(this, _currentRoom->_compiledScript, false,
+	                             NULL, _currentRoom->_savedScriptState);
 	_roomScriptFork =
 	    new ccInstance(this, _currentRoom->_compiledScript, false, _roomScript);
+	_currentRoom->_savedScriptState = NULL;
 	// FIXME: optimization stuff
-	// FIXME: global data
 
 	// position character if new position was provided
 	if (_newRoomX != SCR_NO_VALUE && forChar) {
@@ -1161,11 +1180,14 @@ void AGSEngine::unloadOldRoom() {
 	_roomObjectState->_regionObject->setArray(
 	    &_roomObjectState->_invalidRegions);
 
+	// note: objects are reset in Room::unload
+
 	if (!_state->_ambientSoundsPersist)
 		for (uint i = 0; i < 8; ++i)
 			_audio->stopAmbientSound(i);
 
-	// FIXME: save room data segment
+	_currentRoom->_savedScriptState = _roomScript->saveState();
+
 	delete _roomScriptFork;
 	_roomScriptFork = NULL;
 	delete _roomScript;
@@ -1185,6 +1207,7 @@ void AGSEngine::unloadOldRoom() {
 	removeScreenOverlay((uint) -1);
 
 	// FIXME: reset raw screen stuff
+
 	for (uint i = 0; i < _characters.size(); ++i) {
 		// TODO: clear cache?
 
@@ -1209,8 +1232,11 @@ void AGSEngine::unloadOldRoom() {
 		_state->_temporarilyTurnedOffCharacter = (uint16) -1;
 	}
 
-	// FIXME: discard room if we shouldn't keep it
-	_currentRoom->unload();
+	// We don't preserve the state of high-numbered rooms.
+	if (_displayedRoom < MAX_ROOMS)
+		_currentRoom->unload();
+	else
+		delete _currentRoom;
 	_currentRoom = NULL;
 }
 
@@ -1234,7 +1260,9 @@ void AGSEngine::checkNewRoom() {
 
 // 'NewRoom' in original
 void AGSEngine::scheduleNewRoom(uint roomId) {
-	// FIXME: sanity-check roomId?
+	// Try and catch any completely unreasonable room switches here.
+	if (roomId > 100000)
+		error("scheduleNewRoom: room id %d is invalid", roomId);
 
 	if (_displayedRoom == 0xffffffff) {
 		// called from game_start; change the room where the game will start
@@ -1292,6 +1320,9 @@ void AGSEngine::newRoom(uint roomId) {
 
 	debugC(kDebugLevelGame, "Room change now to room %d", roomId);
 
+	// store the player char, since it might change from underneath us
+	Character *forChar = _playerChar;
+
 	// we are currently running Leaves Screen scripts
 	_leavesScreenRoomId = roomId;
 
@@ -1323,7 +1354,7 @@ void AGSEngine::newRoom(uint roomId) {
 	// change rooms
 	unloadOldRoom();
 
-	loadNewRoom(roomId, _playerChar);
+	loadNewRoom(roomId, forChar);
 }
 
 void AGSEngine::setAsPlayerChar(uint charId) {
@@ -1345,7 +1376,6 @@ void AGSEngine::setAsPlayerChar(uint charId) {
 		_state->_playerOnRegion =
 		    _currentRoom->getRegionAt(_playerChar->_x, _playerChar->_y);
 
-	// FIXME: is this what's intended?
 	if (_playerChar->_activeInv != (uint) -1 &&
 	    _playerChar->_inventory[_playerChar->_activeInv] < 1)
 		_playerChar->_activeInv = (uint) -1;

@@ -404,7 +404,9 @@ void RoomObject::getDrawTint(int &lightLevel, int &luminance, byte &red,
 #define BLOCKTYPE_EOF 0xff
 
 Room::Room(AGSEngine *vm, Common::SeekableReadStream *dta) :
-    _vm(vm), _compiledScript(NULL), _interaction(NULL) {
+    _vm(vm), _compiledScript(NULL), _savedScriptState(NULL),
+    _interaction(NULL) {
+
 	_backgroundSceneAnimSpeed = 5;
 	// FIXME: copy main background scene palette
 
@@ -871,6 +873,7 @@ void Room::readData(Common::SeekableReadStream *dta) {
 
 Room::~Room() {
 	delete _compiledScript;
+	delete _savedScriptState;
 
 	delete _interaction;
 	for (uint i = 0; i < _hotspots.size(); ++i)
