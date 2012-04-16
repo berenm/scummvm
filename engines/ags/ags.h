@@ -488,6 +488,7 @@ private:
 	void tickGame(bool checkControls = false);
 	void updateEvents(bool checkControls);
 	void processInterfaceClick(uint guiId, uint controlId, uint mouseButtonId);
+	void draw();
 	void updateStuff();
 
 	void startNewGame();
