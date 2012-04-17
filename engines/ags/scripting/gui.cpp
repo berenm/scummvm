@@ -1678,8 +1678,7 @@ Script_TextBox_set_TextColor(AGSEngine *vm, GUITextBox *self,
 RuntimeValue
 Script_InvWindow_ScrollDown(AGSEngine *vm, GUIInvControl *self,
                             const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("InvWindow::ScrollDown unimplemented");
+	self->scrollDown();
 
 	return RuntimeValue();
 }
@@ -1689,8 +1688,7 @@ Script_InvWindow_ScrollDown(AGSEngine *vm, GUIInvControl *self,
 RuntimeValue
 Script_InvWindow_ScrollUp(AGSEngine *vm, GUIInvControl *self,
                           const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("InvWindow::ScrollUp unimplemented");
+	self->scrollUp();
 
 	return RuntimeValue();
 }
@@ -1722,6 +1720,7 @@ Script_InvWindow_set_CharacterToUse(AGSEngine *vm, GUIInvControl *self,
 		self->_charId = value->_indexId;
 	}
 
+	// reset to top of list
 	self->_topIndex = 0;
 	self->_parent->invalidate();
 
@@ -1807,11 +1806,9 @@ Script_InvWindow_get_TopItem(AGSEngine *vm, GUIInvControl *self,
 RuntimeValue
 Script_InvWindow_set_TopItem(AGSEngine *vm, GUIInvControl *self,
                              const Common::Array<RuntimeValue> &params) {
-	int value = params[0]._signedValue;
-	UNUSED(value);
+	uint value = params[0]._value;
 
-	// FIXME
-	error("InvWindow::set_TopItem unimplemented");
+	self->setTopIndex(value);
 
 	return RuntimeValue();
 }
