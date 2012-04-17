@@ -1834,20 +1834,15 @@ Script_InvWindow_get_RowCount(AGSEngine *vm, GUIInvControl *self,
 RuntimeValue Script_ListBox_AddItem(AGSEngine *vm, GUIListBox *self,
                                     const Common::Array<RuntimeValue> &params) {
 	ScriptString *text = (ScriptString *) params[0]._object;
-	UNUSED(text);
 
-	// FIXME
-	error("ListBox::AddItem unimplemented");
-
-	return RuntimeValue();
+	return self->addItem(text->getString()) ? 1 : 0;
 }
 
 // ListBox: import void Clear()
 // Removes all the items from the list.
 RuntimeValue Script_ListBox_Clear(AGSEngine *vm, GUIListBox *self,
                                   const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("ListBox::Clear unimplemented");
+	self->clear();
 
 	return RuntimeValue();
 }
@@ -1884,12 +1879,9 @@ RuntimeValue
 Script_ListBox_GetItemAtLocation(AGSEngine *vm, GUIListBox *self,
                                  const Common::Array<RuntimeValue> &params) {
 	int x = params[0]._signedValue;
-	UNUSED(x);
 	int y = params[1]._signedValue;
-	UNUSED(y);
 
-	// FIXME
-	error("ListBox::GetItemAtLocation unimplemented");
+	return self->getItemAt(Common::Point(x, y));
 
 	return RuntimeValue();
 }
@@ -1899,13 +1891,14 @@ Script_ListBox_GetItemAtLocation(AGSEngine *vm, GUIListBox *self,
 RuntimeValue
 Script_ListBox_GetItemText(AGSEngine *vm, GUIListBox *self,
                            const Common::Array<RuntimeValue> &params) {
-	int listIndex = params[0]._signedValue;
-	UNUSED(listIndex);
+	uint listIndex = params[0]._value;
 	ScriptString *buffer = (ScriptString *) params[1]._object;
-	UNUSED(buffer);
 
-	// FIXME
-	error("ListBox::GetItemText unimplemented");
+	if (listIndex >= self->_items.size())
+		error("ListBox::GetItemText: index %d too high (only %d entries)",
+		      listIndex, self->_items.size());
+
+	buffer->setString(self->_items[listIndex]);
 
 	return RuntimeValue();
 }
@@ -1915,13 +1908,18 @@ Script_ListBox_GetItemText(AGSEngine *vm, GUIListBox *self,
 RuntimeValue
 Script_ListBox_SetItemText(AGSEngine *vm, GUIListBox *self,
                            const Common::Array<RuntimeValue> &params) {
-	int listIndex = params[0]._signedValue;
-	UNUSED(listIndex);
+	uint listIndex = params[0]._value;
 	ScriptString *newText = (ScriptString *) params[1]._object;
-	UNUSED(newText);
 
-	// FIXME
-	error("ListBox::SetItemText unimplemented");
+	if (listIndex >= self->_items.size())
+		error("ListBox::SetItemText: index %d too high (only %d entries)",
+		      listIndex, self->_items.size());
+
+	Common::String text = newText->getString();
+	if (self->_items[listIndex] != text) {
+		self->_items[listIndex] = text;
+		self->_parent->invalidate();
+	}
 
 	return RuntimeValue();
 }
@@ -1932,14 +1930,9 @@ RuntimeValue
 Script_ListBox_InsertItemAt(AGSEngine *vm, GUIListBox *self,
                             const Common::Array<RuntimeValue> &params) {
 	int listIndex = params[0]._signedValue;
-	UNUSED(listIndex);
 	ScriptString *text = (ScriptString *) params[1]._object;
-	UNUSED(text);
 
-	// FIXME
-	error("ListBox::InsertItemAt unimplemented");
-
-	return RuntimeValue();
+	return self->insertItemAt(listIndex, text->getString()) ? 1 : 0;
 }
 
 // ListBox: import void RemoveItem(int listIndex)
@@ -1947,11 +1940,13 @@ Script_ListBox_InsertItemAt(AGSEngine *vm, GUIListBox *self,
 RuntimeValue
 Script_ListBox_RemoveItem(AGSEngine *vm, GUIListBox *self,
                           const Common::Array<RuntimeValue> &params) {
-	int listIndex = params[0]._signedValue;
-	UNUSED(listIndex);
+	uint listIndex = params[0]._signedValue;
 
-	// FIXME
-	error("ListBox::RemoveItem unimplemented");
+	// Quietly ignore attempts to remove invalid items.
+	if (listIndex >= self->_items.size())
+		return RuntimeValue();
+
+	self->removeItem(listIndex);
 
 	return RuntimeValue();
 }
@@ -1961,8 +1956,7 @@ Script_ListBox_RemoveItem(AGSEngine *vm, GUIListBox *self,
 RuntimeValue
 Script_ListBox_ScrollDown(AGSEngine *vm, GUIListBox *self,
                           const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("ListBox::ScrollDown unimplemented");
+	self->scrollDown();
 
 	return RuntimeValue();
 }
@@ -1972,8 +1966,7 @@ Script_ListBox_ScrollDown(AGSEngine *vm, GUIListBox *self,
 RuntimeValue
 Script_ListBox_ScrollUp(AGSEngine *vm, GUIListBox *self,
                         const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("ListBox::ScrollUp unimplemented");
+	self->scrollUp();
 
 	return RuntimeValue();
 }
@@ -2068,13 +2061,15 @@ Script_ListBox_get_ItemCount(AGSEngine *vm, GUIListBox *self,
 RuntimeValue
 Script_ListBox_geti_Items(AGSEngine *vm, GUIListBox *self,
                           const Common::Array<RuntimeValue> &params) {
-	int index = params[0]._signedValue;
-	UNUSED(index);
+	uint index = params[0]._value;
 
-	// FIXME
-	error("ListBox::geti_Items unimplemented");
+	if (index >= self->_items.size())
+		error("ListBox::geti_Items: index %d too high (only %d entries)", index,
+		      self->_items.size());
 
-	return RuntimeValue();
+	RuntimeValue ret = new ScriptMutableString(self->_items[index]);
+	ret._object->DecRef();
+	return ret;
 }
 
 // ListBox: import attribute String Items[]
@@ -2082,13 +2077,18 @@ Script_ListBox_geti_Items(AGSEngine *vm, GUIListBox *self,
 RuntimeValue
 Script_ListBox_seti_Items(AGSEngine *vm, GUIListBox *self,
                           const Common::Array<RuntimeValue> &params) {
-	int index = params[0]._signedValue;
-	UNUSED(index);
+	uint index = params[0]._value;
 	ScriptString *value = (ScriptString *) params[1]._object;
-	UNUSED(value);
 
-	// FIXME
-	error("ListBox::seti_Items unimplemented");
+	if (index >= self->_items.size())
+		error("ListBox::seti_Items: index %d too high (only %d entries)", index,
+		      self->_items.size());
+
+	Common::String text = value->getString();
+	if (self->_items[index] != text) {
+		self->_items[index] = text;
+		self->_parent->invalidate();
+	}
 
 	return RuntimeValue();
 }
@@ -2098,10 +2098,7 @@ Script_ListBox_seti_Items(AGSEngine *vm, GUIListBox *self,
 RuntimeValue
 Script_ListBox_get_RowCount(AGSEngine *vm, GUIListBox *self,
                             const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("ListBox::get_RowCount unimplemented");
-
-	return RuntimeValue();
+	return self->_numItemsFit;
 }
 
 // ListBox: readonly import attribute int SaveGameSlots[]
@@ -2124,10 +2121,7 @@ Script_ListBox_geti_SaveGameSlots(AGSEngine *vm, GUIListBox *self,
 RuntimeValue
 Script_ListBox_get_SelectedIndex(AGSEngine *vm, GUIListBox *self,
                                  const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("ListBox::get_SelectedIndex unimplemented");
-
-	return RuntimeValue();
+	return self->getSelected();
 }
 
 // ListBox: import attribute int SelectedIndex
@@ -2135,11 +2129,9 @@ Script_ListBox_get_SelectedIndex(AGSEngine *vm, GUIListBox *self,
 RuntimeValue
 Script_ListBox_set_SelectedIndex(AGSEngine *vm, GUIListBox *self,
                                  const Common::Array<RuntimeValue> &params) {
-	int value = params[0]._signedValue;
-	UNUSED(value);
+	uint value = params[0]._value;
 
-	// FIXME
-	error("ListBox::set_SelectedIndex unimplemented");
+	self->setSelected(value);
 
 	return RuntimeValue();
 }
@@ -2149,10 +2141,7 @@ Script_ListBox_set_SelectedIndex(AGSEngine *vm, GUIListBox *self,
 RuntimeValue
 Script_ListBox_get_TopItem(AGSEngine *vm, GUIListBox *self,
                            const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("ListBox::get_TopItem unimplemented");
-
-	return RuntimeValue();
+	return self->getTopItem();
 }
 
 // ListBox: import attribute int TopItem
@@ -2160,11 +2149,9 @@ Script_ListBox_get_TopItem(AGSEngine *vm, GUIListBox *self,
 RuntimeValue
 Script_ListBox_set_TopItem(AGSEngine *vm, GUIListBox *self,
                            const Common::Array<RuntimeValue> &params) {
-	int value = params[0]._signedValue;
-	UNUSED(value);
+	uint value = params[0]._value;
 
-	// FIXME
-	error("ListBox::set_TopItem unimplemented");
+	self->setTopItem(value);
 
 	return RuntimeValue();
 }
