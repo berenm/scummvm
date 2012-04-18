@@ -660,16 +660,21 @@ RuntimeValue
 Script_SetCharacterFrame(AGSEngine *vm, ScriptObject *,
                          const Common::Array<RuntimeValue> &params) {
 	uint32 charid = params[0]._value;
-	UNUSED(charid);
 	int view = params[1]._signedValue;
-	UNUSED(view);
 	int loop = params[2]._signedValue;
-	UNUSED(loop);
 	int frame = params[3]._signedValue;
-	UNUSED(frame);
 
-	// FIXME
-	error("SetCharacterFrame unimplemented");
+	if (charid >= vm->_characters.size())
+		error("SetCharacterFrame: character %d is too high (only have %d)",
+		      charid, vm->_characters.size());
+
+	vm->_characters[charid]->lockView(view);
+
+	// FIXME: sanity checks (and ADJUST the view)
+	// TODO: duplicates LockViewFrame
+
+	vm->_characters[charid]->_loop = loop;
+	vm->_characters[charid]->_frame = frame;
 
 	return RuntimeValue();
 }
@@ -696,12 +701,13 @@ RuntimeValue
 Script_ChangeCharacterView(AGSEngine *vm, ScriptObject *,
                            const Common::Array<RuntimeValue> &params) {
 	uint32 charid = params[0]._value;
-	UNUSED(charid);
 	int view = params[1]._signedValue;
-	UNUSED(view);
 
-	// FIXME
-	error("ChangeCharacterView unimplemented");
+	if (charid >= vm->_characters.size())
+		error("ChangeCharacterView: character %d is too high (only have %d)",
+		      charid, vm->_characters.size());
+
+	vm->_characters[charid]->changeView(view);
 
 	return RuntimeValue();
 }
@@ -729,14 +735,16 @@ RuntimeValue
 Script_SetCharacterBlinkView(AGSEngine *vm, ScriptObject *,
                              const Common::Array<RuntimeValue> &params) {
 	uint32 charid = params[0]._value;
-	UNUSED(charid);
 	int view = params[1]._signedValue;
-	UNUSED(view);
-	int interval = params[2]._signedValue;
-	UNUSED(interval);
+	uint interval = params[2]._value;
 
-	// FIXME
-	error("SetCharacterBlinkView unimplemented");
+	if (charid >= vm->_characters.size())
+		error("SetCharacterBlinkView: character %d is too high (only have %d)",
+		      charid, vm->_characters.size());
+
+	// FIXME: sanity checks
+	vm->_characters[charid]->_blinkView = view - 1;
+	vm->_characters[charid]->setBlinkInterval(interval);
 
 	return RuntimeValue();
 }
@@ -747,14 +755,14 @@ RuntimeValue
 Script_SetCharacterIdle(AGSEngine *vm, ScriptObject *,
                         const Common::Array<RuntimeValue> &params) {
 	uint32 charid = params[0]._value;
-	UNUSED(charid);
 	int idleView = params[1]._signedValue;
-	UNUSED(idleView);
-	int delay = params[2]._signedValue;
-	UNUSED(delay);
+	uint delay = params[2]._value;
 
-	// FIXME
-	error("SetCharacterIdle unimplemented");
+	if (charid >= vm->_characters.size())
+		error("SetCharacterIdle: character %d is too high (only have %d)",
+		      charid, vm->_characters.size());
+
+	vm->_characters[charid]->setIdleView(idleView, delay);
 
 	return RuntimeValue();
 }
@@ -871,12 +879,13 @@ Script_SetCharacterSpeedEx(AGSEngine *vm, ScriptObject *,
 RuntimeValue Script_SetTalkingColor(AGSEngine *vm, ScriptObject *,
                                     const Common::Array<RuntimeValue> &params) {
 	uint32 charid = params[0]._value;
-	UNUSED(charid);
-	int colour = params[1]._signedValue;
-	UNUSED(colour);
+	uint colour = params[1]._value;
 
-	// FIXME
-	error("SetTalkingColor unimplemented");
+	if (charid >= vm->_characters.size())
+		error("SetTalkingColor: character %d is too high (only have %d)",
+		      charid, vm->_characters.size());
+
+	vm->_characters[charid]->_talkColor = colour;
 
 	return RuntimeValue();
 }
@@ -887,12 +896,25 @@ RuntimeValue
 Script_SetCharacterTransparency(AGSEngine *vm, ScriptObject *,
                                 const Common::Array<RuntimeValue> &params) {
 	uint32 charid = params[0]._value;
-	UNUSED(charid);
-	int transparency = params[1]._signedValue;
-	UNUSED(transparency);
+	uint transparency = params[1]._value;
 
-	// FIXME
-	error("SetCharacterTransparency unimplemented");
+	if (charid >= vm->_characters.size())
+		error(
+		    "SetCharacterTransparency: character %d is too high (only have %d)",
+		    charid, vm->_characters.size());
+
+	if (transparency > 100)
+		error("SetCharacterTransparency: transparency value must be between 0 "
+		      "and 100, but got %d",
+		      transparency);
+
+	if (transparency == 0)
+		vm->_characters[charid]->_transparency = 0;
+	else if (transparency == 100)
+		vm->_characters[charid]->_transparency = 255;
+	else
+		vm->_characters[charid]->_transparency =
+		    ((100 - transparency) * 25) / 10;
 
 	return RuntimeValue();
 }
@@ -1092,11 +1114,9 @@ RuntimeValue Script_Character_ChangeRoomAutoPosition(
 RuntimeValue
 Script_Character_ChangeView(AGSEngine *vm, Character *self,
                             const Common::Array<RuntimeValue> &params) {
-	int view = params[0]._signedValue;
-	UNUSED(view);
+	uint view = params[0]._signedValue;
 
-	// FIXME
-	error("Character::ChangeView unimplemented");
+	self->changeView(view);
 
 	return RuntimeValue();
 }
@@ -1722,8 +1742,7 @@ Script_Character_set_Baseline(AGSEngine *vm, Character *self,
 RuntimeValue
 Script_Character_get_BlinkInterval(AGSEngine *vm, Character *self,
                                    const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Character::get_BlinkInterval unimplemented");
+	return self->_blinkInterval;
 
 	return RuntimeValue();
 }
@@ -1734,11 +1753,9 @@ Script_Character_get_BlinkInterval(AGSEngine *vm, Character *self,
 RuntimeValue
 Script_Character_set_BlinkInterval(AGSEngine *vm, Character *self,
                                    const Common::Array<RuntimeValue> &params) {
-	int value = params[0]._signedValue;
-	UNUSED(value);
+	uint value = params[0]._value;
 
-	// FIXME
-	error("Character::set_BlinkInterval unimplemented");
+	self->setBlinkInterval(value);
 
 	return RuntimeValue();
 }
@@ -1749,10 +1766,7 @@ Script_Character_set_BlinkInterval(AGSEngine *vm, Character *self,
 RuntimeValue
 Script_Character_get_BlinkView(AGSEngine *vm, Character *self,
                                const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Character::get_BlinkView unimplemented");
-
-	return RuntimeValue();
+	return self->_blinkView + 1;
 }
 
 // Character: import attribute int BlinkView
@@ -1762,10 +1776,9 @@ RuntimeValue
 Script_Character_set_BlinkView(AGSEngine *vm, Character *self,
                                const Common::Array<RuntimeValue> &params) {
 	int value = params[0]._signedValue;
-	UNUSED(value);
 
-	// FIXME
-	error("Character::set_BlinkView unimplemented");
+	// FIXME: sanity checks
+	self->_blinkView = value - 1;
 
 	return RuntimeValue();
 }
@@ -1774,10 +1787,7 @@ Script_Character_set_BlinkView(AGSEngine *vm, Character *self,
 // Gets/sets whether the character will blink while thinking as well as talking.
 RuntimeValue Script_Character_get_BlinkWhileThinking(
     AGSEngine *vm, Character *self, const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Character::get_BlinkWhileThinking unimplemented");
-
-	return RuntimeValue();
+	return (self->_flags & CHF_NOBLINKANDTHINK) ? 0 : 1;
 }
 
 // Character: import attribute bool BlinkWhileThinking
@@ -1785,10 +1795,11 @@ RuntimeValue Script_Character_get_BlinkWhileThinking(
 RuntimeValue Script_Character_set_BlinkWhileThinking(
     AGSEngine *vm, Character *self, const Common::Array<RuntimeValue> &params) {
 	uint32 value = params[0]._value;
-	UNUSED(value);
 
-	// FIXME
-	error("Character::set_BlinkWhileThinking unimplemented");
+	if (value)
+		self->_flags &= ~CHF_NOBLINKANDTHINK;
+	else
+		self->_flags |= CHF_NOBLINKANDTHINK;
 
 	return RuntimeValue();
 }
@@ -1799,10 +1810,7 @@ RuntimeValue Script_Character_set_BlinkWhileThinking(
 RuntimeValue
 Script_Character_get_BlockingHeight(AGSEngine *vm, Character *self,
                                     const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Character::get_BlockingHeight unimplemented");
-
-	return RuntimeValue();
+	return self->_blockingHeight;
 }
 
 // Character: import attribute int BlockingHeight
@@ -1811,11 +1819,9 @@ Script_Character_get_BlockingHeight(AGSEngine *vm, Character *self,
 RuntimeValue
 Script_Character_set_BlockingHeight(AGSEngine *vm, Character *self,
                                     const Common::Array<RuntimeValue> &params) {
-	int value = params[0]._signedValue;
-	UNUSED(value);
+	uint value = params[0]._value;
 
-	// FIXME
-	error("Character::set_BlockingHeight unimplemented");
+	self->_blockingHeight = value;
 
 	return RuntimeValue();
 }
@@ -1826,10 +1832,7 @@ Script_Character_set_BlockingHeight(AGSEngine *vm, Character *self,
 RuntimeValue
 Script_Character_get_BlockingWidth(AGSEngine *vm, Character *self,
                                    const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Character::get_BlockingWidth unimplemented");
-
-	return RuntimeValue();
+	return self->_blockingWidth;
 }
 
 // Character: import attribute int BlockingWidth
@@ -1838,11 +1841,9 @@ Script_Character_get_BlockingWidth(AGSEngine *vm, Character *self,
 RuntimeValue
 Script_Character_set_BlockingWidth(AGSEngine *vm, Character *self,
                                    const Common::Array<RuntimeValue> &params) {
-	int value = params[0]._signedValue;
-	UNUSED(value);
+	uint value = params[0]._value;
 
-	// FIXME
-	error("Character::set_BlockingWidth unimplemented");
+	self->_blockingWidth = value;
 
 	return RuntimeValue();
 }
@@ -1853,10 +1854,7 @@ Script_Character_set_BlockingWidth(AGSEngine *vm, Character *self,
 RuntimeValue
 Script_Character_get_Clickable(AGSEngine *vm, Character *self,
                                const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Character::get_Clickable unimplemented");
-
-	return RuntimeValue();
+	return (self->_flags & CHF_NOINTERACT) ? 0 : 1;
 }
 
 // Character: import attribute bool Clickable
@@ -1866,10 +1864,11 @@ RuntimeValue
 Script_Character_set_Clickable(AGSEngine *vm, Character *self,
                                const Common::Array<RuntimeValue> &params) {
 	uint32 value = params[0]._value;
-	UNUSED(value);
 
-	// FIXME
-	error("Character::set_Clickable unimplemented");
+	if (value)
+		self->_flags &= ~CHF_NOINTERACT;
+	else
+		self->_flags |= CHF_NOINTERACT;
 
 	return RuntimeValue();
 }
@@ -1944,10 +1943,10 @@ Script_Character_get_ID(AGSEngine *vm, Character *self,
 RuntimeValue
 Script_Character_get_IdleView(AGSEngine *vm, Character *self,
                               const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Character::get_IdleView unimplemented");
+	if (self->_idleView < 1)
+		return -1;
 
-	return RuntimeValue();
+	return self->_idleView + 1;
 }
 
 // Character: import attribute bool IgnoreLighting
@@ -1955,10 +1954,7 @@ Script_Character_get_IdleView(AGSEngine *vm, Character *self,
 RuntimeValue
 Script_Character_get_IgnoreLighting(AGSEngine *vm, Character *self,
                                     const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Character::get_IgnoreLighting unimplemented");
-
-	return RuntimeValue();
+	return (self->_flags & CHF_NOLIGHTING) ? 1 : 0;
 }
 
 // Character: import attribute bool IgnoreLighting
@@ -1967,10 +1963,11 @@ RuntimeValue
 Script_Character_set_IgnoreLighting(AGSEngine *vm, Character *self,
                                     const Common::Array<RuntimeValue> &params) {
 	uint32 value = params[0]._value;
-	UNUSED(value);
 
-	// FIXME
-	error("Character::set_IgnoreLighting unimplemented");
+	if (value)
+		self->_flags |= CHF_NOLIGHTING;
+	else
+		self->_flags &= ~CHF_NOLIGHTING;
 
 	return RuntimeValue();
 }
@@ -1980,10 +1977,7 @@ Script_Character_set_IgnoreLighting(AGSEngine *vm, Character *self,
 RuntimeValue
 Script_Character_get_IgnoreScaling(AGSEngine *vm, Character *self,
                                    const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Character::get_IgnoreScaling unimplemented");
-
-	return RuntimeValue();
+	return (self->_flags & CHF_MANUALSCALING) ? 1 : 0;
 }
 
 // Character: import attribute bool IgnoreScaling
@@ -1992,10 +1986,14 @@ RuntimeValue
 Script_Character_set_IgnoreScaling(AGSEngine *vm, Character *self,
                                    const Common::Array<RuntimeValue> &params) {
 	uint32 value = params[0]._value;
-	UNUSED(value);
 
-	// FIXME
-	error("Character::set_IgnoreScaling unimplemented");
+	if (value) {
+		self->_flags |= CHF_MANUALSCALING;
+		// when setting IgnoreScaling to 1, should reset zoom level
+		// like it used to in pre-2.71
+		self->_zoom = 100;
+	} else
+		self->_flags &= ~CHF_MANUALSCALING;
 
 	return RuntimeValue();
 }
@@ -2093,10 +2091,7 @@ Script_Character_set_Loop(AGSEngine *vm, Character *self,
 RuntimeValue
 Script_Character_get_ManualScaling(AGSEngine *vm, Character *self,
                                    const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Character::get_ManualScaling unimplemented");
-
-	return RuntimeValue();
+	return (self->_flags & CHF_MANUALSCALING) ? 1 : 0;
 }
 
 // Character: import attribute bool ManualScaling
@@ -2106,10 +2101,11 @@ RuntimeValue
 Script_Character_set_ManualScaling(AGSEngine *vm, Character *self,
                                    const Common::Array<RuntimeValue> &params) {
 	uint32 value = params[0]._value;
-	UNUSED(value);
 
-	// FIXME
-	error("Character::set_ManualScaling unimplemented");
+	if (value)
+		self->_flags |= CHF_MANUALSCALING;
+	else
+		self->_flags &= ~CHF_MANUALSCALING;
 
 	return RuntimeValue();
 }
@@ -2119,10 +2115,7 @@ Script_Character_set_ManualScaling(AGSEngine *vm, Character *self,
 // changes.
 RuntimeValue Script_Character_get_MovementLinkedToAnimation(
     AGSEngine *vm, Character *self, const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Character::get_MovementLinkedToAnimation unimplemented");
-
-	return RuntimeValue();
+	return (self->_flags & CHF_ANTIGLIDE) ? 1 : 0;
 }
 
 // Character: import attribute bool MovementLinkedToAnimation
@@ -2131,10 +2124,11 @@ RuntimeValue Script_Character_get_MovementLinkedToAnimation(
 RuntimeValue Script_Character_set_MovementLinkedToAnimation(
     AGSEngine *vm, Character *self, const Common::Array<RuntimeValue> &params) {
 	uint32 value = params[0]._value;
-	UNUSED(value);
 
-	// FIXME
-	error("Character::set_MovementLinkedToAnimation unimplemented");
+	if (value)
+		self->_flags |= CHF_ANTIGLIDE;
+	else
+		self->_flags &= ~CHF_ANTIGLIDE;
 
 	return RuntimeValue();
 }
@@ -2152,10 +2146,9 @@ Script_Character_get_Moving(AGSEngine *vm, Character *self,
 RuntimeValue
 Script_Character_get_Name(AGSEngine *vm, Character *self,
                           const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Character::get_Name unimplemented");
-
-	return RuntimeValue();
+	RuntimeValue ret = new ScriptMutableString(self->_name);
+	ret._object->DecRef();
+	return ret;
 }
 
 // Character: import attribute String Name
@@ -2164,10 +2157,8 @@ RuntimeValue
 Script_Character_set_Name(AGSEngine *vm, Character *self,
                           const Common::Array<RuntimeValue> &params) {
 	ScriptString *value = (ScriptString *) params[0]._object;
-	UNUSED(value);
 
-	// FIXME
-	error("Character::set_Name unimplemented");
+	self->_name = value->getString();
 
 	return RuntimeValue();
 }
@@ -2177,10 +2168,7 @@ Script_Character_set_Name(AGSEngine *vm, Character *self,
 RuntimeValue
 Script_Character_get_NormalView(AGSEngine *vm, Character *self,
                                 const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Character::get_NormalView unimplemented");
-
-	return RuntimeValue();
+	return self->_defView + 1;
 }
 
 // Character: readonly import attribute int PreviousRoom
@@ -2205,10 +2193,7 @@ Script_Character_get_Room(AGSEngine *vm, Character *self,
 RuntimeValue
 Script_Character_get_ScaleMoveSpeed(AGSEngine *vm, Character *self,
                                     const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Character::get_ScaleMoveSpeed unimplemented");
-
-	return RuntimeValue();
+	return (self->_flags & CHF_SCALEMOVESPEED) ? 1 : 0;
 }
 
 // Character: import attribute bool ScaleMoveSpeed
@@ -2237,10 +2222,7 @@ Script_Character_set_ScaleMoveSpeed(AGSEngine *vm, Character *self,
 RuntimeValue
 Script_Character_get_ScaleVolume(AGSEngine *vm, Character *self,
                                  const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Character::get_ScaleVolume unimplemented");
-
-	return RuntimeValue();
+	return (self->_flags & CHF_SCALEVOLUME) ? 1 : 0;
 }
 
 // Character: import attribute bool ScaleVolume
@@ -2250,10 +2232,11 @@ RuntimeValue
 Script_Character_set_ScaleVolume(AGSEngine *vm, Character *self,
                                  const Common::Array<RuntimeValue> &params) {
 	uint32 value = params[0]._value;
-	UNUSED(value);
 
-	// FIXME
-	error("Character::set_ScaleVolume unimplemented");
+	if (value)
+		self->_flags |= CHF_SCALEVOLUME;
+	else
+		self->_flags &= ~CHF_SCALEVOLUME;
 
 	return RuntimeValue();
 }
@@ -2263,10 +2246,7 @@ Script_Character_set_ScaleVolume(AGSEngine *vm, Character *self,
 RuntimeValue
 Script_Character_get_Scaling(AGSEngine *vm, Character *self,
                              const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Character::get_Scaling unimplemented");
-
-	return RuntimeValue();
+	return self->_zoom;
 }
 
 // Character: import attribute int Scaling
@@ -2274,11 +2254,17 @@ Script_Character_get_Scaling(AGSEngine *vm, Character *self,
 RuntimeValue
 Script_Character_set_Scaling(AGSEngine *vm, Character *self,
                              const Common::Array<RuntimeValue> &params) {
-	int value = params[0]._signedValue;
-	UNUSED(value);
+	uint value = params[0]._value;
 
-	// FIXME
-	error("Character::set_Scaling unimplemented");
+	if (!(self->_flags & CHF_MANUALSCALING))
+		error("Character::set_Scaling: scaling can only be changed on manually "
+		      "scaled characters");
+	if (value < 5 || value > 200)
+		error("Character::set_Scaling: scaling level must be from 5-200%%, but "
+		      "got %d%%",
+		      value);
+
+	self->_zoom = value;
 
 	return RuntimeValue();
 }
@@ -2335,21 +2321,20 @@ Script_Character_get_SpeakingFrame(AGSEngine *vm, Character *self,
 // Gets/sets the character's speech animation delay.
 RuntimeValue Script_Character_get_SpeechAnimationDelay(
     AGSEngine *vm, Character *self, const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Character::get_SpeechAnimationDelay unimplemented");
-
-	return RuntimeValue();
+	return self->getSpeechAnimationDelay();
 }
 
 // Character: import attribute int SpeechAnimationDelay
 // Gets/sets the character's speech animation delay.
 RuntimeValue Script_Character_set_SpeechAnimationDelay(
     AGSEngine *vm, Character *self, const Common::Array<RuntimeValue> &params) {
-	int value = params[0]._signedValue;
-	UNUSED(value);
+	uint value = params[0]._value;
 
-	// FIXME
-	error("Character::set_SpeechAnimationDelay unimplemented");
+	if (vm->getGameOption(OPT_OLDTALKANIMSPD))
+		error("Character::set_SpeechAnimationDelay: can't set speech animation "
+		      "delay when legacy speech animation speed is enabled");
+
+	self->_speechAnimSpeed = value;
 
 	return RuntimeValue();
 }
@@ -2399,10 +2384,7 @@ Script_Character_set_SpeechView(AGSEngine *vm, Character *self,
 RuntimeValue
 Script_Character_get_ThinkView(AGSEngine *vm, Character *self,
                                const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Character::get_ThinkView unimplemented");
-
-	return RuntimeValue();
+	return self->_thinkView + 1;
 }
 
 // Character: import attribute int ThinkView
@@ -2411,10 +2393,8 @@ RuntimeValue
 Script_Character_set_ThinkView(AGSEngine *vm, Character *self,
                                const Common::Array<RuntimeValue> &params) {
 	int value = params[0]._signedValue;
-	UNUSED(value);
 
-	// FIXME
-	error("Character::set_ThinkView unimplemented");
+	self->setThinkView(value);
 
 	return RuntimeValue();
 }
@@ -2459,10 +2439,7 @@ Script_Character_set_Transparency(AGSEngine *vm, Character *self,
 // direction before walking.
 RuntimeValue Script_Character_get_TurnBeforeWalking(
     AGSEngine *vm, Character *self, const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Character::get_TurnBeforeWalking unimplemented");
-
-	return RuntimeValue();
+	return (self->_flags & CHF_NOTURNING) ? 0 : 1;
 }
 
 // Character: import attribute bool TurnBeforeWalking
@@ -2471,10 +2448,11 @@ RuntimeValue Script_Character_get_TurnBeforeWalking(
 RuntimeValue Script_Character_set_TurnBeforeWalking(
     AGSEngine *vm, Character *self, const Common::Array<RuntimeValue> &params) {
 	uint32 value = params[0]._value;
-	UNUSED(value);
 
-	// FIXME
-	error("Character::set_TurnBeforeWalking unimplemented");
+	if (value)
+		self->_flags &= ~CHF_NOTURNING;
+	else
+		self->_flags |= CHF_NOTURNING;
 
 	return RuntimeValue();
 }
