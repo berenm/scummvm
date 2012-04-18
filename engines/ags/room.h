@@ -34,6 +34,7 @@
 
 #include "engines/ags/drawable.h"
 #include "engines/ags/gamefile.h"
+#include "engines/ags/pathfinder.h"
 
 namespace Common {
 class SeekableReadStream;
@@ -103,10 +104,9 @@ struct RoomRegion : public ScriptObject {
 
 struct RoomObject : public ScriptObject, public Drawable {
 	RoomObject(AGSEngine *vm, uint id) :
-	    _vm(vm), _interaction(NULL), _flags(0), _id(id), _view(-1), _loop(0),
-	    _frame(0), _wait(0), _cycling(0), _transparency(0),
-	    _moving((uint16) -1), _blockingWidth(0), _blockingHeight(0),
-	    _baseline(-1) {}
+	    _vm(vm), _interaction(NULL), _flags(0), _id(id), _view((uint16) -1),
+	    _loop(0), _frame(0), _wait(0), _cycling(0), _transparency(0),
+	    _moving(-1), _blockingWidth(0), _blockingHeight(0), _baseline(-1) {}
 	bool isOfType(ScriptObjectType objectType) {
 		return (objectType == sotRoomObject);
 	}
@@ -114,6 +114,7 @@ struct RoomObject : public ScriptObject, public Drawable {
 
 	bool isVisible() const { return _visible; }
 	void setVisible(bool visible);
+	void setGraphic(uint id);
 	void setObjectView(uint viewId);
 	void setObjectFrame(uint viewId, int loopId, int frameId);
 
@@ -136,6 +137,7 @@ struct RoomObject : public ScriptObject, public Drawable {
 
 	void animate(uint loopId, uint speed, uint repeat, uint direction);
 	void update();
+	void move(int x, int y, int speed, bool ignoreWalkable);
 	void stopMoving();
 
 	int getBaseline() const;
@@ -162,7 +164,8 @@ struct RoomObject : public ScriptObject, public Drawable {
 
 	// constructed at runtime
 	uint16 _view, _loop, _frame;
-	uint16 _wait, _moving;
+	uint16 _wait;
+	int _moving;
 	uint _transparency;
 	byte _cycling; // see ANIM_BACKWARDS etc
 	byte _overallSpeed;
@@ -182,6 +185,8 @@ struct RoomObject : public ScriptObject, public Drawable {
 
 protected:
 	AGSEngine *_vm;
+
+	MoveList _moveList;
 };
 
 #define MSG_DISPLAYNEXT 1 // supercedes using alt-200 at end of message

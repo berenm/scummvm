@@ -241,13 +241,16 @@ Script_SetObjectBaseline(AGSEngine *vm, ScriptObject *,
 RuntimeValue
 Script_GetObjectBaseline(AGSEngine *vm, ScriptObject *,
                          const Common::Array<RuntimeValue> &params) {
-	int object = params[0]._signedValue;
-	UNUSED(object);
+	uint object = params[0]._value;
 
-	// FIXME
-	error("GetObjectBaseline unimplemented");
+	if (object >= vm->getCurrentRoom()->_objects.size())
+		error("GetObjectBaseline: object %d is too high (only have %d)", object,
+		      vm->getCurrentRoom()->_objects.size());
 
-	return RuntimeValue();
+	if (vm->getCurrentRoom()->_objects[object]->_baseline < 1)
+		return 0;
+
+	return vm->getCurrentRoom()->_objects[object]->_baseline;
 }
 
 // import void SetObjectFrame(int object, int view, int loop, int frame)
@@ -273,13 +276,14 @@ RuntimeValue Script_SetObjectFrame(AGSEngine *vm, ScriptObject *,
 RuntimeValue
 Script_SetObjectGraphic(AGSEngine *vm, ScriptObject *,
                         const Common::Array<RuntimeValue> &params) {
-	int object = params[0]._signedValue;
-	UNUSED(object);
+	uint object = params[0]._value;
 	int spriteSlot = params[1]._signedValue;
-	UNUSED(spriteSlot);
 
-	// FIXME
-	error("SetObjectGraphic unimplemented");
+	if (object >= vm->getCurrentRoom()->_objects.size())
+		error("SetObjectGraphic: object %d is too high (only have %d)", object,
+		      vm->getCurrentRoom()->_objects.size());
+
+	vm->getCurrentRoom()->_objects[object]->setGraphic(spriteSlot);
 
 	return RuntimeValue();
 }
@@ -672,18 +676,29 @@ Script_Object_MergeIntoBackground(AGSEngine *vm, RoomObject *self,
 RuntimeValue Script_Object_Move(AGSEngine *vm, RoomObject *self,
                                 const Common::Array<RuntimeValue> &params) {
 	int x = params[0]._signedValue;
-	UNUSED(x);
 	int y = params[1]._signedValue;
-	UNUSED(y);
 	int speed = params[2]._signedValue;
-	UNUSED(speed);
-	uint32 blockingstyle = params[3]._value;
-	UNUSED(blockingstyle);
-	uint32 walkwhere = params[4]._value;
-	UNUSED(walkwhere);
+	uint32 blockingStyle = params[3]._value;
+	uint32 walkWhere = params[4]._value;
 
-	// FIXME
-	error("Object::Move unimplemented");
+	if (walkWhere == ANYWHERE)
+		walkWhere = 1;
+	else if (walkWhere == WALKABLE_AREAS)
+		walkWhere = 0;
+	else if (walkWhere != 0 && walkWhere != 1)
+		error("Object::Move: invalid walkWhere parameter %d", walkWhere);
+
+	self->move(x, y, speed, (bool) walkWhere);
+
+	if (blockingStyle == BLOCKING)
+		blockingStyle = 1;
+	else if (blockingStyle == IN_BACKGROUND)
+		blockingStyle = 0;
+	else if (blockingStyle != 0 && blockingStyle != 1)
+		error("Object::Move: invalid blocking style %d", blockingStyle);
+
+	if (blockingStyle)
+		vm->blockUntil(kUntilObjMoveDone, self->_id);
 
 	return RuntimeValue();
 }
@@ -802,10 +817,10 @@ Script_Object_get_Animating(AGSEngine *vm, RoomObject *self,
 RuntimeValue
 Script_Object_get_Baseline(AGSEngine *vm, RoomObject *self,
                            const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Object::get_Baseline unimplemented");
+	if (self->_baseline < 1)
+		return 0;
 
-	return RuntimeValue();
+	return self->_baseline;
 }
 
 // Object: import attribute int Baseline
@@ -914,10 +929,7 @@ Script_Object_get_Frame(AGSEngine *vm, RoomObject *self,
 RuntimeValue
 Script_Object_get_Graphic(AGSEngine *vm, RoomObject *self,
                           const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Object::get_Graphic unimplemented");
-
-	return RuntimeValue();
+	return self->_spriteId;
 }
 
 // Object: import attribute int Graphic
@@ -926,10 +938,8 @@ RuntimeValue
 Script_Object_set_Graphic(AGSEngine *vm, RoomObject *self,
                           const Common::Array<RuntimeValue> &params) {
 	int value = params[0]._signedValue;
-	UNUSED(value);
 
-	// FIXME
-	error("Object::set_Graphic unimplemented");
+	self->setGraphic(value);
 
 	return RuntimeValue();
 }
