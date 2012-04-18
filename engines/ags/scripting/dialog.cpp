@@ -96,8 +96,6 @@ RuntimeValue Script_GetDialogOption(AGSEngine *vm, ScriptObject *,
 		return kDialogOptionOn;
 	else
 		return kDialogOptionOff;
-
-	return RuntimeValue();
 }
 
 // import void RunDialog(int topic)
@@ -157,8 +155,6 @@ Script_Dialog_GetOptionState(AGSEngine *vm, DialogTopic *self,
 		return kDialogOptionOn;
 	else
 		return kDialogOptionOff;
-
-	return RuntimeValue();
 }
 
 // Dialog: import String GetOptionText(int option)

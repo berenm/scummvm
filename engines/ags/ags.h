@@ -505,7 +505,7 @@ private:
 	BlockUntilType checkBlockingUntil();
 
 	void doConversation(uint dialogId);
-	int runDialogScript(struct DialogTopic &topic, uint dialogId, uint offset,
+	int runDialogScript(struct DialogTopic &topic, uint dialogId, uint16 offset,
 	                    uint optionId);
 	int runDialogRequest(uint request);
 
