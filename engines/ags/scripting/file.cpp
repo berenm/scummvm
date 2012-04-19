@@ -25,6 +25,7 @@
  * modify/distribute the code in this file under that license.
  */
 
+#include "common/file.h"
 #include "common/savefile.h"
 #include "engines/ags/scripting/scripting.h"
 
@@ -262,6 +263,13 @@ RuntimeValue Script_File_Open(AGSEngine *vm, ScriptObject *,
 	ScriptFile *f = new ScriptFile();
 	if (filemode == 1) {
 		f->_inFile = saveFileMan->openForLoading(wrappedName);
+		if (!f->_inFile) {
+			Common::File *file = new Common::File();
+			if (file->open(filename->getString()))
+				f->_inFile = file;
+			else
+				delete file;
+		}
 	} else if (filemode == 2) {
 		f->_outFile = saveFileMan->openForSaving(wrappedName);
 	} else if (filemode == 3) {
