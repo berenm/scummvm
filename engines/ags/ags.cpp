@@ -806,6 +806,9 @@ public:
 	bool writeByte(uint offset, byte value) {
 		return _vm->getPlayerChar()->writeByte(offset, value);
 	}
+	ScriptString *getStringObject(uint offset) {
+		return _vm->getPlayerChar()->getStringObject(offset);
+	}
 
 protected:
 	AGSEngine *_vm;
@@ -850,6 +853,19 @@ public:
 			      "high (only %d globals)",
 			      offset, _vm->_state->_globalVars.size());
 		return _vm->_state->_globalVars[offset];
+	}
+	bool writeUint32(uint offset, uint value) {
+		if (offset % 4 != 0)
+			error("ScriptGameStateGlobalsObject::writeUint32: offset %d is "
+			      "invalid",
+			      offset);
+		offset /= 4;
+		if (offset >= _vm->_state->_globalVars.size())
+			error("ScriptGameStateGlobalsObject::writeUint32: index %d is too "
+			      "high (only %d globals)",
+			      offset, _vm->_state->_globalVars.size());
+		_vm->_state->_globalVars[offset] = value;
+		return true;
 	}
 
 protected:
