@@ -74,8 +74,7 @@ public:
 	                  const Common::Point &pos, uint transparency);
 
 	void blit(const Graphics::Surface *srcSurf, Graphics::Surface *destSurf,
-	          Common::Point pos, uint transparency, bool mirrored = false,
-	          bool useAlpha = false);
+	          Common::Point pos, uint transparency, bool mirrored = false);
 
 	void setExtraDrawable(Drawable *drawable) { _extraDrawable = drawable; }
 
