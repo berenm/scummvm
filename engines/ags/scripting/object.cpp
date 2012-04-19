@@ -330,17 +330,16 @@ Script_SetObjectTransparency(AGSEngine *vm, ScriptObject *,
 // Obsolete function for objects.
 RuntimeValue Script_MoveObject(AGSEngine *vm, ScriptObject *,
                                const Common::Array<RuntimeValue> &params) {
-	int object = params[0]._signedValue;
-	UNUSED(object);
+	uint object = params[0]._value;
 	int x = params[1]._signedValue;
-	UNUSED(x);
 	int y = params[2]._signedValue;
-	UNUSED(y);
 	int speed = params[3]._signedValue;
-	UNUSED(speed);
 
-	// FIXME
-	error("MoveObject unimplemented");
+	if (object >= vm->getCurrentRoom()->_objects.size())
+		error("MoveObject: object %d is too high (only have %d)", object,
+		      vm->getCurrentRoom()->_objects.size());
+
+	vm->getCurrentRoom()->_objects[object]->move(x, y, speed, false);
 
 	return RuntimeValue();
 }
@@ -350,17 +349,16 @@ RuntimeValue Script_MoveObject(AGSEngine *vm, ScriptObject *,
 RuntimeValue
 Script_MoveObjectDirect(AGSEngine *vm, ScriptObject *,
                         const Common::Array<RuntimeValue> &params) {
-	int object = params[0]._signedValue;
-	UNUSED(object);
+	uint object = params[0]._value;
 	int x = params[1]._signedValue;
-	UNUSED(x);
 	int y = params[2]._signedValue;
-	UNUSED(y);
 	int speed = params[3]._signedValue;
-	UNUSED(speed);
 
-	// FIXME
-	error("MoveObjectDirect unimplemented");
+	if (object >= vm->getCurrentRoom()->_objects.size())
+		error("MoveObjectDirect: object %d is too high (only have %d)", object,
+		      vm->getCurrentRoom()->_objects.size());
+
+	vm->getCurrentRoom()->_objects[object]->move(x, y, speed, true);
 
 	return RuntimeValue();
 }

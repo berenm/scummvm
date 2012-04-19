@@ -286,8 +286,7 @@ RuntimeValue Script_Mouse_Update(AGSEngine *vm, ScriptObject *,
 RuntimeValue
 Script_Mouse_UseDefaultGraphic(AGSEngine *vm, ScriptObject *,
                                const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Mouse::UseDefaultGraphic unimplemented");
+	vm->setDefaultCursor();
 
 	return RuntimeValue();
 }

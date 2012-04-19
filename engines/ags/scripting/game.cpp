@@ -406,10 +406,7 @@ Script_Game_get_GUICount(AGSEngine *vm, ScriptObject *,
 // automatically removed
 RuntimeValue Script_Game_get_IgnoreUserInputAfterTextTimeoutMs(
     AGSEngine *vm, ScriptObject *, const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Game::get_IgnoreUserInputAfterTextTimeoutMs unimplemented");
-
-	return RuntimeValue();
+	return vm->_state->_ignoreUserInputAfterTextTimeoutMs;
 }
 
 // Game: import static attribute int IgnoreUserInputAfterTextTimeoutMs
@@ -417,11 +414,9 @@ RuntimeValue Script_Game_get_IgnoreUserInputAfterTextTimeoutMs(
 // automatically removed
 RuntimeValue Script_Game_set_IgnoreUserInputAfterTextTimeoutMs(
     AGSEngine *vm, ScriptObject *, const Common::Array<RuntimeValue> &params) {
-	int value = params[0]._signedValue;
-	UNUSED(value);
+	uint value = params[0]._value;
 
-	// FIXME
-	error("Game::set_IgnoreUserInputAfterTextTimeoutMs unimplemented");
+	vm->_state->_ignoreUserInputAfterTextTimeoutMs = value;
 
 	return RuntimeValue();
 }
@@ -447,10 +442,7 @@ Script_Game_get_InventoryItemCount(AGSEngine *vm, ScriptObject *,
 // milliseconds)
 RuntimeValue Script_Game_get_MinimumTextDisplayTimeMs(
     AGSEngine *vm, ScriptObject *, const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Game::get_MinimumTextDisplayTimeMs unimplemented");
-
-	return RuntimeValue();
+	return vm->_state->_textMinDisplayTimeMs;
 }
 
 // Game: import static attribute int MinimumTextDisplayTimeMs
@@ -458,11 +450,9 @@ RuntimeValue Script_Game_get_MinimumTextDisplayTimeMs(
 // milliseconds)
 RuntimeValue Script_Game_set_MinimumTextDisplayTimeMs(
     AGSEngine *vm, ScriptObject *, const Common::Array<RuntimeValue> &params) {
-	int value = params[0]._signedValue;
-	UNUSED(value);
+	uint value = params[0]._value;
 
-	// FIXME
-	error("Game::set_MinimumTextDisplayTimeMs unimplemented");
+	vm->_state->_textMinDisplayTimeMs = value;
 
 	return RuntimeValue();
 }
@@ -549,13 +539,12 @@ Script_Game_set_SpeechFont(AGSEngine *vm, ScriptObject *,
 RuntimeValue
 Script_Game_geti_SpriteHeight(AGSEngine *vm, ScriptObject *,
                               const Common::Array<RuntimeValue> &params) {
-	int index = params[0]._signedValue;
-	UNUSED(index);
+	uint index = params[0]._value;
 
-	// FIXME
-	error("Game::geti_SpriteHeight unimplemented");
+	if (index >= vm->getSprites()->getSpriteCount())
+		return 0;
 
-	return RuntimeValue();
+	return vm->getSprites()->getSpriteHeight(index);
 }
 
 // Game: readonly import static attribute int SpriteWidth[]
@@ -563,13 +552,12 @@ Script_Game_geti_SpriteHeight(AGSEngine *vm, ScriptObject *,
 RuntimeValue
 Script_Game_geti_SpriteWidth(AGSEngine *vm, ScriptObject *,
                              const Common::Array<RuntimeValue> &params) {
-	int index = params[0]._signedValue;
-	UNUSED(index);
+	uint index = params[0]._value;
 
-	// FIXME
-	error("Game::geti_SpriteWidth unimplemented");
+	if (index >= vm->getSprites()->getSpriteCount())
+		return 0;
 
-	return RuntimeValue();
+	return vm->getSprites()->getSpriteWidth(index);
 }
 
 // Game: import static attribute int TextReadingSpeed
@@ -610,10 +598,7 @@ Script_Game_get_TranslationFilename(AGSEngine *vm, ScriptObject *,
 // Gets whether the game is using native co-ordinates.
 RuntimeValue Script_Game_get_UseNativeCoordinates(
     AGSEngine *vm, ScriptObject *, const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Game::get_UseNativeCoordinates unimplemented");
-
-	return RuntimeValue();
+	return vm->getGameOption(OPT_NATIVECOORDINATES) ? 1 : 0;
 }
 
 // Game: readonly import static attribute int ViewCount
@@ -621,10 +606,7 @@ RuntimeValue Script_Game_get_UseNativeCoordinates(
 RuntimeValue
 Script_Game_get_ViewCount(AGSEngine *vm, ScriptObject *,
                           const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Game::get_ViewCount unimplemented");
-
-	return RuntimeValue();
+	return vm->_gameFile->_views.size();
 }
 
 // import void AbortGame(const string message, ...)
@@ -853,13 +835,14 @@ Script_SetGraphicalVariable(AGSEngine *vm, ScriptObject *,
 // Old string buffer function.
 RuntimeValue Script_SetGlobalString(AGSEngine *vm, ScriptObject *,
                                     const Common::Array<RuntimeValue> &params) {
-	int stringID = params[0]._signedValue;
-	UNUSED(stringID);
+	uint stringID = params[0]._value;
 	ScriptString *newValue = (ScriptString *) params[1]._object;
-	UNUSED(newValue);
 
-	// FIXME
-	error("SetGlobalString unimplemented");
+	if (stringID >= vm->_state->_globalStrings.size())
+		error("SetGlobalString: invalid string id %d (only %d present)",
+		      stringID, vm->_state->_globalStrings.size());
+
+	vm->_state->_globalStrings[stringID] = newValue->getString();
 
 	return RuntimeValue();
 }
@@ -1097,6 +1080,10 @@ RuntimeValue Script_SetGlobalInt(AGSEngine *vm, ScriptObject *,
 
 	if (globalInt >= vm->_state->_globalScriptVars.size())
 		error("SetGlobalInt: invalid index %d", globalInt);
+
+	if (vm->_state->_globalScriptVars[globalInt] != value)
+		debugC(2, kDebugLevelGame, "global script variable %d set to %d",
+		       globalInt, value);
 
 	vm->_state->_globalScriptVars[globalInt] = value;
 

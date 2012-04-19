@@ -44,7 +44,7 @@ Script_UnimplementedStub(AGSEngine *vm, ScriptObject *self,
 class AudioChannel;
 class AudioClip;
 class DateTime;
-class Dialog;
+class DialogTopic;
 class DialogOptionsRenderingInfo;
 class DrawingSurface;
 class DynamicSprite;

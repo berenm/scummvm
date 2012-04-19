@@ -212,10 +212,8 @@ RuntimeValue
 Script_SkipUntilCharacterStops(AGSEngine *vm, ScriptObject *,
                                const Common::Array<RuntimeValue> &params) {
 	uint32 charid = params[0]._value;
-	UNUSED(charid);
 
-	// FIXME
-	error("SkipUntilCharacterStops unimplemented");
+	vm->skipUntilCharacterStops(charid);
 
 	return RuntimeValue();
 }
