@@ -267,7 +267,7 @@ uint AGSEngine::displayMain(int x, int y, int width, const Common::String &text,
 		longestLine = MAX(lineLength, longestLine);
 	}
 
-	// AGS 2.x: If the screen is faded out, fade in again when displaying a
+	// JJS: AGS 2.x: If the screen is faded out, fade in again when displaying a
 	// message box. "The narrator messages after a fadeout in a Tale of Two
 	// Kingdoms are now drawn."
 	if (!asSpeech && getGameFileVersion() <= kAGSVer272)
@@ -287,7 +287,7 @@ uint AGSEngine::displayMain(int x, int y, int width, const Common::String &text,
 		// update the all_buttons_disabled variable in advance
 		// of the adjust_x/y_for_guis calls
 		_state->_disabledUserInterface++;
-		// FIXME: updateGUIDisabledStatus();
+		updateGUIDisabledStatus();
 		_state->_disabledUserInterface--;
 	}
 
@@ -331,7 +331,6 @@ uint AGSEngine::displayMain(int x, int y, int width, const Common::String &text,
 		x = (_graphics->_width / 2) - (width / 2);
 
 	uint extraHeight = getFixedPixelSize(6);
-	// FIXME: text color 15
 	if (blocking < 2)
 		removeScreenOverlay(OVER_TEXTMSG);
 
@@ -554,6 +553,8 @@ void AGSEngine::displaySpeech(Common::String text, uint charId, int x, int y,
 		}
 	}
 
+	// FIXME: verify view
+
 	int useX = x, useY = y;
 	int oldView = -1, oldLoop = -1;
 	uint overlayType = 0;
@@ -593,7 +594,7 @@ void AGSEngine::displaySpeech(Common::String text, uint charId, int x, int y,
 		speakingChar->unlockView();
 	}
 
-	bool overlayPositionFixed = 0;
+	bool overlayPositionFixed = false;
 	uint charFrameWas = 0;
 	bool viewWasLocked = (speakingChar->_flags & CHF_FIXVIEW);
 
@@ -646,6 +647,7 @@ void AGSEngine::displaySpeech(Common::String text, uint charId, int x, int y,
 		if ((useView >= 0) && (getGameOption(OPT_SPEECHTYPE) > 0)) {
 			// Sierra-style close-up portrait
 
+			warning("Sierra-style speech unimplemented");
 			// FIXME
 		} else if (useView >= 0) {
 			// Lucasarts-style speech

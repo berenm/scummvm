@@ -86,6 +86,8 @@ struct RoomRegion : public ScriptObject {
 	}
 	const char *getObjectTypeName() { return "RoomRegion"; }
 
+	uint _id;
+
 	NewInteraction *_interaction;
 	InteractionScript _interactionScripts;
 	uint16 _lightLevel;

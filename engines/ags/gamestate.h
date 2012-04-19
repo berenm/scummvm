@@ -287,7 +287,7 @@ public:
 	uint32 _nextScreenTransition;
 	uint32 _gammaAdjustment;
 
-	// Hide Player Charactr ticked
+	// Hide Player Character ticked
 	uint16 _temporarilyTurnedOffCharacter;
 
 	uint16 _invBackwardsCompatibility;
