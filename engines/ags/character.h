@@ -156,6 +156,8 @@ public:
 
 	Common::StringMap _properties;
 
+	void SetOption(int flag, bool value);
+
 	// CharacterExtras
 	Common::Array<uint16> _invOrder;
 	uint16 _width, _height;
