@@ -451,6 +451,8 @@ void AGSGraphics::loadFonts() {
 			    Graphics::kTTFSizeModeCharacter;
 			_fonts[i] = Graphics::loadTTFFont(*stream, fontSize, fontSizeMode,
 			                                  !antialias);
+			if (!_fonts[i])
+				error("loadTTFFont returned NULL for font %d", i);
 			delete stream;
 			continue;
 		}
@@ -469,6 +471,8 @@ void AGSGraphics::loadFonts() {
 Graphics::Font *AGSGraphics::getFont(uint id) {
 	if (id >= _fonts.size())
 		error("game used font %d, but only %d fonts exist", id, _fonts.size());
+	if (!_fonts[id])
+		error("getFont: font is NULL for font %d", id);
 
 	return _fonts[id];
 }
