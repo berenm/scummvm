@@ -102,12 +102,8 @@ RuntimeValue Script_Random(AGSEngine *vm, ScriptObject *,
 RuntimeValue Script_Maths_ArcCos(AGSEngine *vm, ScriptObject *,
                                  const Common::Array<RuntimeValue> &params) {
 	float value = params[0]._floatValue;
-	UNUSED(value);
-
-	// FIXME
-	error("Maths::ArcCos unimplemented");
-
-	return RuntimeValue();
+	float res = acos(value);
+	return RuntimeValue(res);
 }
 
 // Maths: import static float ArcSin(float value)
@@ -115,12 +111,8 @@ RuntimeValue Script_Maths_ArcCos(AGSEngine *vm, ScriptObject *,
 RuntimeValue Script_Maths_ArcSin(AGSEngine *vm, ScriptObject *,
                                  const Common::Array<RuntimeValue> &params) {
 	float value = params[0]._floatValue;
-	UNUSED(value);
-
-	// FIXME
-	error("Maths::ArcSin unimplemented");
-
-	return RuntimeValue();
+	float res = asin(value);
+	return RuntimeValue(res);
 }
 
 // Maths: import static float ArcTan(float value)
@@ -128,12 +120,8 @@ RuntimeValue Script_Maths_ArcSin(AGSEngine *vm, ScriptObject *,
 RuntimeValue Script_Maths_ArcTan(AGSEngine *vm, ScriptObject *,
                                  const Common::Array<RuntimeValue> &params) {
 	float value = params[0]._floatValue;
-	UNUSED(value);
-
-	// FIXME
-	error("Maths::ArcTan unimplemented");
-
-	return RuntimeValue();
+	value = atan(value);
+	return RuntimeValue(value);
 }
 
 // Maths: import static float ArcTan2(float y, float x)
@@ -141,14 +129,9 @@ RuntimeValue Script_Maths_ArcTan(AGSEngine *vm, ScriptObject *,
 RuntimeValue Script_Maths_ArcTan2(AGSEngine *vm, ScriptObject *,
                                   const Common::Array<RuntimeValue> &params) {
 	float y = params[0]._floatValue;
-	UNUSED(y);
 	float x = params[1]._floatValue;
-	UNUSED(x);
-
-	// FIXME
-	error("Maths::ArcTan2 unimplemented");
-
-	return RuntimeValue();
+	float value = atan2(y, x);
+	return RuntimeValue(value);
 }
 
 // Maths: import static float Cos(float radians)
@@ -169,12 +152,8 @@ RuntimeValue Script_Maths_Cos(AGSEngine *vm, ScriptObject *,
 RuntimeValue Script_Maths_Cosh(AGSEngine *vm, ScriptObject *,
                                const Common::Array<RuntimeValue> &params) {
 	float radians = params[0]._floatValue;
-	UNUSED(radians);
-
-	// FIXME
-	error("Maths::Cosh unimplemented");
-
-	return RuntimeValue();
+	float res = cosh(radians);
+	return RuntimeValue(res);
 }
 
 // Maths: import static float DegreesToRadians(float degrees)
@@ -183,12 +162,8 @@ RuntimeValue
 Script_Maths_DegreesToRadians(AGSEngine *vm, ScriptObject *,
                               const Common::Array<RuntimeValue> &params) {
 	float degrees = params[0]._floatValue;
-	UNUSED(degrees);
-
-	// FIXME
-	error("Maths::DegreesToRadians unimplemented");
-
-	return RuntimeValue();
+	degrees *= (M_PI / 180.0);
+	return RuntimeValue(degrees);
 }
 
 // Maths: import static float Exp(float x)
@@ -196,12 +171,8 @@ Script_Maths_DegreesToRadians(AGSEngine *vm, ScriptObject *,
 RuntimeValue Script_Maths_Exp(AGSEngine *vm, ScriptObject *,
                               const Common::Array<RuntimeValue> &params) {
 	float x = params[0]._floatValue;
-	UNUSED(x);
-
-	// FIXME
-	error("Maths::Exp unimplemented");
-
-	return RuntimeValue();
+	float res = exp(x);
+	return RuntimeValue(res);
 }
 
 // Maths: import static float Log(float x)
@@ -209,12 +180,8 @@ RuntimeValue Script_Maths_Exp(AGSEngine *vm, ScriptObject *,
 RuntimeValue Script_Maths_Log(AGSEngine *vm, ScriptObject *,
                               const Common::Array<RuntimeValue> &params) {
 	float x = params[0]._floatValue;
-	UNUSED(x);
-
-	// FIXME
-	error("Maths::Log unimplemented");
-
-	return RuntimeValue();
+	x = log(x);
+	return RuntimeValue(x);
 }
 
 // Maths: import static float Log10(float x)
@@ -222,12 +189,8 @@ RuntimeValue Script_Maths_Log(AGSEngine *vm, ScriptObject *,
 RuntimeValue Script_Maths_Log10(AGSEngine *vm, ScriptObject *,
                                 const Common::Array<RuntimeValue> &params) {
 	float x = params[0]._floatValue;
-	UNUSED(x);
-
-	// FIXME
-	error("Maths::Log10 unimplemented");
-
-	return RuntimeValue();
+	float res = log10(x);
+	return RuntimeValue(res);
 }
 
 // Maths: import static float RadiansToDegrees(float radians)
@@ -236,12 +199,8 @@ RuntimeValue
 Script_Maths_RadiansToDegrees(AGSEngine *vm, ScriptObject *,
                               const Common::Array<RuntimeValue> &params) {
 	float radians = params[0]._floatValue;
-	UNUSED(radians);
-
-	// FIXME
-	error("Maths::RadiansToDegrees unimplemented");
-
-	return RuntimeValue();
+	float degrees = radians * (180.0 / M_PI);
+	return RuntimeValue(degrees);
 }
 
 // Maths: import static float RaiseToPower(float base, float exponent)
@@ -260,12 +219,7 @@ Script_Maths_RaiseToPower(AGSEngine *vm, ScriptObject *,
 RuntimeValue Script_Maths_Sin(AGSEngine *vm, ScriptObject *,
                               const Common::Array<RuntimeValue> &params) {
 	float radians = params[0]._floatValue;
-	UNUSED(radians);
-
-	// FIXME
-	error("Maths::Sin unimplemented");
-
-	return RuntimeValue();
+	return (float) sin(radians);
 }
 
 // Maths: import static float Sinh(float radians)
@@ -273,12 +227,8 @@ RuntimeValue Script_Maths_Sin(AGSEngine *vm, ScriptObject *,
 RuntimeValue Script_Maths_Sinh(AGSEngine *vm, ScriptObject *,
                                const Common::Array<RuntimeValue> &params) {
 	float radians = params[0]._floatValue;
-	UNUSED(radians);
-
-	// FIXME
-	error("Maths::Sinh unimplemented");
-
-	return RuntimeValue();
+	float res = sinh(radians);
+	return RuntimeValue(res);
 }
 
 // Maths: import static float Sqrt(float value)
@@ -286,12 +236,8 @@ RuntimeValue Script_Maths_Sinh(AGSEngine *vm, ScriptObject *,
 RuntimeValue Script_Maths_Sqrt(AGSEngine *vm, ScriptObject *,
                                const Common::Array<RuntimeValue> &params) {
 	float value = params[0]._floatValue;
-	UNUSED(value);
-
-	// FIXME
-	error("Maths::Sqrt unimplemented");
-
-	return RuntimeValue();
+	value = sqrt(value);
+	return RuntimeValue(value);
 }
 
 // Maths: import static float Tan(float radians)
@@ -299,12 +245,8 @@ RuntimeValue Script_Maths_Sqrt(AGSEngine *vm, ScriptObject *,
 RuntimeValue Script_Maths_Tan(AGSEngine *vm, ScriptObject *,
                               const Common::Array<RuntimeValue> &params) {
 	float radians = params[0]._floatValue;
-	UNUSED(radians);
-
-	// FIXME
-	error("Maths::Tan unimplemented");
-
-	return RuntimeValue();
+	float res = tan(radians);
+	return RuntimeValue(res);
 }
 
 // Maths: import static float Tanh(float radians)
@@ -312,12 +254,8 @@ RuntimeValue Script_Maths_Tan(AGSEngine *vm, ScriptObject *,
 RuntimeValue Script_Maths_Tanh(AGSEngine *vm, ScriptObject *,
                                const Common::Array<RuntimeValue> &params) {
 	float radians = params[0]._floatValue;
-	UNUSED(radians);
-
-	// FIXME
-	error("Maths::Tanh unimplemented");
-
-	return RuntimeValue();
+	float res = tanh(radians);
+	return RuntimeValue(res);
 }
 
 // Maths: readonly import static attribute float Pi
