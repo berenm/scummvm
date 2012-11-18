@@ -188,6 +188,8 @@ struct GameEvent {
 #define LOCTYPE_CHAR 2
 #define LOCTYPE_OBJ 3
 
+struct CustomPropertySchemaProperty;
+
 class AGSEngine : public Engine {
 public:
 	AGSEngine(OSystem *syst, const AGSGameDescription *gameDesc);
@@ -362,6 +364,7 @@ public:
 	bool playSpeech(uint charId, uint speechId);
 	void stopSpeech();
 
+	const CustomPropertySchemaProperty *getProperty(const Common::String &name);
 	int getIntProperty(const Common::String &name,
 	                   const Common::StringMap &properties);
 	Common::String getStringProperty(const Common::String &name,
