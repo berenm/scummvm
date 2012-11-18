@@ -138,9 +138,8 @@ Script_GetCharacterProperty(AGSEngine *vm, ScriptObject *,
 	ScriptString *property = (ScriptString *) params[1]._object;
 
 	if (charid >= vm->_characters.size())
-		error(
-		    "GetCharacterPropertyText: character %d is too high (only have %d)",
-		    charid, vm->_characters.size());
+		error("GetCharacterProperty: character %d is too high (only have %d)",
+		      charid, vm->_characters.size());
 
 	return vm->getIntProperty(property->getString(),
 	                          vm->_characters[charid]->_properties);
@@ -1005,15 +1004,15 @@ RuntimeValue
 Script_SetCharacterProperty(AGSEngine *vm, ScriptObject *,
                             const Common::Array<RuntimeValue> &params) {
 	uint32 charid = params[0]._value;
-	UNUSED(charid);
-	int property = params[1]._signedValue;
-	UNUSED(property);
+	int flag = params[1]._signedValue;
 	int newValue = params[2]._signedValue;
-	UNUSED(newValue);
 
-	// FIXME
-	error("SetCharacterProperty unimplemented");
+	if (charid >= vm->_characters.size())
+		error("GetCharacterProperty: character %d is too high (only have %d)",
+		      charid, vm->_characters.size());
 
+	Character *ch = vm->_characters[charid];
+	ch->SetOption(flag, newValue);
 	return RuntimeValue();
 }
 
