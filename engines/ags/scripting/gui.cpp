@@ -450,7 +450,7 @@ RuntimeValue Script_SetLabelColor(AGSEngine *vm, ScriptObject *,
 		error("SetLabelColor: Control %d isn't a label.", objectId);
 	GUILabel *label = (GUILabel *) control;
 
-	label->setColor(colour);
+	label->setTextColor(colour);
 	return RuntimeValue();
 }
 
@@ -1237,7 +1237,7 @@ RuntimeValue Script_Label_set_Text(AGSEngine *vm, GUILabel *self,
 RuntimeValue
 Script_Label_get_TextColor(AGSEngine *vm, GUILabel *self,
                            const Common::Array<RuntimeValue> &params) {
-	return self->getColor();
+	return self->getTextColor();
 }
 
 // Label: import attribute int TextColor
@@ -1247,7 +1247,7 @@ Script_Label_set_TextColor(AGSEngine *vm, GUILabel *self,
                            const Common::Array<RuntimeValue> &params) {
 	uint value = params[0]._value;
 
-	self->setColor(value);
+	self->setTextColor(value);
 
 	return RuntimeValue();
 }
