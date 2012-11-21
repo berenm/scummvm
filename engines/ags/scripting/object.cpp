@@ -774,8 +774,7 @@ Script_Object_StopAnimating(AGSEngine *vm, RoomObject *self,
 RuntimeValue
 Script_Object_StopMoving(AGSEngine *vm, RoomObject *self,
                          const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Object::StopMoving unimplemented");
+	self->stopMoving();
 
 	return RuntimeValue();
 }
