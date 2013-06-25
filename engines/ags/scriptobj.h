@@ -43,6 +43,7 @@ enum ScriptObjectType {
 	sotDialog,
 	sotDialogOptionsRenderingInfo,
 	sotDrawingSurface,
+	sotDynamicArray,
 	sotDynamicSprite,
 	sotFile,
 	sotGUI,
