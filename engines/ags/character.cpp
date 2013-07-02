@@ -1376,7 +1376,8 @@ void Character::setIdleView(int view, uint time) {
 	if (_idleLeft < 0)
 		unlockView();
 
-	if (view < 0) {
+	_idleTime = time;
+	if (view < 1) {
 		// make sure they don't appear idle while idle anim is disabled
 		_idleTime = 10;
 	}
@@ -1387,7 +1388,7 @@ void Character::setIdleView(int view, uint time) {
 	if (_animating == 0 && _walking == 0)
 		_wait = 0;
 
-	if (_idleView >= 0)
+	if (_idleView >= 1)
 		debugC(kDebugLevelGame,
 		       "set idle view of character '%s' to %d (time %d)",
 		       _scriptName.c_str(), _idleView, _idleTime);

@@ -741,7 +741,9 @@ Script_SetCharacterBlinkView(AGSEngine *vm, ScriptObject *,
 		error("SetCharacterBlinkView: character %d is too high (only have %d)",
 		      charid, vm->_characters.size());
 
-	// FIXME: sanity checks
+	if (view != -1 && (view < 2 || (uint) view > vm->_gameFile->_views.size()))
+		error("SetCharacterBlinkView: invalid view %d", view);
+
 	vm->_characters[charid]->_blinkView = view - 1;
 	vm->_characters[charid]->setBlinkInterval(interval);
 
@@ -1790,7 +1792,10 @@ Script_Character_set_BlinkView(AGSEngine *vm, Character *self,
                                const Common::Array<RuntimeValue> &params) {
 	int value = params[0]._signedValue;
 
-	// FIXME: sanity checks
+	if (value != -1 &&
+	    (value < 2 || (uint) value > vm->_gameFile->_views.size()))
+		error("set_BlinkView: invalid view %d", value);
+
 	self->_blinkView = value - 1;
 
 	return RuntimeValue();
