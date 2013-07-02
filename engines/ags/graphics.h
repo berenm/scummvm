@@ -58,6 +58,7 @@ public:
 
 	void loadFonts();
 	Graphics::Font *getFont(uint id);
+	uint getHeightForFont(uint id);
 
 	void initPalette();
 	void newRoomPalette();

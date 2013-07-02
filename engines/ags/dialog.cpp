@@ -123,13 +123,14 @@ DialogOptionsDrawable::DialogOptionsDrawable(
 		    _vm->_gameFile->_guiGroups[_vm->getGameOption(OPT_DIALOGIFACE)];
 
 		if (group->isTextWindow()) {
+			// Render a centered text window behind the options.
 			_isTextWindow = true;
 			_fgColor = group->_fgColor;
 
 			_textAreaWidth =
 			    _vm->multiplyUpCoordinate(_vm->_state->_maxDialogOptionWidth);
-			_optionsHeight = getOptionsHeight();
 
+			// Work out the longest line, so we can adjust the width/height.
 			uint longestLine = 0;
 			for (uint i = 0; i < _displayedOptions.size(); ++i) {
 				DialogOption &option = _topic->_options[_displayedOptions[i]];
@@ -159,9 +160,20 @@ DialogOptionsDrawable::DialogOptionsDrawable(
 				// that elsewhere.
 			}
 
+			_optionsHeight = getOptionsHeight();
+
+			// FIXME
+			_pos.x = _vm->_graphics->_width / 2 - _textAreaWidth / 2;
+			_pos.y = _vm->_graphics->_height / 2 - _optionsHeight / 2;
+			width = _textAreaWidth;
+			height = _optionsHeight;
+
+			// FIXME: shift window to the right maybe
+
 			// FIXME
 			warning("unimplemented: text window dialog");
 		} else {
+			// Render the options using the style/position of a GUI group.
 			_pos.x = group->_x;
 			_pos.y = group->_y;
 
@@ -176,7 +188,9 @@ DialogOptionsDrawable::DialogOptionsDrawable(
 				_pos.y = group->_y + group->_height - getOptionsHeight();
 		}
 	} else {
+		// Render the options normally.
 		_textAreaWidth = width - 5;
+		_optionsHeight = getOptionsHeight();
 
 		// FIXME
 		warning("unimplemented: standard dialog");
@@ -186,7 +200,7 @@ DialogOptionsDrawable::DialogOptionsDrawable(
 		_textAreaWidth -=
 		    _vm->multiplyUpCoordinate(_vm->_state->_dialogOptionsX) * 2;
 
-	_surface.create(width, height, vm->_graphics->getPixelFormat());
+	_surface.create(width, height, vm->_graphics->getPixelFormat(true));
 
 	invalidate();
 }
@@ -399,6 +413,8 @@ int AGSEngine::showDialogOptions(uint dialogId, uint sayChosenOption) {
 			if (drawable._selected != selectedWas)
 				drawable.invalidate();
 
+			// FIXME: getButtonState is NOT ok, we need to only get the first
+			// click
 			if (drawable._selected != (uint) -1 &&
 			    _system->getEventManager()->getButtonState()) {
 				chosenOption = displayedOptions[drawable._selected];
@@ -484,6 +500,10 @@ void AGSEngine::doConversation(uint dialogId) {
 				if (_saidSpeechLine) {
 					// FIXME: original futzes with the screen for close-up face
 					// here
+					// FIXME: disableInterface();
+					tickGame();
+					// FIXME: enableInterface();
+					_graphics->setMouseCursor(CURS_ARROW);
 				}
 			} else {
 				result = runDialogScript(
@@ -679,6 +699,11 @@ int AGSEngine::runDialogScript(DialogTopic &topic, uint dialogId, uint16 offset,
 	if (_saidSpeechLine) {
 		// FIXME: original futzes with the screen for close-up face here
 		// (see doConversation also)
+		// FIXME: disableInterface();
+		tickGame();
+		// FIXME: enableInterface();
+		if (result != RUN_DIALOG_STOP_DIALOG)
+			_graphics->setMouseCursor(CURS_ARROW);
 	}
 
 	debugC(2, kDebugLevelGame,
