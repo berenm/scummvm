@@ -808,8 +808,8 @@ void AGSEngine::updateStuff() {
 // 'start_game' in original
 void AGSEngine::startNewGame() {
 	setCursorMode(MODE_WALK);
-	// FIXME: filter->setMousePosition(160, 100);
-	// FIXME: newMusic(0);
+	// TODO: filter->setMousePosition(160, 100);
+	_audio->playNewMusic(0);
 
 	// run startup scripts
 	for (uint i = 0; i < _scriptModules.size(); ++i)
@@ -1209,7 +1209,9 @@ void AGSEngine::loadNewRoom(uint32 id, Character *forChar) {
 	}
 
 	if (_currentRoom->_options[ST_TUNE] > 0) {
-	} // FIXME: music
+		// FIXME: clear music queue
+		_audio->playNewMusic(_currentRoom->_options[ST_TUNE]);
+	}
 
 	if (forChar) {
 		// disable/enable the player character as specified in the room options
@@ -3153,7 +3155,36 @@ ViewFrame *AGSEngine::getViewFrame(uint view, uint loop, uint frame) {
 }
 
 void AGSEngine::checkViewFrame(uint view, uint loop, uint frame) {
-	// FIXME: check sounds for new frames
+	// new frame displayed - check for audio to be played (e.g. footsteps)
+
+	ViewFrame *viewFrame = getViewFrame(view, loop, frame);
+
+	if (getGameFileVersion() >= kAGSVer321) {
+		// nice new 3.21+ audio clip system
+
+		if (viewFrame->_sound >= 0)
+			_audio->playAudioClipByIndex(viewFrame->_sound);
+
+		return;
+	}
+
+	// old pre-3.21 audio system
+	if (viewFrame->_sound <= 0)
+		return;
+
+	// did we cache the clip id yet?
+	if (viewFrame->_sound < 0x10000000) {
+		AudioClip *clip = _audio->getClipByIndex(false, viewFrame->_sound);
+		if (!clip) {
+			// mark it invalid
+			viewFrame->_sound = 0;
+			return;
+		}
+		// cache the id
+		viewFrame->_sound = clip->_id + 0x10000000;
+	}
+
+	_audio->playAudioClipByIndex(viewFrame->_sound);
 }
 
 void AGSEngine::queueOrRunTextScript(ccInstance *instance,
@@ -3596,8 +3627,8 @@ void AGSEngine::stopFastForwarding() {
 	_state->_fastForward = 0;
 	// FIXME: setpal
 
-	/* FIXME if (_state->_endCutsceneMusic != (uint)-1)
-	    newMusic(_state->_endCutsceneMusic); */
+	if (_state->_endCutsceneMusic != (uint) -1)
+		_audio->playNewMusic(_state->_endCutsceneMusic);
 	// FIXME: restore actual volume of sounds
 	_audio->updateMusicVolume();
 }
