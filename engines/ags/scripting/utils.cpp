@@ -139,12 +139,8 @@ RuntimeValue Script_Maths_ArcTan2(AGSEngine *vm, ScriptObject *,
 RuntimeValue Script_Maths_Cos(AGSEngine *vm, ScriptObject *,
                               const Common::Array<RuntimeValue> &params) {
 	float radians = params[0]._floatValue;
-	UNUSED(radians);
 
-	// FIXME
-	error("Maths::Cos unimplemented");
-
-	return RuntimeValue();
+	return (float) cos(radians);
 }
 
 // Maths: import static float Cosh(float radians)
@@ -211,7 +207,7 @@ Script_Maths_RaiseToPower(AGSEngine *vm, ScriptObject *,
 	float base = params[0]._floatValue;
 	float exponent = params[1]._floatValue;
 
-	return powf(base, exponent);
+	return (float) ::pow(base, exponent);
 }
 
 // Maths: import static float Sin(float radians)
@@ -219,6 +215,7 @@ Script_Maths_RaiseToPower(AGSEngine *vm, ScriptObject *,
 RuntimeValue Script_Maths_Sin(AGSEngine *vm, ScriptObject *,
                               const Common::Array<RuntimeValue> &params) {
 	float radians = params[0]._floatValue;
+
 	return (float) sin(radians);
 }
 
@@ -262,10 +259,7 @@ RuntimeValue Script_Maths_Tanh(AGSEngine *vm, ScriptObject *,
 // Gets the value of PI
 RuntimeValue Script_Maths_get_Pi(AGSEngine *vm, ScriptObject *,
                                  const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Maths::get_Pi unimplemented");
-
-	return RuntimeValue();
+	return (float) M_PI;
 }
 
 // DateTime: readonly import static attribute DateTime* Now
