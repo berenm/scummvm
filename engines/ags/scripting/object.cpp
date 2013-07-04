@@ -840,10 +840,7 @@ Script_Object_set_Baseline(AGSEngine *vm, RoomObject *self,
 RuntimeValue
 Script_Object_get_BlockingHeight(AGSEngine *vm, RoomObject *self,
                                  const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Object::get_BlockingHeight unimplemented");
-
-	return RuntimeValue();
+	return self->_blockingHeight;
 }
 
 // Object: import attribute int BlockingHeight
@@ -852,10 +849,8 @@ RuntimeValue
 Script_Object_set_BlockingHeight(AGSEngine *vm, RoomObject *self,
                                  const Common::Array<RuntimeValue> &params) {
 	int value = params[0]._signedValue;
-	UNUSED(value);
 
-	// FIXME
-	error("Object::set_BlockingHeight unimplemented");
+	self->_blockingHeight = value;
 
 	return RuntimeValue();
 }
@@ -915,10 +910,10 @@ Script_Object_set_Clickable(AGSEngine *vm, RoomObject *self,
 RuntimeValue
 Script_Object_get_Frame(AGSEngine *vm, RoomObject *self,
                         const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Object::get_Frame unimplemented");
+	if (self->_view == (uint16) -1)
+		return 0;
 
-	return RuntimeValue();
+	return self->_frame;
 }
 
 // Object: import attribute int Graphic
@@ -945,10 +940,7 @@ Script_Object_set_Graphic(AGSEngine *vm, RoomObject *self,
 // Gets the object's ID number.
 RuntimeValue Script_Object_get_ID(AGSEngine *vm, RoomObject *self,
                                   const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Object::get_ID unimplemented");
-
-	return RuntimeValue();
+	return self->_id;
 }
 
 // Object: import attribute bool IgnoreScaling

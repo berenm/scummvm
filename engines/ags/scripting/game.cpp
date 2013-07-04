@@ -256,14 +256,10 @@ RuntimeValue
 Script_Game_SetAudioTypeVolume(AGSEngine *vm, ScriptObject *,
                                const Common::Array<RuntimeValue> &params) {
 	uint32 audiotype = params[0]._value;
-	UNUSED(audiotype);
-	int volume = params[1]._signedValue;
-	UNUSED(volume);
+	uint volume = params[1]._value;
 	uint32 changevolumetype = params[2]._value;
-	UNUSED(changevolumetype);
 
-	// FIXME
-	error("Game::SetAudioTypeVolume unimplemented");
+	vm->_audio->setAudioTypeVolume(audiotype, volume, changevolumetype);
 
 	return RuntimeValue();
 }
@@ -365,13 +361,17 @@ Script_Game_geti_GlobalMessages(AGSEngine *vm, ScriptObject *,
 RuntimeValue
 Script_Game_geti_GlobalStrings(AGSEngine *vm, ScriptObject *,
                                const Common::Array<RuntimeValue> &params) {
-	int index = params[0]._signedValue;
-	UNUSED(index);
+	uint index = params[0]._value;
 
-	// FIXME
-	error("Game::geti_GlobalStrings unimplemented");
+	if (index >= vm->_state->_globalStrings.size())
+		error(
+		    "Game::geti_GlobalStrings: invalid string id %d (only %d present)",
+		    index, vm->_state->_globalStrings.size());
 
-	return RuntimeValue();
+	RuntimeValue ret =
+	    new ScriptMutableString(vm->_state->_globalStrings[index]);
+	ret._object->DecRef();
+	return ret;
 }
 
 // Game: import static attribute String GlobalStrings[]
@@ -379,13 +379,15 @@ Script_Game_geti_GlobalStrings(AGSEngine *vm, ScriptObject *,
 RuntimeValue
 Script_Game_seti_GlobalStrings(AGSEngine *vm, ScriptObject *,
                                const Common::Array<RuntimeValue> &params) {
-	int index = params[0]._signedValue;
-	UNUSED(index);
+	uint index = params[0]._value;
 	ScriptString *value = (ScriptString *) params[1]._object;
-	UNUSED(value);
 
-	// FIXME
-	error("Game::seti_GlobalStrings unimplemented");
+	if (index >= vm->_state->_globalStrings.size())
+		error(
+		    "Game::seti_GlobalStrings: invalid string id %d (only %d present)",
+		    index, vm->_state->_globalStrings.size());
+
+	vm->_state->_globalStrings[index] = value->getString();
 
 	return RuntimeValue();
 }
@@ -395,10 +397,7 @@ Script_Game_seti_GlobalStrings(AGSEngine *vm, ScriptObject *,
 RuntimeValue
 Script_Game_get_GUICount(AGSEngine *vm, ScriptObject *,
                          const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Game::get_GUICount unimplemented");
-
-	return RuntimeValue();
+	return vm->_gameFile->_guiGroups.size();
 }
 
 // Game: import static attribute int IgnoreUserInputAfterTextTimeoutMs
@@ -434,7 +433,10 @@ Script_Game_get_InSkippableCutscene(AGSEngine *vm, ScriptObject *,
 RuntimeValue
 Script_Game_get_InventoryItemCount(AGSEngine *vm, ScriptObject *,
                                    const Common::Array<RuntimeValue> &params) {
-	return vm->_gameFile->_invItemInfo.size();
+	// Item 0 isn't valid in 3.x.
+	// "because of the dummy item 0, this is always one higher than it should
+	// be"
+	return vm->_gameFile->_invItemInfo.size() - 1;
 }
 
 // Game: import static attribute int MinimumTextDisplayTimeMs
@@ -544,7 +546,8 @@ Script_Game_geti_SpriteHeight(AGSEngine *vm, ScriptObject *,
 	if (index >= vm->getSprites()->getSpriteCount())
 		return 0;
 
-	return vm->getSprites()->getSpriteHeight(index);
+	// TODO: check existance
+	return vm->divideDownCoordinate(vm->getSprites()->getSpriteHeight(index));
 }
 
 // Game: readonly import static attribute int SpriteWidth[]
@@ -557,7 +560,8 @@ Script_Game_geti_SpriteWidth(AGSEngine *vm, ScriptObject *,
 	if (index >= vm->getSprites()->getSpriteCount())
 		return 0;
 
-	return vm->getSprites()->getSpriteWidth(index);
+	// TODO: check existance
+	return vm->divideDownCoordinate(vm->getSprites()->getSpriteWidth(index));
 }
 
 // Game: import static attribute int TextReadingSpeed

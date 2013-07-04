@@ -681,13 +681,15 @@ RuntimeValue Script_SetTextBoxText(AGSEngine *vm, ScriptObject *,
 // Undocumented.
 RuntimeValue Script_ListBoxClear(AGSEngine *vm, ScriptObject *,
                                  const Common::Array<RuntimeValue> &params) {
-	int gui = params[0]._signedValue;
-	UNUSED(gui);
-	int object = params[1]._signedValue;
-	UNUSED(object);
+	uint gui = params[0]._value;
+	uint object = params[1]._value;
 
-	// FIXME
-	error("ListBoxClear unimplemented");
+	GUIControl *control = getGUIControl("ListBoxClear", vm, gui, object);
+	if (!control->isOfType(sotGUIListBox))
+		error("ListBoxClear: Control %d isn't a listbox.", object);
+	GUIListBox *textbox = (GUIListBox *) control;
+
+	textbox->clear();
 
 	return RuntimeValue();
 }
@@ -696,15 +698,16 @@ RuntimeValue Script_ListBoxClear(AGSEngine *vm, ScriptObject *,
 // Undocumented.
 RuntimeValue Script_ListBoxAdd(AGSEngine *vm, ScriptObject *,
                                const Common::Array<RuntimeValue> &params) {
-	int gui = params[0]._signedValue;
-	UNUSED(gui);
-	int object = params[1]._signedValue;
-	UNUSED(object);
+	uint gui = params[0]._value;
+	uint object = params[1]._value;
 	ScriptString *text = (ScriptString *) params[2]._object;
-	UNUSED(text);
 
-	// FIXME
-	error("ListBoxAdd unimplemented");
+	GUIControl *control = getGUIControl("ListBoxAdd", vm, gui, object);
+	if (!control->isOfType(sotGUIListBox))
+		error("ListBoxAdd: Control %d isn't a listbox.", object);
+	GUIListBox *textbox = (GUIListBox *) control;
+
+	textbox->addItem(text->getString());
 
 	return RuntimeValue();
 }
@@ -2050,10 +2053,7 @@ Script_ListBox_set_HideScrollArrows(AGSEngine *vm, GUIListBox *self,
 RuntimeValue
 Script_ListBox_get_ItemCount(AGSEngine *vm, GUIListBox *self,
                              const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("ListBox::get_ItemCount unimplemented");
-
-	return RuntimeValue();
+	return self->_items.size();
 }
 
 // ListBox: import attribute String Items[]
@@ -2222,10 +2222,10 @@ RuntimeValue Script_GUI_SetSize(AGSEngine *vm, GUIGroup *self,
 RuntimeValue
 Script_GUI_get_BackgroundGraphic(AGSEngine *vm, GUIGroup *self,
                                  const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("GUI::get_BackgroundGraphic unimplemented");
-
-	return RuntimeValue();
+	if ((int) self->_bgPic > 0)
+		return self->_bgPic;
+	else
+		return 0;
 }
 
 // GUI: import attribute int BackgroundGraphic
@@ -2681,7 +2681,7 @@ static const ScriptSystemFunctionInfo ourFunctionList[] = {
      (ScriptAPIFunction *) &Script_InvWindow_get_CharacterToUse, "",
      sotGUIInvWindow},
     {"InvWindow::set_CharacterToUse",
-     (ScriptAPIFunction *) &Script_InvWindow_set_CharacterToUse, "t",
+     (ScriptAPIFunction *) &Script_InvWindow_set_CharacterToUse, "p",
      sotGUIInvWindow},
     {"InvWindow::geti_ItemAtIndex",
      (ScriptAPIFunction *) &Script_InvWindow_geti_ItemAtIndex, "i",
