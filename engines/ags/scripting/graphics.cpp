@@ -30,6 +30,7 @@
 #include "engines/ags/drawingsurface.h"
 #include "engines/ags/gamestate.h"
 #include "engines/ags/graphics.h"
+#include "engines/ags/overlay.h"
 #include "engines/ags/room.h"
 #include "engines/ags/sprites.h"
 #include "graphics/surface.h"
@@ -612,11 +613,9 @@ RuntimeValue Script_DisplayAtY(AGSEngine *vm, ScriptObject *,
 // Displays a message from the Room Message Editor.
 RuntimeValue Script_DisplayMessage(AGSEngine *vm, ScriptObject *,
                                    const Common::Array<RuntimeValue> &params) {
-	int messageNumber = params[0]._signedValue;
-	UNUSED(messageNumber);
+	uint messageNumber = params[0]._value;
 
-	// FIXME
-	error("DisplayMessage unimplemented");
+	vm->displayMessage(messageNumber);
 
 	return RuntimeValue();
 }
@@ -627,13 +626,10 @@ RuntimeValue Script_DisplayMessage(AGSEngine *vm, ScriptObject *,
 RuntimeValue
 Script_DisplayMessageAtY(AGSEngine *vm, ScriptObject *,
                          const Common::Array<RuntimeValue> &params) {
-	int messageNumber = params[0]._signedValue;
-	UNUSED(messageNumber);
+	uint messageNumber = params[0]._value;
 	int y = params[1]._signedValue;
-	UNUSED(y);
 
-	// FIXME
-	error("DisplayMessageAtY unimplemented");
+	vm->displayMessage(messageNumber, y);
 
 	return RuntimeValue();
 }
@@ -756,22 +752,14 @@ RuntimeValue
 Script_CreateTextOverlay(AGSEngine *vm, ScriptObject *,
                          const Common::Array<RuntimeValue> &params) {
 	int x = params[0]._signedValue;
-	UNUSED(x);
 	int y = params[1]._signedValue;
-	UNUSED(y);
 	int width = params[2]._signedValue;
-	UNUSED(width);
-	uint32 fonttype = params[3]._value;
-	UNUSED(fonttype);
+	uint32 fontId = params[3]._value;
 	int colour = params[4]._signedValue;
-	UNUSED(colour);
 	ScriptString *text = (ScriptString *) params[5]._object;
-	UNUSED(text);
 
-	// FIXME
-	error("CreateTextOverlay unimplemented");
-
-	return RuntimeValue();
+	return vm->createTextOverlay(x, y, width, fontId, colour,
+	                             text->getString());
 }
 
 // import void SetTextOverlay(int overlayID, int x, int y, int width, FontType,
@@ -804,10 +792,11 @@ RuntimeValue Script_SetTextOverlay(AGSEngine *vm, ScriptObject *,
 RuntimeValue Script_RemoveOverlay(AGSEngine *vm, ScriptObject *,
                                   const Common::Array<RuntimeValue> &params) {
 	int overlayID = params[0]._signedValue;
-	UNUSED(overlayID);
 
-	// FIXME
-	error("RemoveOverlay unimplemented");
+	if (vm->findOverlayOfType(overlayID) == (uint) -1)
+		error("RemoveOverlay: invalid overlay ID %d", overlayID);
+
+	vm->removeScreenOverlay(overlayID);
 
 	return RuntimeValue();
 }
@@ -1242,22 +1231,20 @@ RuntimeValue
 Script_Overlay_CreateTextual(AGSEngine *vm, ScriptObject *,
                              const Common::Array<RuntimeValue> &params) {
 	int x = params[0]._signedValue;
-	UNUSED(x);
 	int y = params[1]._signedValue;
-	UNUSED(y);
 	int width = params[2]._signedValue;
-	UNUSED(width);
-	uint32 fonttype = params[3]._value;
-	UNUSED(fonttype);
+	uint32 fontId = params[3]._value;
 	int colour = params[4]._signedValue;
-	UNUSED(colour);
 	ScriptString *text = (ScriptString *) params[5]._object;
-	UNUSED(text);
 
-	// FIXME
-	error("Overlay::CreateTextual unimplemented");
+	vm->multiplyUpCoordinates(x, y);
+	width = vm->multiplyUpCoordinate(width);
+	uint overlayType =
+	    vm->createTextOverlayCore(x, y, width, fontId, colour,
+	                              vm->getTranslation(text->getString()), false);
+	uint overlayId = vm->findOverlayOfType(overlayType);
 
-	return RuntimeValue();
+	return vm->_overlays[overlayId];
 }
 
 // Overlay: import void SetText(int width, FontType, int colour, const string
@@ -1281,10 +1268,13 @@ RuntimeValue Script_Overlay_SetText(AGSEngine *vm, Overlay *self,
 
 // Overlay: import void Remove()
 // Removes the overlay from the screen.
-RuntimeValue Script_Overlay_Remove(AGSEngine *vm, Overlay *self,
+RuntimeValue Script_Overlay_Remove(AGSEngine *vm, ScreenOverlay *self,
                                    const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Overlay::Remove unimplemented");
+	uint overlayId = vm->findOverlayOfType(self->getType());
+	if (overlayId == (uint) -1)
+		error("internal error: Overlay::Remove couldn't find overlay");
+	// FIXME: sabotage overlay object
+	vm->removeScreenOverlayIndex(overlayId);
 
 	return RuntimeValue();
 }

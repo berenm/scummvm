@@ -262,8 +262,9 @@ public:
 
 	byte getGameOption(uint index);
 
+	Common::String getMessageText(uint messageId);
 	Common::String getTranslation(const Common::String &text);
-	Common::String replaceMacroTokens(const Common::String &text);
+	Common::String replaceTokens(const Common::String &text, bool macro);
 	uint getTextDisplayTime(const Common::String &text,
 	                        bool canBeRelative = false);
 
@@ -320,6 +321,8 @@ public:
 	void displaySpeechAt(int x, int y, int width, uint charId,
 	                     const Common::String &text);
 	uint displaySpeechBackground(uint charId, const Common::String &text);
+
+	void displayMessage(uint messageId, int y = -1);
 
 	void invalidateScreen() { _needsUpdate = true; }
 	void invalidateGUI() { _guiNeedsUpdate = true; }
