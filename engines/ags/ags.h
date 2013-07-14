@@ -389,6 +389,9 @@ public:
 
 	bool _keysPressed[MAX_AGS_KEYCODE];
 
+	void queueGameEvent(GameEventType type, uint data1 = 0,
+	                    uint data2 = (uint) -1000, uint data3 = 0);
+
 private:
 	const AGSGameDescription *_gameDescription;
 
@@ -437,8 +440,6 @@ private:
 	                       Common::Array<RuntimeValue>());
 
 	Common::Array<GameEvent> _queuedGameEvents;
-	void queueGameEvent(GameEventType type, uint data1 = 0,
-	                    uint data2 = (uint) -1000, uint data3 = 0);
 	void runGameEventNow(GameEventType type, uint data1 = 0,
 	                     uint data2 = (uint) -1000, uint data3 = 0);
 	void processGameEvent(const GameEvent &event);
