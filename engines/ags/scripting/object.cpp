@@ -948,10 +948,7 @@ RuntimeValue Script_Object_get_ID(AGSEngine *vm, RoomObject *self,
 RuntimeValue
 Script_Object_get_IgnoreScaling(AGSEngine *vm, RoomObject *self,
                                 const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Object::get_IgnoreScaling unimplemented");
-
-	return RuntimeValue();
+	return (self->_flags & OBJF_USEROOMSCALING) ? 0 : 1;
 }
 
 // Object: import attribute bool IgnoreScaling
@@ -960,10 +957,11 @@ RuntimeValue
 Script_Object_set_IgnoreScaling(AGSEngine *vm, RoomObject *self,
                                 const Common::Array<RuntimeValue> &params) {
 	uint32 value = params[0]._value;
-	UNUSED(value);
 
-	// FIXME
-	error("Object::set_IgnoreScaling unimplemented");
+	if (value)
+		self->_flags &= ~OBJF_USEROOMSCALING;
+	else
+		self->_flags |= OBJF_USEROOMSCALING;
 
 	return RuntimeValue();
 }
@@ -995,10 +993,10 @@ Script_Object_set_IgnoreWalkbehinds(AGSEngine *vm, RoomObject *self,
 // Gets the current loop number during an animation.
 RuntimeValue Script_Object_get_Loop(AGSEngine *vm, RoomObject *self,
                                     const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Object::get_Loop unimplemented");
+	if (self->_loop == (uint16) -1)
+		return 0;
 
-	return RuntimeValue();
+	return self->_loop;
 }
 
 // Object: readonly import attribute bool Moving
@@ -1024,10 +1022,7 @@ RuntimeValue Script_Object_get_Name(AGSEngine *vm, RoomObject *self,
 RuntimeValue
 Script_Object_get_Solid(AGSEngine *vm, RoomObject *self,
                         const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Object::get_Solid unimplemented");
-
-	return RuntimeValue();
+	return (self->_flags & OBJF_SOLID) ? 1 : 0;
 }
 
 // Object: import attribute bool Solid
@@ -1036,10 +1031,11 @@ RuntimeValue
 Script_Object_set_Solid(AGSEngine *vm, RoomObject *self,
                         const Common::Array<RuntimeValue> &params) {
 	uint32 value = params[0]._value;
-	UNUSED(value);
 
-	// FIXME
-	error("Object::set_Solid unimplemented");
+	if (value)
+		self->_flags |= OBJF_SOLID;
+	else
+		self->_flags &= ~OBJF_SOLID;
 
 	return RuntimeValue();
 }
@@ -1073,10 +1069,10 @@ Script_Object_set_Transparency(AGSEngine *vm, RoomObject *self,
 // Gets the current view number during an animation.
 RuntimeValue Script_Object_get_View(AGSEngine *vm, RoomObject *self,
                                     const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Object::get_View unimplemented");
+	if (self->_view == (uint16) -1)
+		return 0;
 
-	return RuntimeValue();
+	return self->_view + 1;
 }
 
 // Object: import attribute bool Visible
