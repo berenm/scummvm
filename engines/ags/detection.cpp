@@ -137,8 +137,10 @@ AGSMetaEngine::fallbackDetect(const FileMap &allFiles,
 		Common::String filename = file->getName();
 		debug(4, "Checking file %s", filename.c_str());
 
+		// Looking for either the Windows engine with the game data attached
+		// or a standalone data file
 		filename.toLowercase();
-		if (!filename.hasSuffix(".exe"))
+		if (!filename.hasSuffix(".exe") && !filename.hasSuffix(".ags"))
 			continue;
 
 		SearchMan.clear();
