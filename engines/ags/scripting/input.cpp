@@ -297,10 +297,7 @@ RuntimeValue
 Script_Mouse_UseModeGraphic(AGSEngine *vm, ScriptObject *,
                             const Common::Array<RuntimeValue> &params) {
 	uint32 cursormode = params[0]._value;
-	UNUSED(cursormode);
-
-	// FIXME
-	error("Mouse::UseModeGraphic unimplemented");
+	vm->_graphics->setMouseCursor(cursormode);
 
 	return RuntimeValue();
 }
