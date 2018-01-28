@@ -241,16 +241,14 @@ Script_Mouse_SelectNextMode(AGSEngine *vm, ScriptObject *,
 RuntimeValue Script_Mouse_SetBounds(AGSEngine *vm, ScriptObject *,
                                     const Common::Array<RuntimeValue> &params) {
 	int left = params[0]._signedValue;
-	UNUSED(left);
 	int top = params[1]._signedValue;
-	UNUSED(top);
 	int right = params[2]._signedValue;
-	UNUSED(right);
 	int bottom = params[3]._signedValue;
-	UNUSED(bottom);
 
-	// FIXME
-	error("Mouse::SetBounds unimplemented");
+	vm->_state->_mboundX1 = left;
+	vm->_state->_mboundX2 = right;
+	vm->_state->_mboundY1 = top;
+	vm->_state->_mboundY2 = bottom;
 
 	return RuntimeValue();
 }
@@ -432,16 +430,14 @@ RuntimeValue Script_SetMouseCursor(AGSEngine *vm, ScriptObject *,
 RuntimeValue Script_SetMouseBounds(AGSEngine *vm, ScriptObject *,
                                    const Common::Array<RuntimeValue> &params) {
 	int left = params[0]._signedValue;
-	UNUSED(left);
 	int top = params[1]._signedValue;
-	UNUSED(top);
 	int right = params[2]._signedValue;
-	UNUSED(right);
 	int bottom = params[3]._signedValue;
-	UNUSED(bottom);
 
-	// FIXME
-	error("SetMouseBounds unimplemented");
+	vm->_state->_mboundX1 = left;
+	vm->_state->_mboundX2 = right;
+	vm->_state->_mboundY1 = top;
+	vm->_state->_mboundY2 = bottom;
 
 	return RuntimeValue();
 }
