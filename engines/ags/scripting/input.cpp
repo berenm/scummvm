@@ -123,14 +123,15 @@ RuntimeValue
 Script_Mouse_ChangeModeHotspot(AGSEngine *vm, ScriptObject *,
                                const Common::Array<RuntimeValue> &params) {
 	uint32 cursormode = params[0]._value;
-	UNUSED(cursormode);
 	int x = params[1]._signedValue;
-	UNUSED(x);
 	int y = params[2]._signedValue;
-	UNUSED(y);
 
-	// FIXME
-	error("Mouse::ChangeModeHotspot unimplemented");
+	if (cursormode >= vm->_gameFile->_cursors.size())
+		error("ChangeModeHotspot: mode %d is too high (only %d cursors)",
+		      cursormode, vm->_gameFile->_cursors.size());
+
+	vm->_gameFile->_cursors[cursormode]._hotspotX = x;
+	vm->_gameFile->_cursors[cursormode]._hotspotY = y;
 
 	return RuntimeValue();
 }
@@ -141,12 +142,19 @@ RuntimeValue
 Script_Mouse_ChangeModeView(AGSEngine *vm, ScriptObject *,
                             const Common::Array<RuntimeValue> &params) {
 	uint32 cursormode = params[0]._value;
-	UNUSED(cursormode);
-	int view = params[1]._signedValue;
-	UNUSED(view);
+	int view = params[1]._signedValue - 1;
 
-	// FIXME
-	error("Mouse::ChangeModeView unimplemented");
+	if (cursormode >= vm->_gameFile->_cursors.size())
+		error("ChangeModeView: mode %d is too high (only %d cursors)",
+		      cursormode, vm->_gameFile->_cursors.size());
+
+	// -1 is for no view
+	if (view >= 0) {
+		vm->_gameFile->_cursors[cursormode]._view = view;
+		// FIXME: precache_view ?
+	}
+
+	// FIXME: if cursor mode was the current cursor set mouse_delay = 0
 
 	return RuntimeValue();
 }
@@ -347,13 +355,24 @@ Script_Mouse_set_Visible(AGSEngine *vm, ScriptObject *,
 RuntimeValue
 Script_ChangeCursorGraphic(AGSEngine *vm, ScriptObject *,
                            const Common::Array<RuntimeValue> &params) {
-	int mode = params[0]._signedValue;
-	UNUSED(mode);
-	int slot = params[1]._signedValue;
-	UNUSED(slot);
+	uint32 cursormode = params[0]._value;
+	uint slot = params[1]._value;
 
-	// FIXME
-	error("ChangeCursorGraphic unimplemented");
+	if (cursormode >= vm->_gameFile->_cursors.size())
+		error("ChangeCursorGraphic: mode %d is too high (only %d cursors)",
+		      cursormode, vm->_gameFile->_cursors.size());
+
+	if (cursormode == MODE_USE && !vm->getGameOption(OPT_FIXEDINVCURSOR))
+		error("ChangeCursorGraphic: should not be used on the Inventory cursor "
+		      "when the cursor is linked to the active inventory item");
+
+	// TODO: check sanity of slot
+
+	vm->_gameFile->_cursors[cursormode]._pic = slot;
+
+	if (vm->getCursorMode() == cursormode)
+		vm->_graphics->setMouseCursor(cursormode);
+	;
 
 	return RuntimeValue();
 }
@@ -363,15 +382,16 @@ Script_ChangeCursorGraphic(AGSEngine *vm, ScriptObject *,
 RuntimeValue
 Script_ChangeCursorHotspot(AGSEngine *vm, ScriptObject *,
                            const Common::Array<RuntimeValue> &params) {
-	int mode = params[0]._signedValue;
-	UNUSED(mode);
+	uint32 mode = params[0]._value;
 	int x = params[1]._signedValue;
-	UNUSED(x);
 	int y = params[2]._signedValue;
-	UNUSED(y);
 
-	// FIXME
-	error("ChangeCursorHotspot unimplemented");
+	if (mode >= vm->_gameFile->_cursors.size())
+		error("ChangeModeHotspot: mode %d is too high (only %d cursors)", mode,
+		      vm->_gameFile->_cursors.size());
+
+	vm->_gameFile->_cursors[mode]._hotspotX = x;
+	vm->_gameFile->_cursors[mode]._hotspotY = y;
 
 	return RuntimeValue();
 }
