@@ -602,12 +602,18 @@ RuntimeValue Script_IsButtonDown(AGSEngine *vm, ScriptObject *,
 RuntimeValue Script_WaitKey(AGSEngine *vm, ScriptObject *,
                             const Common::Array<RuntimeValue> &params) {
 	int waitLoops = params[0]._signedValue;
-	UNUSED(waitLoops);
 
-	// FIXME
-	error("WaitKey unimplemented");
+	if (waitLoops < 1 && vm->getGameFileVersion() >= kAGSVer262) // 2.62+
+		error("!WaitKey: must wait at least 1 loop");
 
-	return RuntimeValue();
+	vm->_state->_waitCounter = waitLoops;
+	vm->_state->_keySkipWait = BLOCK_EXIT_KEY;
+	vm->blockUntil(kUntilWaitDone, 0);
+
+	if (vm->_state->_waitCounter < 0)
+		return 1;
+
+	return 0;
 }
 
 // import int WaitMouseKey(int waitLoops)
@@ -616,12 +622,18 @@ RuntimeValue Script_WaitKey(AGSEngine *vm, ScriptObject *,
 RuntimeValue Script_WaitMouseKey(AGSEngine *vm, ScriptObject *,
                                  const Common::Array<RuntimeValue> &params) {
 	int waitLoops = params[0]._signedValue;
-	UNUSED(waitLoops);
 
-	// FIXME
-	error("WaitMouseKey unimplemented");
+	if (waitLoops < 1 && vm->getGameFileVersion() >= kAGSVer262) // 2.62+
+		error("!WaitMouseKey: must wait at least 1 loop");
 
-	return RuntimeValue();
+	vm->_state->_waitCounter = waitLoops;
+	vm->_state->_keySkipWait = BLOCK_EXIT_KEY_OR_MOUSE;
+	vm->blockUntil(kUntilWaitDone, 0);
+
+	if (vm->_state->_waitCounter < 0)
+		return 1;
+
+	return 0;
 }
 
 // import bool IsKeyPressed(eKeyCode)

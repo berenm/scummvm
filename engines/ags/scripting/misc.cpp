@@ -199,7 +199,7 @@ RuntimeValue Script_Wait(AGSEngine *vm, ScriptObject *,
 		error("Wait: must wait at least one loop");
 
 	vm->_state->_waitCounter = waitLoops;
-	vm->_state->_keySkipWait = 0;
+	vm->_state->_keySkipWait = BLOCK_EXIT_NONE;
 
 	vm->blockUntil(kUntilWaitDone);
 
