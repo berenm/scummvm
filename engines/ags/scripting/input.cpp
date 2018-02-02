@@ -228,8 +228,20 @@ Script_Mouse_IsButtonDown(AGSEngine *vm, ScriptObject *,
 // current area.
 RuntimeValue Script_Mouse_SaveCursorUntilItLeaves(
     AGSEngine *vm, ScriptObject *, const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Mouse::SaveCursorUntilItLeaves unimplemented");
+	// update the current location name
+	Common::Point mousePos = vm->_system->getEventManager()->getMousePos();
+	mousePos.x = vm->divideDownCoordinate(mousePos.x);
+	mousePos.y = vm->divideDownCoordinate(mousePos.y);
+	vm->getLocationName(mousePos);
+
+	if (vm->_state->_getLocNameSaveCursor != vm->_state->_getLocNameLastTime) {
+		vm->_state->_getLocNameSaveCursor = vm->_state->_getLocNameLastTime;
+		uint32 mode = vm->getCursorMode();
+		uint32 image = vm->_gameFile->_cursors[mode]._pic;
+		vm->_state->_restoreCursorModeTo = mode;
+		vm->_state->_restoreCursorImageTo = image;
+		debug(3, "Saving mouse: mode %d cursor %d", mode, image);
+	}
 
 	return RuntimeValue();
 }
@@ -548,8 +560,20 @@ Script_EnableCursorMode(AGSEngine *vm, ScriptObject *,
 RuntimeValue
 Script_SaveCursorForLocationChange(AGSEngine *vm, ScriptObject *,
                                    const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("SaveCursorForLocationChange unimplemented");
+	// update the current location name
+	Common::Point mousePos = vm->_system->getEventManager()->getMousePos();
+	mousePos.x = vm->divideDownCoordinate(mousePos.x);
+	mousePos.y = vm->divideDownCoordinate(mousePos.y);
+	vm->getLocationName(mousePos);
+
+	if (vm->_state->_getLocNameSaveCursor != vm->_state->_getLocNameLastTime) {
+		vm->_state->_getLocNameSaveCursor = vm->_state->_getLocNameLastTime;
+		uint32 mode = vm->getCursorMode();
+		uint32 image = vm->_gameFile->_cursors[mode]._pic;
+		vm->_state->_restoreCursorModeTo = mode;
+		vm->_state->_restoreCursorImageTo = image;
+		debug(3, "Saving mouse: mode %d cursor %d", mode, image);
+	}
 
 	return RuntimeValue();
 }
