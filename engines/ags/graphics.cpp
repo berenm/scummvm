@@ -213,6 +213,8 @@ public:
 		// FIXME: set the mouse cursor
 	}
 
+	void setMouseDelay(uint32 delay) { _mouseDelay = delay; }
+
 	void tick() {
 		assert(_currentCursor < _vm->_gameFile->_cursors.size());
 		const MouseCursor &cursorInfo =
@@ -319,6 +321,7 @@ public:
 	                         byte &green, byte &blue) {}
 
 	uint32 _currentCursor;
+	uint32 _mouseDelay;
 
 protected:
 	AGSEngine *_vm;
@@ -326,7 +329,7 @@ protected:
 	Sprite *_cursorSprite;
 	bool _alphaBlendCursor;
 
-	uint32 _mouseFrame, _mouseDelay;
+	uint32 _mouseFrame;
 	uint32 _hotspotX, _hotspotY;
 };
 
@@ -1044,6 +1047,10 @@ uint32 AGSGraphics::getCurrentCursor() {
 
 void AGSGraphics::updateCachedMouseCursor() {
 	_cursorObj->updateCachedMouseCursor();
+}
+
+void AGSGraphics::setMouseDelay(uint32 delay) {
+	_cursorObj->_mouseDelay = delay;
 }
 
 void AGSGraphics::checkViewportCoords() {

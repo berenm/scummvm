@@ -154,7 +154,8 @@ Script_Mouse_ChangeModeView(AGSEngine *vm, ScriptObject *,
 		// FIXME: precache_view ?
 	}
 
-	// FIXME: if cursor mode was the current cursor set mouse_delay = 0
+	if (vm->getCursorMode() == cursormode)
+		vm->_graphics->setMouseDelay(0); // force update
 
 	return RuntimeValue();
 }
