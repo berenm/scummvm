@@ -498,8 +498,7 @@ Script_SetMousePosition(AGSEngine *vm, ScriptObject *,
 // Mouse function.
 RuntimeValue Script_ShowMouseCursor(AGSEngine *vm, ScriptObject *,
                                     const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("ShowMouseCursor unimplemented");
+	vm->_state->_mouseCursorHidden = 0;
 
 	return RuntimeValue();
 }
@@ -508,8 +507,7 @@ RuntimeValue Script_ShowMouseCursor(AGSEngine *vm, ScriptObject *,
 // Mouse function.
 RuntimeValue Script_HideMouseCursor(AGSEngine *vm, ScriptObject *,
                                     const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("HideMouseCursor unimplemented");
+	vm->_state->_mouseCursorHidden = 1;
 
 	return RuntimeValue();
 }
