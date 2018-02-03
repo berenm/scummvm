@@ -666,10 +666,7 @@ RuntimeValue Script_AudioClip_Stop(AGSEngine *vm, AudioClip *self,
 RuntimeValue
 Script_AudioClip_get_FileType(AGSEngine *vm, AudioClip *self,
                               const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("AudioClip::get_FileType unimplemented");
-
-	return RuntimeValue();
+	return self->_fileType;
 }
 
 // AudioClip: readonly import attribute bool IsAvailable
@@ -677,10 +674,10 @@ Script_AudioClip_get_FileType(AGSEngine *vm, AudioClip *self,
 RuntimeValue
 Script_AudioClip_get_IsAvailable(AGSEngine *vm, AudioClip *self,
                                  const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("AudioClip::get_IsAvailable unimplemented");
+	if (vm->_audio->getAudioClipIsAvailable(self))
+		return 1;
 
-	return RuntimeValue();
+	return 0;
 }
 
 // AudioClip: readonly import attribute AudioType Type
