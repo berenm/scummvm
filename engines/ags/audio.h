@@ -110,6 +110,7 @@ public:
 	AudioClip *getClip() { return isPlaying() ? _clip : NULL; }
 
 	uint32 getPositionMs();
+	uint32 getPosition();
 
 protected:
 	// housekeeping
