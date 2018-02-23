@@ -37,6 +37,9 @@
 // for RuntimeValue
 #include "engines/ags/script.h"
 
+// for NewInteractionCommandList
+#include "engines/ags/gamefile.h"
+
 struct ADGameFileDescription;
 
 namespace Common {
