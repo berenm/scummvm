@@ -518,10 +518,7 @@ Script_AudioChannel_get_LengthMs(AGSEngine *vm, AudioChannel *self,
 RuntimeValue
 Script_AudioChannel_get_Panning(AGSEngine *vm, AudioChannel *self,
                                 const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("AudioChannel::get_Panning unimplemented");
-
-	return RuntimeValue();
+	return self->getPanning();
 }
 
 // AudioChannel: import attribute int Panning
@@ -529,11 +526,8 @@ Script_AudioChannel_get_Panning(AGSEngine *vm, AudioChannel *self,
 RuntimeValue
 Script_AudioChannel_set_Panning(AGSEngine *vm, AudioChannel *self,
                                 const Common::Array<RuntimeValue> &params) {
-	int value = params[0]._signedValue;
-	UNUSED(value);
-
-	// FIXME
-	error("AudioChannel::set_Panning unimplemented");
+	int panning = params[0]._signedValue;
+	self->setPanning(panning);
 
 	return RuntimeValue();
 }
