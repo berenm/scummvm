@@ -54,6 +54,10 @@
 #define VOL_SETFUTUREDEFAULT 1679
 #define VOL_BOTH 1680
 
+#define PAN_LEFT -127
+#define PAN_CENTER 0
+#define PAN_RIGHT 127
+
 namespace AGS {
 
 AGSAudio::AGSAudio(AGSEngine *vm) :
@@ -221,6 +225,14 @@ void AGSAudio::initFrom(Common::SeekableReadStream *stream) {
 
 void AGSAudio::update() {
 	// FIXME: crossfading
+
+	this->updateAmbientSoundVolume();
+	this->updateDirectionalSoundVolume();
+
+	for (uint i = 0; i < MAX_SOUND_CHANNELS; ++i) {
+		if (_channels[i]->hasFinished())
+			_channels[i]->reset();
+	}
 
 	if (_vm->_state->_fastForward)
 		return;
@@ -756,6 +768,16 @@ AudioChannel::AudioChannel(AGSEngine *vm, uint id) :
     _vm(vm), _id(id), _valid(false) {
 }
 
+void AudioChannel::reset() {
+	// FIXME: zap stream?
+	_valid = false;
+
+	_volume = Audio::Mixer::kMaxChannelVolume;
+
+	_panning = PAN_CENTER;
+	this->setPanning(PAN_CENTER);
+}
+
 bool AudioChannel::playSound(AudioClip *clip, bool repeat) {
 	Common::SeekableReadStream *stream;
 	if (clip->_bundledInExecutable)
@@ -840,8 +862,7 @@ bool AudioChannel::playSound(Common::SeekableReadStream *stream,
 void AudioChannel::stop(bool resetLegacyMusicSettings) {
 	if (_valid) {
 		_vm->_mixer->stopHandle(_handle);
-		// FIXME: zap stream?
-		_valid = false;
+		this->reset();
 	}
 
 	if (_vm->_state->_crossfadingInChannel == _id)
@@ -861,6 +882,10 @@ bool AudioChannel::isPlaying() {
 		return false;
 
 	return _vm->_mixer->isSoundHandleActive(_handle);
+}
+
+bool AudioChannel::hasFinished() {
+	return _valid && !_vm->_mixer->isSoundHandleActive(_handle);
 }
 
 void AudioChannel::setVolume(uint volume) {

@@ -480,6 +480,7 @@ uint AGSEngine::displayMain(int x, int y, int width, const Common::String &text,
 	while (!shouldQuit()) {
 		_state->_gameStep++;
 		// FIXME: rendering/polling stuff
+		_audio->update();
 		updateEvents(false);
 		draw();
 

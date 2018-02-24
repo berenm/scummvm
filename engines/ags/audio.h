@@ -87,6 +87,7 @@ struct AudioClipType {
 class AudioChannel : public ScriptObject {
 public:
 	AudioChannel(AGSEngine *vm, uint id);
+	void reset();
 	bool isOfType(ScriptObjectType objectType) {
 		return (objectType == sotAudioChannel);
 	}
@@ -99,6 +100,7 @@ public:
 	               bool repeat = false);
 	void stop(bool resetLegacyMusicSettings = true);
 	bool isPlaying();
+	bool hasFinished();
 
 	void setVolume(uint volume);
 	uint getVolume() { return _volume; }
