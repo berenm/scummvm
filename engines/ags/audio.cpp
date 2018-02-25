@@ -765,7 +765,7 @@ void AGSAudio::deregisterScriptObjects() {
 }
 
 AudioChannel::AudioChannel(AGSEngine *vm, uint id) :
-    _vm(vm), _id(id), _valid(false) {
+    _vm(vm), _id(id), _valid(false), _rewind(0) {
 }
 
 void AudioChannel::reset() {
@@ -773,7 +773,7 @@ void AudioChannel::reset() {
 	_valid = false;
 
 	_volume = Audio::Mixer::kMaxChannelVolume;
-
+	_rewind = 0;
 	_panning = PAN_CENTER;
 	this->setPanning(PAN_CENTER);
 }
@@ -925,7 +925,7 @@ void AudioChannel::setPanning(int panning) {
 }
 
 uint32 AudioChannel::getPositionMs() {
-	return _vm->_mixer->getSoundElapsedTime(_handle);
+	return _vm->_mixer->getSoundElapsedTime(_handle) - _rewind;
 }
 
 uint32 AudioChannel::getPosition() {
@@ -940,10 +940,13 @@ uint32 AudioChannel::getPosition() {
 		// - what happens if audio is disabled or samplerate comes back as 0?
 		// samples per millisecond from the mixer * milliseconds played
 		return (_vm->_mixer->getOutputRate() / 1000) *
-		       _vm->_mixer->getSoundElapsedTime(_handle);
+		           _vm->_mixer->getSoundElapsedTime(_handle) -
+		       _rewind;
 		break;
 	case kAudioFileOGG:
-	case kAudioFileMP3: return _vm->_mixer->getSoundElapsedTime(_handle); break;
+	case kAudioFileMP3:
+		return _vm->_mixer->getSoundElapsedTime(_handle) - _rewind;
+		break;
 	case kAudioFileMOD:
 	default:
 		// FIXME
@@ -959,6 +962,18 @@ uint32 AudioChannel::getLengthMs() {
 		return 0;
 
 	return _stream->getLength().msecs();
+}
+
+void AudioChannel::seek(uint32 offset) {
+	uint32 length = _stream->getLength().msecs();
+
+	if (_stream && offset >= 0 && offset <= length) {
+		// store channel position - offset, so getting position can account for
+		// the stream being rewound
+		// FIXME: Get the stream position directly?
+		this->_rewind += _vm->_mixer->getSoundElapsedTime(_handle) - offset;
+		_stream->seek(offset);
+	}
 }
 
 } // End of namespace AGS

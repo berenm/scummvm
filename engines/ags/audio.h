@@ -118,6 +118,8 @@ public:
 	uint32 getPositionMs();
 	uint32 getPosition();
 
+	void seek(uint32 offset);
+
 protected:
 	// housekeeping
 	AGSEngine *_vm;
@@ -128,6 +130,7 @@ protected:
 	int _priority;
 	AudioClip *_clip;
 
+	int32 _rewind;
 	uint _volume;
 	int _panning;
 
