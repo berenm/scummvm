@@ -507,10 +507,13 @@ Script_AudioChannel_get_IsPlaying(AGSEngine *vm, AudioChannel *self,
 RuntimeValue
 Script_AudioChannel_get_LengthMs(AGSEngine *vm, AudioChannel *self,
                                  const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("AudioChannel::get_LengthMs unimplemented");
+	AudioClip *clip = self->getClip();
 
-	return RuntimeValue();
+	if (!clip)
+		return 0;
+
+	// FIXME: with MIDI music this should only be accurate to the nearest second
+	return self->getLengthMs();
 }
 
 // AudioChannel: import attribute int Panning
