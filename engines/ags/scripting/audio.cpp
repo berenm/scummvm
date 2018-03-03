@@ -276,7 +276,7 @@ Script_SetDigitalMasterVolume(AGSEngine *vm, ScriptObject *,
 		      volume);
 
 	vm->_state->_digitalMasterVolume = volume;
-	vm->_audio->setVolume((volume * 255) / 100);
+	vm->_audio->setVolume(volume);
 
 	return RuntimeValue();
 }
@@ -389,7 +389,7 @@ Script_SetChannelVolume(AGSEngine *vm, ScriptObject *,
 	if (volume > 255)
 		error("SetChannelVolume: volume %d is too high", volume);
 
-	vm->_audio->_channels[channel]->setVolume(volume);
+	vm->_audio->_channels[channel]->setVolume(volume, true);
 
 	return RuntimeValue();
 }
@@ -593,7 +593,7 @@ Script_AudioChannel_set_Volume(AGSEngine *vm, AudioChannel *self,
 		    "AudioChannel::set_Volume: volume %d is too high (must be <= 100)",
 		    value);
 
-	self->setVolume((value * 255) / 100);
+	self->setVolume(value);
 
 	return RuntimeValue();
 }
