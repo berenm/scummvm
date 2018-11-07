@@ -84,9 +84,6 @@ public:
 		_guiOptions = GUIO1(GUIO_NOLAUNCHLOAD);
 	}
 
-	virtual const ADGameDescription *
-	fallbackDetect(const FileMap &allFiles, const Common::FSList &fslist) const;
-
 	virtual const char *getName() const { return "Adventure Game Studio"; }
 
 	virtual const char *getOriginalCopyright() const {
@@ -98,8 +95,8 @@ public:
 	                            const ADGameDescription *desc) const;
 
 protected:
-	virtual void updateGameDescriptor(GameDescriptor &desc,
-	                                  const ADGameDescription *realDesc) const;
+	virtual ADDetectedGame fallbackDetect(const FileMap &allFiles,
+	                                      const Common::FSList &fslist) const;
 };
 
 static AGS::AGSGameDescription s_fallbackDesc = {
@@ -110,12 +107,11 @@ static AGS::AGSGameDescription s_fallbackDesc = {
 static char s_fallbackFilenameBuffer[51];
 static char s_fallbackTitleBuffer[51];
 
-const ADGameDescription *
+ADDetectedGame
 AGSMetaEngine::fallbackDetect(const FileMap &allFiles,
                               const Common::FSList &fslist) const {
-	const ADGameDescription *d =
-	    detectGameFilebased(allFiles, fslist, AGS::fileBased);
-	if (d)
+	ADDetectedGame d = detectGameFilebased(allFiles, fslist, AGS::fileBased);
+	if (d.desc)
 		return d;
 
 	// reset fallback description
@@ -180,23 +176,10 @@ AGSMetaEngine::fallbackDetect(const FileMap &allFiles,
 		s_fallbackFilenameBuffer[50] = '\0';
 		desc->filename = s_fallbackFilenameBuffer;
 
-		return (ADGameDescription *) desc;
+		return ADDetectedGame((ADGameDescription *) desc);
 	}
 
-	return NULL;
-}
-
-void AGSMetaEngine::updateGameDescriptor(
-    GameDescriptor &desc, const ADGameDescription *realDesc) const {
-	AdvancedMetaEngine::updateGameDescriptor(desc, realDesc);
-
-	// try to update title
-	const AGS::AGSGameDescription *agsDesc =
-	    (const AGS::AGSGameDescription *) realDesc;
-	if (!agsDesc->title[0])
-		return;
-	desc["description"] = agsDesc->title;
-	desc.updateDesc("AGS");
+	return ADDetectedGame();
 }
 
 bool AGSMetaEngine::hasFeature(MetaEngineFeature f) const {
