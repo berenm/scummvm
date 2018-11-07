@@ -35,6 +35,8 @@
 #include "engines/ags/room.h"
 #include "engines/ags/sprites.h"
 
+#include "common/algorithm.h"
+
 namespace AGS {
 
 static GUIControl *getGUIControl(const char *funcName, AGSEngine *vm,
@@ -857,8 +859,19 @@ RuntimeValue Script_ListBoxRemove(AGSEngine *vm, ScriptObject *,
 RuntimeValue
 Script_GUIControl_BringToFront(AGSEngine *vm, GUIControl *self,
                                const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("GUIControl::BringToFront unimplemented");
+	GUIGroup *group = self->_parent;
+	Common::Array<uint16>::iterator drawOrderBegin =
+	    group->_controlDrawOrder.begin();
+	Common::Array<uint16>::iterator drawOrderEnd =
+	    group->_controlDrawOrder.end();
+	Common::Array<uint16>::iterator it =
+	    Common::find(drawOrderBegin, drawOrderEnd, self->_id);
+
+	if (it != drawOrderEnd) {
+		uint16 id = *it;
+		Common::copy(it + 1, drawOrderEnd, it);
+		group->_controlDrawOrder.back() = id;
+	}
 
 	return RuntimeValue();
 }
@@ -890,8 +903,19 @@ Script_GUIControl_GetAtScreenXY(AGSEngine *vm, ScriptObject *,
 RuntimeValue
 Script_GUIControl_SendToBack(AGSEngine *vm, GUIControl *self,
                              const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("GUIControl::SendToBack unimplemented");
+	GUIGroup *group = self->_parent;
+	Common::Array<uint16>::iterator drawOrderBegin =
+	    group->_controlDrawOrder.begin();
+	Common::Array<uint16>::iterator drawOrderEnd =
+	    group->_controlDrawOrder.end();
+	Common::Array<uint16>::iterator it =
+	    Common::find(drawOrderBegin, drawOrderEnd, self->_id);
+
+	if (it != drawOrderBegin) {
+		uint16 id = *it;
+		Common::copy(drawOrderBegin, it - 1, it);
+		group->_controlDrawOrder.front() = id;
+	}
 
 	return RuntimeValue();
 }
