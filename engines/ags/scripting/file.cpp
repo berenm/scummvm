@@ -236,12 +236,12 @@ RuntimeValue Script_File_Delete(AGSEngine *vm, ScriptObject *,
 RuntimeValue Script_File_Exists(AGSEngine *vm, ScriptObject *,
                                 const Common::Array<RuntimeValue> &params) {
 	ScriptString *filename = (ScriptString *) params[0]._object;
-	UNUSED(filename);
 
-	// FIXME
-	error("File::Exists unimplemented");
+	Common::String wrappedName = vm->wrapFilename(filename->getString());
+	Common::SaveFileManager *saveFileMan = vm->getSaveFileManager();
+	Common::StringArray saveFiles = saveFileMan->listSavefiles(wrappedName);
 
-	return RuntimeValue();
+	return saveFiles.size() > 0 && saveFiles[0] == wrappedName;
 }
 
 // File: import static File *Open(const string filename, FileMode)
