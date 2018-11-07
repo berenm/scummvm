@@ -512,8 +512,7 @@ void AGSGraphics::loadFonts() {
 			    false; // FIXME: AA causes color-key artifacts at present
 			Graphics::TTFSizeMode fontSizeMode =
 			    Graphics::kTTFSizeModeCharacter;
-			_fonts[i] = Graphics::loadTTFFont(*stream, fontSize, fontSizeMode,
-			                                  !antialias);
+			_fonts[i] = Graphics::loadTTFFont(*stream, fontSize, fontSizeMode);
 			if (!_fonts[i])
 				error("loadTTFFont returned NULL for font %d", i);
 			delete stream;
