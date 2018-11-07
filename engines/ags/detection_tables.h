@@ -95,15 +95,6 @@ static const AGSGameDescription gameDescriptions[] = {
     },
     {AD_TABLE_END_MARKER, "", ""}};
 
-static const AGSGameDescription fallbackDescs[] = {{
-    // 0
-    {"ags", "unknown", AD_ENTRY1(0, 0), Common::UNK_LANG,
-     Common::kPlatformUnknown, ADGF_NO_FLAGS, GUIO_NONE},
-    "",
-    "",
-}};
-
-static const ADFileBasedFallback fileBased[] = {
-    {&fallbackDescs[0].desc, {"ac2game.dat", 0}}, {0, {0}}};
+static const ADFileBasedFallback fileBased[] = {{0, {0}}};
 
 } // End of namespace AGS

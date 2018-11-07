@@ -140,7 +140,8 @@ AGSMetaEngine::fallbackDetect(const FileMap &allFiles,
 		// Looking for either the Windows engine with the game data attached
 		// or a standalone data file
 		filename.toLowercase();
-		if (!filename.hasSuffix(".exe") && !filename.hasSuffix(".ags"))
+		if (!filename.hasSuffix(".exe") && !filename.hasSuffix(".ags") &&
+		    !filename.hasSuffix(".dat"))
 			continue;
 
 		SearchMan.clear();
