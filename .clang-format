@@ -1,0 +1,32 @@
+---
+DisableFormat: false
+SortIncludes: false
+
+IndentWidth: 4
+TabWidth: 4
+UseTab: ForIndentation
+BreakBeforeBraces: Attach
+PointerAlignment: Right
+
+AccessModifierOffset: -4
+
+ColumnLimit: 80
+AlignConsecutiveAssignments: true
+AlignConsecutiveDeclarations: true
+AlignAfterOpenBracket: Align
+AlignEscapedNewlines: Left
+AlignOperands: true
+AlignTrailingComments: true
+AllowShortBlocksOnASingleLine: false
+AllowShortCaseLabelsOnASingleLine: true
+AllowShortFunctionsOnASingleLine: InlineOnly
+BreakConstructorInitializers: AfterColon
+IndentPPDirectives: BeforeHash
+SpaceAfterCStyleCast: true
+
+PenaltyBreakComment: 3000000
+PenaltyExcessCharacter: 1000000
+
+Standard: Cpp11
+Cpp11BracedListStyle: true
+...
