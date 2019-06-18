@@ -159,7 +159,24 @@ AGSMetaEngine::fallbackDetect(const FileMap &allFiles,
 		}
 		dta->skip(30 + 4); // signature + version
 		uint32 versionStringLength = dta->readUint32LE();
-		dta->skip(versionStringLength);
+		assert(versionStringLength < 32);
+
+		char versionString[32];
+		dta->read(versionString, versionStringLength);
+		versionString[versionStringLength] = 0;
+		debug(2, "Found AGS version: '%s'", versionString);
+
+		uint majorVersion = 0;
+		uint minorVersion = 0;
+		uint releaseVersion = 0;
+		uint buildVersion = 0;
+
+		int n = sscanf(versionString, "%u.%u.%u.%u", &majorVersion,
+		               &minorVersion, &releaseVersion, &buildVersion);
+		assert(n >= 2);
+
+		if (majorVersion >= 3 && minorVersion >= 4)
+			dta->skip(4);
 
 		char gameTitle[51];
 		dta->read(gameTitle, 50);
