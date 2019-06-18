@@ -103,6 +103,8 @@ SpriteSet::SpriteSet(AGSEngine *vm, Common::SeekableReadStream *stream) :
 
 	if (_stream->eos())
 		error("failed to read sprite file");
+
+	_dynamicSpriteId = spriteCount;
 }
 
 SpriteSet::~SpriteSet() {
@@ -281,6 +283,26 @@ Sprite *SpriteSet::getSprite(uint32 spriteId) {
 	Sprite *sprite = new Sprite(spriteId, surface);
 	_sprites[spriteId] = sprite;
 	return sprite;
+}
+
+DynamicSprite *SpriteSet::createDynamicSprite(uint32 width, uint32 height,
+                                              bool hasAlpha) {
+	Graphics::PixelFormat format;
+	if (hasAlpha)
+		format = Graphics::PixelFormat(4, 8, 8, 8, 8, 16, 8, 0, 24);
+	else
+		format = Graphics::PixelFormat(4, 8, 8, 8, 0, 16, 8, 0, 0);
+
+	Graphics::Surface *surface = new Graphics::Surface;
+	surface->create(width, height, format);
+
+	DynamicSprite *sprite = new DynamicSprite(_dynamicSpriteId++, surface);
+	_dynamicSprites.push_back(sprite);
+	return sprite;
+}
+
+void SpriteSet::deleteDynamicSprite(DynamicSprite *sprite) {
+	_dynamicSprites.remove(sprite);
 }
 
 void unpackSpriteBits(Common::SeekableReadStream *stream, byte *dest,

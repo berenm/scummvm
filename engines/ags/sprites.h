@@ -59,6 +59,18 @@ struct Sprite {
 	uint _refCount;
 };
 
+class DynamicSprite : public Sprite, public ScriptObject {
+public:
+	DynamicSprite(uint spriteId, Graphics::Surface *surf) :
+	    Sprite(spriteId, surf) {}
+	~DynamicSprite() {}
+
+	virtual bool isOfType(ScriptObjectType objectType) {
+		return (objectType == sotDynamicSprite);
+	}
+	const char *getObjectTypeName() { return "DynamicSprite"; }
+};
+
 class AGSEngine;
 
 class SpriteSet {
@@ -70,7 +82,10 @@ public:
 	uint getSpriteWidth(uint id) { return _spriteInfo[id]._width; }
 	uint getSpriteHeight(uint id) { return _spriteInfo[id]._height; }
 	Sprite *getSprite(uint32 spriteId);
-	void releaseSprite(Sprite *sprite);
+
+	DynamicSprite *createDynamicSprite(uint32 width, uint32 height,
+	                                   bool hasAlpha);
+	void deleteDynamicSprite(DynamicSprite *sprite);
 
 protected:
 	AGSEngine *_vm;
@@ -80,6 +95,8 @@ protected:
 
 	// id->sprite mapping
 	Common::HashMap<uint, Sprite *> _sprites;
+	Common::List<DynamicSprite *> _dynamicSprites;
+	uint _dynamicSpriteId;
 
 	bool loadSpriteIndexFile(uint32 spriteFileID);
 };

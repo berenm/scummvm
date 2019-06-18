@@ -1341,16 +1341,15 @@ RuntimeValue
 Script_DynamicSprite_Create(AGSEngine *vm, ScriptObject *,
                             const Common::Array<RuntimeValue> &params) {
 	int width = params[0]._signedValue;
-	UNUSED(width);
 	int height = params[1]._signedValue;
-	UNUSED(height);
 	uint32 hasAlphaChannel = params[2]._value;
-	UNUSED(hasAlphaChannel);
 
-	// FIXME
-	error("DynamicSprite::Create unimplemented");
+	DynamicSprite *sprite =
+	    vm->getSprites()->createDynamicSprite(width, height, hasAlphaChannel);
 
-	return RuntimeValue();
+	RuntimeValue ret = sprite;
+	ret._object->DecRef();
+	return ret;
 }
 
 // DynamicSprite: import static DynamicSprite* CreateFromBackground(int
@@ -1537,9 +1536,7 @@ Script_DynamicSprite_Crop(AGSEngine *vm, DynamicSprite *self,
 RuntimeValue
 Script_DynamicSprite_Delete(AGSEngine *vm, DynamicSprite *self,
                             const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("DynamicSprite::Delete unimplemented");
-
+	vm->getSprites()->deleteDynamicSprite(self);
 	return RuntimeValue();
 }
 
@@ -1562,10 +1559,13 @@ Script_DynamicSprite_Flip(AGSEngine *vm, DynamicSprite *self,
 RuntimeValue Script_DynamicSprite_GetDrawingSurface(
     AGSEngine *vm, DynamicSprite *self,
     const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("DynamicSprite::GetDrawingSurface unimplemented");
+	DrawingSurface *surface = new DrawingSurface(vm);
+	surface->_type = dstDynamicSprite;
+	surface->_id = self->_id;
 
-	return RuntimeValue();
+	RuntimeValue ret = surface;
+	ret._object->DecRef();
+	return ret;
 }
 
 // DynamicSprite: import void Resize(int width, int height)
@@ -1655,10 +1655,7 @@ Script_DynamicSprite_get_ColorDepth(AGSEngine *vm, DynamicSprite *self,
 RuntimeValue
 Script_DynamicSprite_get_Graphic(AGSEngine *vm, DynamicSprite *self,
                                  const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("DynamicSprite::get_Graphic unimplemented");
-
-	return RuntimeValue();
+	return self->_id;
 }
 
 // DynamicSprite: readonly import attribute int Height
