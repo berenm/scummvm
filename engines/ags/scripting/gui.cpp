@@ -2302,9 +2302,7 @@ Script_GUI_geti_Controls(AGSEngine *vm, GUIGroup *self,
 	uint index = params[0]._value;
 
 	if (index >= self->_controls.size())
-		error("GUI::geti_Controls: control %d is too high (only have %d "
-		      "controls)",
-		      index, self->_controls.size());
+		return RuntimeValue();
 
 	return self->_controls[index];
 }
