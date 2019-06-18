@@ -662,8 +662,15 @@ void AGSAudio::setAudioTypeVolume(uint type, uint volume, uint changeType) {
 	// FIXME
 }
 
+uint AGSAudio::getVolume() {
+	// FIXME: get global volume
+	warning("unimplemented AGSAudio::getVolume()");
+	return 0;
+}
+
 void AGSAudio::setVolume(uint volume) {
 	// FIXME: set global volume
+	warning("unimplemented AGSAudio::setVolume(%u)", volume);
 }
 
 void AGSAudio::setSoundVolume(uint volume) {

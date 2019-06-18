@@ -29,6 +29,7 @@
 #include "engines/ags/constants.h"
 #include "engines/ags/gamestate.h"
 #include "engines/ags/graphics.h"
+#include "engines/ags/audio.h"
 
 namespace AGS {
 
@@ -425,10 +426,7 @@ Script_System_get_ViewportWidth(AGSEngine *vm, ScriptObject *,
 RuntimeValue
 Script_System_get_Volume(AGSEngine *vm, ScriptObject *,
                          const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("System::get_Volume unimplemented");
-
-	return RuntimeValue();
+	return vm->_audio->getVolume();
 }
 
 // System: import static attribute int Volume
@@ -437,10 +435,8 @@ RuntimeValue
 Script_System_set_Volume(AGSEngine *vm, ScriptObject *,
                          const Common::Array<RuntimeValue> &params) {
 	int value = params[0]._signedValue;
-	UNUSED(value);
 
-	// FIXME
-	error("System::set_Volume unimplemented");
+	vm->_audio->setVolume(value);
 
 	return RuntimeValue();
 }

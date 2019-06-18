@@ -205,6 +205,7 @@ public:
 
 	void setAudioTypeVolume(uint type, uint volume, uint changeType);
 
+	uint getVolume();
 	void setVolume(uint volume);
 	void setSoundVolume(uint volume);
 	void setSpeechVolume(uint volume);
