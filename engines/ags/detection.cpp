@@ -99,11 +99,8 @@ protected:
 	                                      const Common::FSList &fslist) const;
 };
 
-static AGS::AGSGameDescription s_fallbackDesc = {
-    {"", "", AD_ENTRY1(0, 0), Common::UNK_LANG, Common::kPlatformUnknown,
-     ADGF_NO_FLAGS, GUIO0()},
-    "",
-    ""};
+static AGS::AGSGameDescription s_fallbackDesc = {};
+
 static char s_fallbackFilenameBuffer[51];
 static char s_fallbackTitleBuffer[51];
 
@@ -119,7 +116,7 @@ AGSMetaEngine::fallbackDetect(const FileMap &allFiles,
 	desc->desc.gameId = "ags";
 	desc->desc.extra = "";
 	desc->desc.language = Common::UNK_LANG;
-	desc->desc.flags = ADGF_NO_FLAGS;
+	desc->desc.flags = ADGF_AUTOGENTARGET | ADGF_USEEXTRAASTITLE;
 	desc->desc.platform = Common::kPlatformUnknown;
 	desc->desc.guiOptions = GUIO0();
 	desc->title = "";
@@ -167,13 +164,18 @@ AGSMetaEngine::fallbackDetect(const FileMap &allFiles,
 		char gameTitle[51];
 		dta->read(gameTitle, 50);
 		gameTitle[50] = '\0';
+
 		delete dta;
+
 		strncpy(s_fallbackTitleBuffer, gameTitle, 50);
 		s_fallbackTitleBuffer[50] = '\0';
+
 		desc->title = s_fallbackTitleBuffer;
+		desc->desc.extra = s_fallbackTitleBuffer;
 
 		strncpy(s_fallbackFilenameBuffer, filename.c_str(), 50);
 		s_fallbackFilenameBuffer[50] = '\0';
+
 		desc->filename = s_fallbackFilenameBuffer;
 
 		return ADDetectedGame((ADGameDescription *) desc);
