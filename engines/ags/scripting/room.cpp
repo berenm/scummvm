@@ -885,10 +885,7 @@ RuntimeValue Script_Region_get_ID(AGSEngine *vm, RoomRegion *self,
 RuntimeValue
 Script_Region_get_LightLevel(AGSEngine *vm, RoomRegion *self,
                              const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("Region::get_LightLevel unimplemented");
-
-	return RuntimeValue();
+	return self->_lightLevel;
 }
 
 // Region: import attribute int LightLevel
@@ -897,10 +894,9 @@ RuntimeValue
 Script_Region_set_LightLevel(AGSEngine *vm, RoomRegion *self,
                              const Common::Array<RuntimeValue> &params) {
 	int value = params[0]._signedValue;
-	UNUSED(value);
+	assert(value == (uint16) value);
 
-	// FIXME
-	error("Region::set_LightLevel unimplemented");
+	self->_lightLevel = value;
 
 	return RuntimeValue();
 }
