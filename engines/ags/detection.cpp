@@ -137,6 +137,9 @@ AGSMetaEngine::fallbackDetect(const FileMap &allFiles,
 		    !filename.hasSuffix(".dat"))
 			continue;
 
+		if (filename.hasSuffix(".exe"))
+			desc->desc.platform = Common::kPlatformWindows;
+
 		SearchMan.clear();
 		SearchMan.addDirectory(file->getParent().getName(), file->getParent());
 		AGS::ResourceManager resourceManager;
