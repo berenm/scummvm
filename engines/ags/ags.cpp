@@ -3479,6 +3479,10 @@ void AGSEngine::setGameSpeed(uint32 speed) {
 	_framesPerSecond = CLIP<uint32>(speed, 10, 1000);
 }
 
+void AGSEngine::setGameOption(uint index, byte value) {
+	_gameFile->_options[index] = value;
+}
+
 byte AGSEngine::getGameOption(uint index) {
 	return _gameFile->_options[index];
 }

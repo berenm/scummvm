@@ -671,12 +671,14 @@ RuntimeValue Script_GetGameSpeed(AGSEngine *vm, ScriptObject *,
 RuntimeValue Script_SetGameOption(AGSEngine *vm, ScriptObject *,
                                   const Common::Array<RuntimeValue> &params) {
 	int option = params[0]._signedValue;
-	UNUSED(option);
 	int value = params[1]._signedValue;
-	UNUSED(value);
+	assert(value == (byte) value);
 
-	// FIXME
-	error("SetGameOption unimplemented");
+	if ((option < 1 || option > OPT_HIGHESTOPTION) && option != OPT_LIPSYNCTEXT)
+		error("SetGameOption: invalid option %d requested", option);
+
+	warning("UNTESTED: setGameOption(%d, %d) side effects", option, value);
+	vm->setGameOption(option, value);
 
 	return RuntimeValue();
 }

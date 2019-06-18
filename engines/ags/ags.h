@@ -271,6 +271,7 @@ public:
 	void setGameSpeed(uint32 speed);
 	uint getLoopCounter() const { return _loopCounter; }
 
+	void setGameOption(uint index, byte value);
 	byte getGameOption(uint index);
 
 	Common::String getMessageText(uint messageId);
