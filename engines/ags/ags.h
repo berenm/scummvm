@@ -30,6 +30,7 @@
 
 #include "common/rect.h"
 #include "common/system.h"
+#include "common/serializer.h"
 
 #include "engines/advancedDetector.h"
 #include "engines/engine.h"
@@ -64,6 +65,19 @@ struct AGSGameDescription {
 
 	const char *title;
 	const char *filename;
+};
+
+struct AGSSavegameHeader {
+	uint8 _version;
+	Common::String _description;
+	uint16 _year;
+	uint8 _month;
+	uint8 _day;
+	uint8 _hour;
+	uint8 _minute;
+	uint32 _playTimeMs;
+
+	bool saveLoadWithSerializer(Common::Serializer &s);
 };
 
 struct PendingScript {
@@ -218,6 +232,26 @@ public:
 	void pauseGame();
 	void unpauseGame();
 	bool isGamePaused() { return _pauseGameCounter > 0; }
+
+	static Common::String generateSaveName(char const *target, uint slot);
+	Common::String generateSaveName(uint slot);
+	static Common::StringArray listSavegames(char const *target);
+	Common::StringArray listSavegames();
+
+	virtual Common::Error loadGameState(int slot);
+	virtual Common::Error saveGameState(int slot, const Common::String &desc);
+	virtual bool canLoadGameStateCurrently();
+	virtual bool canSaveGameStateCurrently();
+	virtual void saveLoadWithSerializer(Common::Serializer &s) {}
+
+	static bool loadSavegameHeader(char const *target, uint slot,
+	                               AGSSavegameHeader &header);
+	bool loadSavegameHeader(uint slot, AGSSavegameHeader &header);
+	void saveGame(uint slot, const Common::String &description);
+	void restoreGame(uint slot);
+
+	void queueSaveGame(uint slot, const Common::String &description);
+	void queueRestoreGame(uint slot);
 
 	uint32 getGameFileVersion() const;
 	uint32 getGUIVersion() const;

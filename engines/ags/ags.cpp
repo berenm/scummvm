@@ -26,15 +26,21 @@
  */
 
 // Base stuff
+#include "common/config-manager.h"
 #include "common/debug-channels.h"
 #include "common/error.h"
-#include "common/random.h"
 #include "common/events.h"
+#include "common/file.h"
+#include "common/random.h"
+#include "common/savefile.h"
+#include "common/serializer.h"
 
 #include "engines/advancedDetector.h"
 
 // Audio
 #include "audio/mixer.h"
+
+#include "graphics/thumbnail.h"
 
 // AGS subsystems
 #include "ags/ags.h"
@@ -96,6 +102,23 @@ namespace AGS {
 
 const char *kGameDataNameV2 = "ac2game.dta";
 const char *kGameDataNameV3 = "game28.dta";
+
+bool AGSSavegameHeader::saveLoadWithSerializer(Common::Serializer &s) {
+	static const Common::Serializer::Version kCurrentVersion = 1;
+
+	if (!s.syncVersion(kCurrentVersion))
+		return false;
+
+	s.syncString(_description);
+	s.syncAsUint16LE(_year);
+	s.syncAsByte(_month);
+	s.syncAsByte(_day);
+	s.syncAsByte(_hour);
+	s.syncAsByte(_minute);
+	s.syncAsUint32LE(_playTimeMs);
+
+	return true;
+}
 
 // wrapper class for object/hotspot/region objects, see createGlobalScript
 struct RoomObjectState {
@@ -241,6 +264,116 @@ void AGSEngine::unpauseGame() {
 		_pauseGameCounter--;
 	debugC(kDebugLevelGame, "game unpaused, pause level now %d",
 	       _pauseGameCounter);
+}
+
+Common::String AGSEngine::generateSaveName(char const *target, uint slot) {
+	return Common::String::format("%s.%03u", target, slot);
+}
+
+Common::String AGSEngine::generateSaveName(uint slot) {
+	return generateSaveName(_targetName.c_str(), slot);
+}
+
+Common::StringArray AGSEngine::listSavegames(char const *target) {
+	Common::SaveFileManager *sfm = g_system->getSavefileManager();
+	return sfm->listSavefiles(Common::String::format("%s.###", target));
+}
+
+Common::StringArray AGSEngine::listSavegames() {
+	return listSavegames(_targetName.c_str());
+}
+
+Common::Error AGSEngine::loadGameState(int slot) {
+	Common::InSaveFile *saveFile =
+	    getSaveFileManager()->openForLoading(generateSaveName(slot));
+	if (!saveFile)
+		return Common::kReadingFailed;
+	queueRestoreGame(slot);
+	return Common::kNoError;
+}
+
+Common::Error AGSEngine::saveGameState(int slot, const Common::String &desc) {
+	Common::OutSaveFile *saveFile =
+	    getSaveFileManager()->openForSaving(generateSaveName(slot));
+	if (!saveFile)
+		return Common::kCreatingFileFailed;
+	queueSaveGame(slot, desc);
+	return Common::kNoError;
+}
+
+bool AGSEngine::canLoadGameStateCurrently() {
+	return true;
+}
+
+bool AGSEngine::canSaveGameStateCurrently() {
+	return true;
+}
+
+bool AGSEngine::loadSavegameHeader(char const *target, uint slot,
+                                   AGSSavegameHeader &header) {
+	Common::InSaveFile *saveFile =
+	    g_system->getSavefileManager()->openForLoading(
+	        generateSaveName(target, slot));
+	if (!saveFile)
+		return false;
+
+	Common::Serializer s(saveFile, nullptr);
+	if (!header.saveLoadWithSerializer(s))
+		return false;
+
+	return true;
+}
+
+bool AGSEngine::loadSavegameHeader(uint slot, AGSSavegameHeader &header) {
+	return loadSavegameHeader(_targetName.c_str(), slot, header);
+}
+
+void AGSEngine::saveGame(uint slot, const Common::String &desc) {
+	warning("Saving game slot %d", slot);
+
+	Common::OutSaveFile *saveFile =
+	    getSaveFileManager()->openForSaving(generateSaveName(slot));
+	assert(saveFile);
+
+	AGSSavegameHeader header;
+	header._description = desc;
+
+	TimeDate timeDate;
+	g_system->getTimeAndDate(timeDate);
+	header._year = timeDate.tm_year + 1900;
+	header._month = timeDate.tm_mon + 1;
+	header._day = timeDate.tm_mday;
+	header._hour = timeDate.tm_hour;
+	header._minute = timeDate.tm_min;
+	header._playTimeMs = _loopCounter * 1000 / _framesPerSecond;
+
+	Common::Serializer s(nullptr, saveFile);
+	if (!header.saveLoadWithSerializer(s))
+		error("Invalid savegame");
+
+	Graphics::saveThumbnail(*saveFile);
+	saveLoadWithSerializer(s);
+
+	saveFile->finalize();
+	delete saveFile;
+}
+
+void AGSEngine::restoreGame(uint slot) {
+	warning("Restoring game slot %d", slot);
+
+	Common::InSaveFile *saveFile =
+	    getSaveFileManager()->openForLoading(generateSaveName(slot));
+	assert(saveFile);
+
+	AGSSavegameHeader header;
+	Common::Serializer s(saveFile, nullptr);
+	if (!header.saveLoadWithSerializer(s))
+		error("Invalid savegame");
+
+	Graphics::skipThumbnail(*saveFile);
+	saveLoadWithSerializer(s);
+
+	delete saveFile;
 }
 
 Common::Error AGSEngine::run() {
@@ -1779,6 +1912,20 @@ void AGSEngine::runOnEvent(uint32 p1, uint32 p2) {
 	queueOrRunTextScript(_gameScript, "on_event", p1, p2);
 }
 
+void AGSEngine::queueSaveGame(uint slot, const Common::String &description) {
+	if (_runningScripts.empty())
+		saveGame(slot, description);
+	else
+		_runningScripts.back().queueAction(kPSASaveGame, slot, description);
+}
+
+void AGSEngine::queueRestoreGame(uint slot) {
+	if (_runningScripts.empty())
+		restoreGame(slot);
+	else
+		_runningScripts.back().queueAction(kPSARestoreGame, slot, "Restore");
+}
+
 // 'setevent' in original
 void AGSEngine::queueGameEvent(GameEventType type, uint data1, uint data2,
                                uint data3) {
@@ -2799,6 +2946,10 @@ bool AGSEngine::initGame(const AGSGameDescription *gameDesc) {
 	syncSoundSettings();
 
 	_engineStartTime = g_system->getMillis();
+
+	int16 saveSlot = ConfMan.instance().getInt("save_slot");
+	if (saveSlot >= 0 && saveSlot <= 999)
+		restoreGame(saveSlot);
 
 	return true;
 }
@@ -4026,9 +4177,7 @@ void AGSEngine::postScriptCleanup() {
 		case kPSAInvScreen:
 			// FIXME
 			break;
-		case kPSARestoreGame:
-			// FIXME
-			break;
+		case kPSARestoreGame: restoreGame(action.data); break;
 		case kPSARestoreGameDialog:
 			// FIXME
 			break;
@@ -4039,9 +4188,7 @@ void AGSEngine::postScriptCleanup() {
 		case kPSARestartGame:
 			// FIXME
 			break;
-		case kPSASaveGame:
-			// FIXME
-			break;
+		case kPSASaveGame: saveGame(action.data, action.name); break;
 		case kPSASaveGameDialog:
 			// FIXME
 			break;

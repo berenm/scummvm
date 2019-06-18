@@ -27,11 +27,17 @@
 
 #include "base/plugins.h"
 #include "common/debug.h"
+#include "common/savefile.h"
 #include "engines/advancedDetector.h"
+
+#include "graphics/thumbnail.h"
+#include "graphics/surface.h"
 
 #include "ags/ags.h"
 #include "ags/constants.h"
 #include "ags/resourceman.h"
+
+#include "image/png.h"
 
 static const PlainGameDescriptor AGSGames[] = {
     {"5days", "5 Days a Stranger"},     {"7days", "7 Days a Skeptic"},
@@ -59,10 +65,75 @@ public:
 	virtual bool createInstance(OSystem *syst, Engine **engine,
 	                            const ADGameDescription *desc) const;
 
+	virtual SaveStateList listSaves(const char *target) const;
+	virtual int getMaximumSaveSlot() const;
+	virtual void removeSaveState(const char *target, int slot) const;
+	virtual SaveStateDescriptor querySaveMetaInfos(const char *target,
+	                                               int slot) const;
+
 protected:
 	virtual ADDetectedGame fallbackDetect(const FileMap &allFiles,
 	                                      const Common::FSList &fslist) const;
 };
+
+SaveStateList AGSMetaEngine::listSaves(const char *target) const {
+	SaveStateList saveList;
+	Common::StringArray files = AGS::AGSEngine::listSavegames(target);
+	for (Common::StringArray::const_iterator file = files.begin();
+	     file != files.end(); ++file) {
+		char const *ext = strrchr(file->c_str(), '.') + 1;
+		assert(ext && strlen(ext) == 3);
+		int slot = atoi(ext);
+
+		AGS::AGSSavegameHeader header;
+		if (!AGS::AGSEngine::loadSavegameHeader(target, slot, header))
+			continue;
+
+		saveList.push_back(SaveStateDescriptor(slot, header._description));
+	}
+
+	Common::sort(saveList.begin(), saveList.end(),
+	             SaveStateDescriptorSlotComparator());
+	return saveList;
+}
+
+SaveStateDescriptor AGSMetaEngine::querySaveMetaInfos(const char *target,
+                                                      int slot) const {
+	Common::SaveFileManager *sfm = g_system->getSavefileManager();
+	Common::String fileName = AGS::AGSEngine::generateSaveName(target, slot);
+	Common::InSaveFile *saveFile = sfm->openForLoading(fileName);
+
+	SaveStateDescriptor desc;
+	if (!saveFile)
+		return desc;
+
+	AGS::AGSSavegameHeader header;
+	Common::Serializer s(saveFile, nullptr);
+
+	if (header.saveLoadWithSerializer(s)) {
+		desc.setSaveSlot(slot);
+		desc.setDescription(header._description);
+		desc.setSaveDate(header._year, header._month, header._day);
+		desc.setSaveTime(header._hour, header._minute);
+		desc.setPlayTime(header._playTimeMs);
+
+		Graphics::Surface *thumbnail;
+		Graphics::loadThumbnail(*saveFile, thumbnail);
+		desc.setThumbnail(thumbnail);
+	}
+
+	delete saveFile;
+	return desc;
+}
+
+int AGSMetaEngine::getMaximumSaveSlot() const {
+	return 999;
+}
+
+void AGSMetaEngine::removeSaveState(const char *target, int slot) const {
+	Common::SaveFileManager *sfm = g_system->getSavefileManager();
+	sfm->removeSavefile(AGS::AGSEngine::generateSaveName(target, slot));
+}
 
 static AGS::AGSGameDescription s_fallbackDesc = {};
 
@@ -170,11 +241,15 @@ AGSMetaEngine::fallbackDetect(const FileMap &allFiles,
 }
 
 bool AGSMetaEngine::hasFeature(MetaEngineFeature f) const {
-	return false;
+	return (f == kSupportsListSaves) || (f == kSupportsLoadingDuringStartup) ||
+	       (f == kSupportsDeleteSave) || (f == kSavesSupportMetaInfo) ||
+	       (f == kSavesSupportThumbnail) || (f == kSavesSupportCreationDate) ||
+	       (f == kSavesSupportPlayTime) || (f == kSimpleSavesNames);
 }
 
 bool AGS::AGSEngine::hasFeature(EngineFeature f) const {
-	return f == kSupportsRTL;
+	return (f == kSupportsRTL) || (f == kSupportsLoadingDuringRuntime) ||
+	       (f == kSupportsSavingDuringRuntime);
 }
 
 bool AGSMetaEngine::createInstance(OSystem *syst, Engine **engine,

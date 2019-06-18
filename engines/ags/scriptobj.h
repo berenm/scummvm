@@ -31,6 +31,7 @@
 #include "common/textconsole.h"
 #include "common/array.h"
 #include "common/str.h"
+#include "common/serializer.h"
 
 namespace AGS {
 

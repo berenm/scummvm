@@ -29,6 +29,7 @@
 #define AGS_GRAPHICS_H
 
 #include "common/rect.h"
+#include "common/serializer.h"
 #include "graphics/surface.h"
 
 namespace Common {

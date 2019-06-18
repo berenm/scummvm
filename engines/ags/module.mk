@@ -16,6 +16,7 @@ MODULE_OBJS := \
 	pathfinder.o \
 	resourceman.o \
 	room.o \
+	saveload.o \
 	script.o \
 	scripting/audio.o \
 	scripting/character.o \

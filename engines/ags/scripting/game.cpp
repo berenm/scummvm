@@ -170,13 +170,16 @@ RuntimeValue Script_Game_GetRunNextSettingForLoop(
 RuntimeValue
 Script_Game_GetSaveSlotDescription(AGSEngine *vm, ScriptObject *,
                                    const Common::Array<RuntimeValue> &params) {
-	int saveSlot = params[0]._signedValue;
-	UNUSED(saveSlot);
+	int slot = params[0]._signedValue;
+	warning("Game::GetSaveSlotDescription(%d)", slot);
 
-	// FIXME
-	error("Game::GetSaveSlotDescription unimplemented");
+	AGSSavegameHeader header;
+	if (!vm->loadSavegameHeader(slot, header))
+		return RuntimeValue();
 
-	return RuntimeValue();
+	RuntimeValue ret = new ScriptMutableString(header._description);
+	ret._object->DecRef();
+	return ret;
 }
 
 // Game: import static ViewFrame* GetViewFrame(int view, int loop, int frame)
@@ -754,13 +757,8 @@ RuntimeValue Script_RestartGame(AGSEngine *vm, ScriptObject *,
 RuntimeValue Script_SaveGameSlot(AGSEngine *vm, ScriptObject *,
                                  const Common::Array<RuntimeValue> &params) {
 	int slot = params[0]._signedValue;
-	UNUSED(slot);
 	ScriptString *description = (ScriptString *) params[1]._object;
-	UNUSED(description);
-
-	// FIXME
-	error("SaveGameSlot unimplemented");
-
+	vm->queueSaveGame(slot, description->getString());
 	return RuntimeValue();
 }
 
@@ -769,11 +767,7 @@ RuntimeValue Script_SaveGameSlot(AGSEngine *vm, ScriptObject *,
 RuntimeValue Script_RestoreGameSlot(AGSEngine *vm, ScriptObject *,
                                     const Common::Array<RuntimeValue> &params) {
 	int slot = params[0]._signedValue;
-	UNUSED(slot);
-
-	// FIXME
-	error("RestoreGameSlot unimplemented");
-
+	vm->queueRestoreGame(slot);
 	return RuntimeValue();
 }
 
