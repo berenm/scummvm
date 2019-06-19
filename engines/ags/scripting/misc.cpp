@@ -334,10 +334,7 @@ Script_System_set_Gamma(AGSEngine *vm, ScriptObject *,
 // Gets whether the game is running with 3D Hardware Acceleration.
 RuntimeValue Script_System_get_HardwareAcceleration(
     AGSEngine *vm, ScriptObject *, const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("System::get_HardwareAcceleration unimplemented");
-
-	return RuntimeValue();
+	return !vm->_system->getFeatureState(OSystem::kFeatureShader);
 }
 
 // System: readonly import static attribute bool NumLock
