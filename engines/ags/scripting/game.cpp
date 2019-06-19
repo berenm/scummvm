@@ -795,7 +795,7 @@ RuntimeValue Script_DeleteSaveSlot(AGSEngine *vm, ScriptObject *,
 RuntimeValue Script_SetRestartPoint(AGSEngine *vm, ScriptObject *,
                                     const Common::Array<RuntimeValue> &params) {
 	// FIXME
-	error("SetRestartPoint unimplemented");
+	warning("SetRestartPoint unimplemented");
 
 	return RuntimeValue();
 }
