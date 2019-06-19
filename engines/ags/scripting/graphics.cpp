@@ -34,7 +34,9 @@
 #include "engines/ags/overlay.h"
 #include "engines/ags/room.h"
 #include "engines/ags/sprites.h"
+
 #include "graphics/surface.h"
+#include "graphics/font.h"
 
 namespace AGS {
 
@@ -1186,14 +1188,10 @@ Script_RawRestoreScreenTinted(AGSEngine *vm, ScriptObject *,
 RuntimeValue Script_GetTextWidth(AGSEngine *vm, ScriptObject *,
                                  const Common::Array<RuntimeValue> &params) {
 	ScriptString *text = (ScriptString *) params[0]._object;
-	UNUSED(text);
-	uint32 fonttype = params[1]._value;
-	UNUSED(fonttype);
+	uint32 fontId = params[1]._value;
 
-	// FIXME
-	error("GetTextWidth unimplemented");
-
-	return RuntimeValue();
+	Graphics::Font *font = vm->_graphics->getFont(fontId);
+	return font->getBoundingBox(text->getString()).width();
 }
 
 // import int GetTextHeight(const string text, FontType, int width)
