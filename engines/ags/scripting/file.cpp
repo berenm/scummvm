@@ -367,10 +367,13 @@ RuntimeValue Script_File_ReadString(AGSEngine *vm, ScriptFile *self,
 RuntimeValue
 Script_File_ReadRawLineBack(AGSEngine *vm, ScriptFile *self,
                             const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("File::ReadRawLineBack unimplemented");
+	assert(self->_mode == 1);
 
-	return RuntimeValue();
+	ScriptString *str = new ScriptConstString(self->_inFile->readLine());
+
+	RuntimeValue ret = str;
+	ret._object->DecRef();
+	return ret;
 }
 
 // File: import String ReadStringBack()
