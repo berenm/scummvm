@@ -463,10 +463,7 @@ Script_System_set_VSync(AGSEngine *vm, ScriptObject *,
 RuntimeValue
 Script_System_get_Windowed(AGSEngine *vm, ScriptObject *,
                            const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("System::get_Windowed unimplemented");
-
-	return RuntimeValue();
+	return !vm->_system->getFeatureState(OSystem::kFeatureFullscreenMode);
 }
 
 static const ScriptSystemFunctionInfo ourFunctionList[] = {
