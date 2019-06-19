@@ -253,14 +253,12 @@ Script_GetWalkableAreaAt(AGSEngine *vm, ScriptObject *,
 RuntimeValue Script_GetScalingAt(AGSEngine *vm, ScriptObject *,
                                  const Common::Array<RuntimeValue> &params) {
 	int x = params[0]._signedValue;
-	UNUSED(x);
 	int y = params[1]._signedValue;
-	UNUSED(y);
 
 	// FIXME
-	error("GetScalingAt unimplemented");
+	warning("GetScalingAt(%d, %d) unimplemented", x, y);
 
-	return RuntimeValue();
+	return RuntimeValue(100);
 }
 
 // import int GetRoomProperty(const string property)
