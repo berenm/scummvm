@@ -455,10 +455,14 @@ Script_File_WriteString(AGSEngine *vm, ScriptFile *self,
 // Gets whether you have reached the end of the file.
 RuntimeValue Script_File_get_EOF(AGSEngine *vm, ScriptFile *self,
                                  const Common::Array<RuntimeValue> &params) {
-	// FIXME
-	error("File::get_EOF unimplemented");
+	assert(self->_mode <= 3);
 
-	return RuntimeValue();
+	if (self->_mode == 0)
+		return 1;
+	if (self->_mode == 1 && self->_inFile->eos())
+		return 1;
+
+	return 0;
 }
 
 // File: readonly import attribute bool Error
