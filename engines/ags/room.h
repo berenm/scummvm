@@ -201,7 +201,7 @@ struct MessageInfo {
 	byte _flags;
 };
 
-#define NOT_VECTOR_SCALED ((uint16) -10000)
+#define NOT_VECTOR_SCALED ((int16) -10000)
 struct RoomWalkArea {
 	RoomWalkArea() :
 	    _light(0), _top(0xffff), _bottom(0xffff), _zoom(0),

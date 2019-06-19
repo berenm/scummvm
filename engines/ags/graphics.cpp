@@ -510,6 +510,7 @@ void AGSGraphics::loadFonts() {
 			                 _vm->getGameOption(OPT_ANTIALIASFONTS);
 			antialias =
 			    false; // FIXME: AA causes color-key artifacts at present
+			warning("Unused antialias: %d", antialias);
 			Graphics::TTFSizeMode fontSizeMode =
 			    Graphics::kTTFSizeModeCharacter;
 			_fonts[i] = Graphics::loadTTFFont(*stream, fontSize, fontSizeMode);

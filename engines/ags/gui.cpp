@@ -287,7 +287,7 @@ void GUITextBox::onKeyPress(uint keycode) {
 
 	// enter
 	if (keycode == 13) {
-		_activated++;
+		_activated = true;
 		return;
 	}
 
@@ -518,6 +518,8 @@ void GUIListBox::draw(Graphics::Surface *surface) {
 	uint useHeight = _height - 1;
 	uint pixelSize = _vm->getFixedPixelSize(1);
 	uint rightHandEdge = (_x + _width) - pixelSize - 1;
+
+	warning("Unused useWidth:%u useHeight: %u", useWidth, useHeight);
 
 	recalculate();
 

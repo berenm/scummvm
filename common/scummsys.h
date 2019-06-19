@@ -122,6 +122,12 @@
 	#include <stddef.h>
 	#include <assert.h>
 	#include <ctype.h>
+
+	#ifdef NDEBUG
+		#undef assert
+		#define assert(x) ((void) sizeof(x))
+	#endif
+
 	// MSVC does not define M_PI, M_SQRT2 and other math defines by default.
 	// _USE_MATH_DEFINES must be defined in order to have these defined, thus
 	// we enable it here. For more information, check:

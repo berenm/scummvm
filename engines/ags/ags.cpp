@@ -1903,7 +1903,10 @@ void AGSEngine::processGameEvent(const GameEvent &event) {
 		if (_state->_fastForward)
 			return;
 
-		warning("processGameEvent: can't do kEventAfterFadeIn yet"); // FIXME
+		warning("processGameEvent: can't do kEventAfterFadeIn yet "
+		        "(ourTransition: %u)",
+		        ourTransition); // FIXME
+
 		// FIXME
 		break;
 	case kEventInterfaceClick:

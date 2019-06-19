@@ -1033,7 +1033,8 @@ bool Character::doNextMoveStep() {
 	_y = pos.y;
 
 	// FIXME
-	warning("Character::doNextMoveStep unimplemented");
+	warning("Character::doNextMoveStep unimplemented (xWas:%d yWas: %d)", xWas,
+	        yWas);
 
 	return false;
 }

@@ -217,6 +217,8 @@ bool PathFinder::findPath(bool onlyIfDestAllowed) {
 	// TODO: this is annotated "don't use new algo on arrow key presses", maybe
 	// be smarter for that use case..
 	// if (!isStraight && findRouteDijkstra())
+	warning("Unused isStraight:%d", isStraight);
+
 	if (findRouteDijkstra())
 		return true;
 

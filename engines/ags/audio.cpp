@@ -986,6 +986,7 @@ uint32 AudioChannel::getPosition() {
 		warning(
 		    "AudioChannnel::getPosition not implemented for clip file type %d",
 		    fileType);
+		// fallthrough
 	case kAudioFileMIDI: return 0; break;
 	}
 }

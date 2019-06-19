@@ -420,9 +420,7 @@ template<class Key, class Val, class HashFunc, class EqualFunc>
 void HashMap<Key, Val, HashFunc, EqualFunc>::expandStorage(size_type newCapacity) {
 	assert(newCapacity > _mask + 1);
 
-#ifndef NDEBUG
 	const size_type old_size = _size;
-#endif
 	const size_type old_mask = _mask;
 	Node **old_storage = _storage;
 

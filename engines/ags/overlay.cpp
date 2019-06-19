@@ -366,7 +366,8 @@ uint AGSEngine::displayMain(int x, int y, int width, const Common::String &text,
 			// TODO: sanity-check GUI value
 
 			// FIXME: draw background, set alpha channel
-			warning("displayMain as speech unimplemented");
+			warning("displayMain as speech unimplemented drawBackground:%d",
+			        drawBackground);
 
 			uint textColor;
 			uint align;
@@ -594,6 +595,8 @@ void AGSEngine::displaySpeech(Common::String text, uint charId, int x, int y,
 
 	_lipsyncTextOffset = 0;
 	_lipsyncText = text;
+
+	warning("Unused overlayType:%u", overlayType);
 
 	if (text[0] == '&') {
 		// auto-speech
@@ -882,6 +885,7 @@ Common::Point ScreenOverlay::getDrawPos() {
 		}
 
 		uint charPic = _vm->getViewFrame(chr->_view, chr->_loop, 0)->_pic;
+		warning("Unused charPic:%u", charPic);
 
 		pos.y = _vm->multiplyUpCoordinate(chr->getEffectiveY()) -
 		        _vm->_graphics->_viewportY - 5;

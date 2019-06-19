@@ -1680,7 +1680,7 @@ ccInstance::callImportedFunction(const ScriptSystemFunctionInfo *function,
 			// object OR null
 			if (params[pos]._type == rvtInteger && params[pos]._value == 0)
 				break;
-			// (fallthrough)
+			// fallthrough
 		case 'o':
 			// object
 			if (params[pos]._type != rvtSystemObject)
@@ -1695,7 +1695,7 @@ ccInstance::callImportedFunction(const ScriptSystemFunctionInfo *function,
 			// string OR null
 			if (params[pos]._type == rvtInteger && params[pos]._value == 0)
 				break;
-			// (fallthrough)
+			// fallthrough
 		case 's':
 			// string
 			if (params[pos]._type == rvtStackPointer ||

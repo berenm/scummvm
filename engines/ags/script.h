@@ -85,10 +85,13 @@ struct RuntimeValue;
 struct ScriptSystemFunctionInfo;
 
 struct RuntimeValue {
-	RuntimeValue() : _type(rvtInteger), _value(0) {}
-	RuntimeValue(uint32 intValue) : _type(rvtInteger), _value(intValue) {}
-	RuntimeValue(int intValue) : _type(rvtInteger), _signedValue(intValue) {}
-	RuntimeValue(float floatValue) : _type(rvtFloat), _floatValue(floatValue) {}
+	RuntimeValue() : _type(rvtInteger), _value(0), _object() {}
+	RuntimeValue(uint32 intValue) :
+	    _type(rvtInteger), _value(intValue), _object() {}
+	RuntimeValue(int intValue) :
+	    _type(rvtInteger), _signedValue(intValue), _object() {}
+	RuntimeValue(float floatValue) :
+	    _type(rvtFloat), _floatValue(floatValue), _object() {}
 
 	// support for object reference counting
 	RuntimeValue(ScriptObject *obj) :

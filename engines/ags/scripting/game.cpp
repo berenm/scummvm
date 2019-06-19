@@ -969,6 +969,8 @@ Script_GetGameParameter(AGSEngine *vm, ScriptObject *,
 	uint data2 = params[2]._value;
 	uint data3 = params[3]._value;
 
+	warning("Unused data2:%u data3:%u", data2, data3);
+
 	// TODO: add sanity checks?
 
 	switch (parameter) {
