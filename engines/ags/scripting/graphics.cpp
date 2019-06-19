@@ -1200,16 +1200,10 @@ RuntimeValue Script_GetTextWidth(AGSEngine *vm, ScriptObject *,
 RuntimeValue Script_GetTextHeight(AGSEngine *vm, ScriptObject *,
                                   const Common::Array<RuntimeValue> &params) {
 	ScriptString *text = (ScriptString *) params[0]._object;
-	UNUSED(text);
-	uint32 fonttype = params[1]._value;
-	UNUSED(fonttype);
-	int width = params[2]._signedValue;
-	UNUSED(width);
+	uint32 fontId = params[1]._value;
 
-	// FIXME
-	error("GetTextHeight unimplemented");
-
-	return RuntimeValue();
+	Graphics::Font *font = vm->_graphics->getFont(fontId);
+	return font->getBoundingBox(text->getString()).height();
 }
 
 // Overlay: import static Overlay* CreateGraphical(int x, int y, int slot, bool
