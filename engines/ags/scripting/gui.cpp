@@ -2149,12 +2149,7 @@ RuntimeValue
 Script_ListBox_geti_SaveGameSlots(AGSEngine *vm, GUIListBox *self,
                                   const Common::Array<RuntimeValue> &params) {
 	int index = params[0]._signedValue;
-	UNUSED(index);
-
-	// FIXME
-	error("ListBox::geti_SaveGameSlots unimplemented");
-
-	return RuntimeValue();
+	return self->_itemSaveGameIndexes[index];
 }
 
 // ListBox: import attribute int SelectedIndex
