@@ -1890,7 +1890,24 @@ RuntimeValue
 Script_ListBox_FillSaveGameList(AGSEngine *vm, GUIListBox *self,
                                 const Common::Array<RuntimeValue> &params) {
 	// FIXME
-	error("ListBox::FillSaveGameList unimplemented");
+	// error("ListBox::FillSaveGameList unimplemented");
+
+	self->clear();
+
+	Common::StringArray files = vm->listSavegames();
+	for (Common::StringArray::const_iterator file = files.begin();
+	     file != files.end(); ++file) {
+		char const *ext = strrchr(file->c_str(), '.') + 1;
+		assert(ext && strlen(ext) == 3);
+		int slot = atoi(ext);
+
+		AGSSavegameHeader header;
+		if (!vm->loadSavegameHeader(slot, header))
+			continue;
+
+		self->addItem(header._description);
+		self->_itemSaveGameIndexes.back() = slot;
+	}
 
 	return RuntimeValue();
 }
