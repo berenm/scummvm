@@ -114,7 +114,7 @@ struct RoomObjectState {
 };
 
 AGSEngine::AGSEngine(OSystem *syst, const AGSGameDescription *gameDesc) :
-    Engine(syst), _gameDescription(gameDesc), _engineStartTime(0), _playTime(0),
+    Engine(syst), _gameDesc(gameDesc), _engineStartTime(0), _playTime(0),
     _pauseGameCounter(0), _resourceMan(0), _needsUpdate(true),
     _guiNeedsUpdate(true), _backgroundNeedsUpdate(false),
     _poppedInterface((uint) -1), _clickWasOnGUI(0), _mouseOnGUI((uint) -1),
@@ -2671,15 +2671,14 @@ AGSEngine::getFile(const Common::String &filename) const {
 }
 
 Common::String AGSEngine::getMasterArchive() const {
-	const ADGameFileDescription *gameFiles = getGameFiles();
-	const char *gameFile = getDetectedGameFile();
+	char const *detectedGameFile = getDetectedGameFile();
+	char const *fallbackGameFile = getFallbackGameFile();
 
 	Common::String masterArchive;
-
-	if (gameFiles[0].fileName)
-		masterArchive = gameFiles[0].fileName;
-	else if (gameFile[0])
-		masterArchive = gameFile;
+	if (detectedGameFile)
+		masterArchive = detectedGameFile;
+	else if (fallbackGameFile[0])
+		masterArchive = fallbackGameFile;
 	else
 		masterArchive = "ac2game.dat";
 

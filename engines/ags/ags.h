@@ -208,13 +208,9 @@ public:
 	AGSEngine(OSystem *syst, const AGSGameDescription *gameDesc);
 	~AGSEngine();
 
-	void initGame(const AGSGameDescription *gd);
-
 	void pauseGame();
 	void unpauseGame();
 	bool isGamePaused() { return _pauseGameCounter > 0; }
-
-	bool isDemo() const;
 
 	uint32 getGameFileVersion() const;
 	uint32 getGUIVersion() const;
@@ -408,7 +404,12 @@ public:
 	                    uint data2 = (uint) -1000, uint data3 = 0);
 
 private:
-	const AGSGameDescription *_gameDescription;
+	const AGSGameDescription *_gameDesc;
+
+	char const *getFallbackGameFile() const { return _gameDesc->filename; }
+	char const *getDetectedGameFile() const {
+		return _gameDesc->desc.filesDescriptions[0].fileName;
+	}
 
 	Common::RandomSource *_rnd;
 
@@ -543,12 +544,6 @@ private:
 	                           Common::Array<RuntimeValue>());
 	bool prepareTextScript(ccInstance *instance, const Common::String &name);
 	void postScriptCleanup();
-
-	const ADGameFileDescription *getGameFiles() const;
-	const char *getDetectedGameFile() const;
-	const char *getGameId() const;
-	Common::Language getLanguage() const;
-	Common::Platform getPlatform() const;
 
 	// Engine APIs
 	Common::Error run();

@@ -42,31 +42,7 @@ struct AGSGameDescription {
 	const char *filename;
 };
 
-const char *AGSEngine::getGameId() const {
-	return _gameDescription->desc.gameId;
-}
-
-Common::Language AGSEngine::getLanguage() const {
-	return _gameDescription->desc.language;
-}
-
-Common::Platform AGSEngine::getPlatform() const {
-	return _gameDescription->desc.platform;
-}
-
-bool AGSEngine::isDemo() const {
-	return (_gameDescription->desc.flags & ADGF_DEMO) != 0;
-}
-
-const ADGameFileDescription *AGSEngine::getGameFiles() const {
-	return _gameDescription->desc.filesDescriptions;
-}
-
-const char *AGSEngine::getDetectedGameFile() const {
-	return _gameDescription->filename;
-}
-
-} // End of namespace AGS
+} // namespace AGS
 
 static const PlainGameDescriptor AGSGames[] = {
     {"5days", "5 Days a Stranger"},     {"7days", "7 Days a Skeptic"},
@@ -227,10 +203,3 @@ REGISTER_PLUGIN_DYNAMIC(AGS, PLUGIN_TYPE_ENGINE, AGSMetaEngine);
 #else
 REGISTER_PLUGIN_STATIC(AGS, PLUGIN_TYPE_ENGINE, AGSMetaEngine);
 #endif
-
-namespace AGS {
-
-void AGSEngine::initGame(const AGSGameDescription *gd) {
-}
-
-} // End of namespace AGS
