@@ -114,8 +114,8 @@ struct RoomObjectState {
 };
 
 AGSEngine::AGSEngine(OSystem *syst, const AGSGameDescription *gameDesc) :
-    Engine(syst), _gameDesc(gameDesc), _engineStartTime(0), _playTime(0),
-    _pauseGameCounter(0), _resourceMan(0), _needsUpdate(true),
+    Engine(syst), _gameDesc(gameDesc), _resourceMan(NULL), _engineStartTime(0),
+    _playTime(0), _pauseGameCounter(0), _needsUpdate(true),
     _guiNeedsUpdate(true), _backgroundNeedsUpdate(false),
     _poppedInterface((uint) -1), _clickWasOnGUI(0), _mouseOnGUI((uint) -1),
     _guiDisabledStyle(0), _guiDisabledState(false), _startingRoom(0xffffffff),
@@ -134,9 +134,9 @@ AGSEngine::AGSEngine(OSystem *syst, const AGSGameDescription *gameDesc) :
     _lipsyncLoopsPerCharacter((uint) -1), _lipsyncTextOffset((uint) -1),
     _saidText(false), _saidSpeechLine(false),
     _faceTalkingOverlayIndex((uint) -1) {
-
 	DebugMan.addDebugChannel(kDebugLevelGame, "Game", "AGS runtime debugging");
 
+	_resourceMan = new ResourceManager();
 	_rnd = new Common::RandomSource("ags");
 	_scriptState = new GlobalScriptState();
 	_state = new GameState(this);
@@ -244,9 +244,6 @@ void AGSEngine::unpauseGame() {
 }
 
 Common::Error AGSEngine::run() {
-	if (!init())
-		return Common::kUnknownError;
-
 	// TODO: check for recording/playback?
 	if (_displayedRoom == 0xffffffff)
 		startNewGame();
@@ -2686,9 +2683,10 @@ Common::String AGSEngine::getMasterArchive() const {
 	return masterArchive;
 }
 
-bool AGSEngine::init() {
+bool AGSEngine::initGame(const AGSGameDescription *gameDesc) {
+	assert(gameDesc == _gameDesc);
+
 	// Open the archive file
-	_resourceMan = new ResourceManager();
 	if (!_resourceMan->init(getMasterArchive()))
 		return false;
 

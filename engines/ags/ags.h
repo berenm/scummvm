@@ -31,6 +31,7 @@
 #include "common/rect.h"
 #include "common/system.h"
 
+#include "engines/advancedDetector.h"
 #include "engines/engine.h"
 #include "engines/game.h"
 
@@ -49,8 +50,6 @@ class String;
 
 namespace AGS {
 
-struct AGSGameDescription;
-
 class AGSGraphics;
 class GameFile;
 class ResourceManager;
@@ -59,6 +58,13 @@ class ScriptObject;
 class SpriteSet;
 class Character;
 class ccInstance;
+
+struct AGSGameDescription {
+	ADGameDescription desc;
+
+	const char *title;
+	const char *filename;
+};
 
 struct PendingScript {
 	Common::String name;
@@ -208,6 +214,7 @@ public:
 	AGSEngine(OSystem *syst, const AGSGameDescription *gameDesc);
 	~AGSEngine();
 
+	bool initGame(const AGSGameDescription *gameDesc);
 	void pauseGame();
 	void unpauseGame();
 	bool isGamePaused() { return _pauseGameCounter > 0; }
@@ -513,7 +520,6 @@ private:
 	bool _saidSpeechLine;
 	uint _faceTalkingOverlayIndex;
 
-	bool init();
 	void adjustSizesForResolution();
 
 	bool mainGameLoop();

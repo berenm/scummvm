@@ -33,17 +33,6 @@
 #include "ags/constants.h"
 #include "ags/resourceman.h"
 
-namespace AGS {
-
-struct AGSGameDescription {
-	ADGameDescription desc;
-
-	const char *title;
-	const char *filename;
-};
-
-} // namespace AGS
-
 static const PlainGameDescriptor AGSGames[] = {
     {"5days", "5 Days a Stranger"},     {"7days", "7 Days a Skeptic"},
     {"trilbysnotes", "Trilby's Notes"}, {"6days", "6 Days a Sacrifice"},
@@ -191,11 +180,11 @@ bool AGS::AGSEngine::hasFeature(EngineFeature f) const {
 bool AGSMetaEngine::createInstance(OSystem *syst, Engine **engine,
                                    const ADGameDescription *desc) const {
 	const AGS::AGSGameDescription *gd = (const AGS::AGSGameDescription *) desc;
-	if (gd) {
-		*engine = new AGS::AGSEngine(syst, gd);
-		((AGS::AGSEngine *) *engine)->initGame(gd);
-	}
-	return gd != 0;
+	if (!gd)
+		return false;
+
+	*engine = new AGS::AGSEngine(syst, gd);
+	return ((AGS::AGSEngine *) *engine)->initGame(gd);
 }
 
 #if PLUGIN_ENABLED_DYNAMIC(AGS)
