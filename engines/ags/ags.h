@@ -51,9 +51,11 @@ class String;
 
 namespace AGS {
 
+class ResourceManager;
+class AGSAudio;
 class AGSGraphics;
 class GameFile;
-class ResourceManager;
+class GameState;
 class Room;
 class ScriptObject;
 class SpriteSet;
@@ -381,11 +383,6 @@ public:
 	bool inEntersScreen() { return _inEntersScreenCounter > 0; }
 	void scheduleNewRoom(uint roomId);
 
-	GameFile *_gameFile;
-	class GameState *_state;
-	class AGSAudio *_audio;
-	AGSGraphics *_graphics;
-
 	void setAsPlayerChar(uint charId);
 	Character *getPlayerChar() { return _playerChar; }
 	Common::Array<Character *> _characters;
@@ -452,8 +449,21 @@ private:
 		return _gameDesc->desc.filesDescriptions[0].fileName;
 	}
 
-	Common::RandomSource *_rnd;
+private:
+	// engine state
+	const AGSGameDescription *_gameDesc;
+	ResourceManager *_resourceMan;
 
+public:
+	GameFile *_gameFile;
+	AGSAudio *_audio;
+	AGSGraphics *_graphics;
+
+	// runtime state
+	Common::RandomSource *_rnd;
+	GameState *_state;
+
+private:
 	uint32 _engineStartTime;
 	uint32 _playTime;
 	uint32 _loopCounter;
@@ -462,7 +472,6 @@ private:
 
 	uint _pauseGameCounter;
 
-	ResourceManager *_resourceMan;
 	SpriteSet *_sprites;
 
 	bool _needsUpdate, _guiNeedsUpdate;

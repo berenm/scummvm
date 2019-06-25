@@ -160,6 +160,7 @@ AGSEngine::AGSEngine(OSystem *syst, const AGSGameDescription *gameDesc) :
 	DebugMan.addDebugChannel(kDebugLevelGame, "Game", "AGS runtime debugging");
 
 	_resourceMan = new ResourceManager();
+
 	_rnd = new Common::RandomSource("ags");
 	_scriptState = new GlobalScriptState();
 	_state = new GameState(this);
