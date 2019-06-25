@@ -2814,11 +2814,11 @@ AGSEngine::getFile(const Common::String &filename) const {
 	return _resourceMan->getFile(filename);
 }
 
-Common::String AGSEngine::getMasterArchive() const {
+char const *AGSEngine::getMasterArchive() const {
 	char const *detectedGameFile = getDetectedGameFile();
 	char const *fallbackGameFile = getFallbackGameFile();
 
-	Common::String masterArchive;
+	char const *masterArchive;
 	if (detectedGameFile)
 		masterArchive = detectedGameFile;
 	else if (fallbackGameFile[0])
@@ -2826,7 +2826,7 @@ Common::String AGSEngine::getMasterArchive() const {
 	else
 		masterArchive = "ac2game.dat";
 
-	debug(3, "master archive is %s", masterArchive.c_str());
+	debug(3, "master archive is %s", masterArchive);
 	return masterArchive;
 }
 

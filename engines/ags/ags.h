@@ -256,7 +256,6 @@ public:
 	uint32 getGameFileVersion() const;
 	uint32 getGUIVersion() const;
 	uint32 getGameUniqueID() const;
-	Common::String getMasterArchive() const;
 
 	Common::SeekableReadStream *getFile(const Common::String &filename) const;
 	ResourceManager *getResourceManager() { return _resourceMan; }
@@ -444,9 +443,10 @@ public:
 	void queueGameEvent(GameEventType type, uint data1 = 0,
 	                    uint data2 = (uint) -1000, uint data3 = 0);
 
-private:
-	const AGSGameDescription *_gameDesc;
+public:
+	char const *getMasterArchive() const;
 
+private:
 	char const *getFallbackGameFile() const { return _gameDesc->filename; }
 	char const *getDetectedGameFile() const {
 		return _gameDesc->desc.filesDescriptions[0].fileName;
