@@ -37,10 +37,6 @@ namespace AGS {
 
 void addSystemScripting(AGSEngine *vm);
 
-RuntimeValue
-Script_UnimplementedStub(AGSEngine *vm, ScriptObject *self,
-                         const Common::Array<RuntimeValue> &params);
-
 class AudioChannel;
 class AudioClip;
 class DateTime;

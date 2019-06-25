@@ -30,12 +30,6 @@
 
 namespace AGS {
 
-RuntimeValue
-Script_UnimplementedStub(AGSEngine *vm, ScriptObject *self,
-                         const Common::Array<RuntimeValue> &params) {
-	error("call to unimplemented system scripting function");
-}
-
 void GlobalScriptState::addImport(const Common::String &name,
                                   const ScriptImport &import,
                                   bool forceReplace) {
