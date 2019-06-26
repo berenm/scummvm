@@ -299,13 +299,13 @@ bool GameFile::init() {
 		}
 	}
 
-	_gameScript = new ccScript();
+	_gameScript = new ScriptSource();
 	_gameScript->readFrom(dta);
 
 	_dialogScriptsScript = NULL;
 	if (_version > kAGSVer300) {
 		// 3.1.1+ dialog script
-		_dialogScriptsScript = new ccScript();
+		_dialogScriptsScript = new ScriptSource();
 		_dialogScriptsScript->readFrom(dta);
 	}
 
@@ -317,7 +317,7 @@ bool GameFile::init() {
 
 		_scriptModules.resize(scriptModuleCount);
 		for (uint i = 0; i < scriptModuleCount; ++i) {
-			_scriptModules[i] = new ccScript();
+			_scriptModules[i] = new ScriptSource();
 			_scriptModules[i]->readFrom(dta);
 		}
 	}

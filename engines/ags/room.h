@@ -317,7 +317,7 @@ public:
 	Common::Array<InteractionVariable> _localVars;
 
 	Common::String _script;
-	ccScript *_compiledScript;
+	ScriptSource *_compiledScript;
 	struct ScriptState *_savedScriptState;
 
 	uint16 _width, _height; // in 320x200 terms (scrolling room size)

@@ -181,7 +181,7 @@ struct RuntimeValue {
 };
 
 // the data for a script
-struct ccScript {
+struct ScriptSource {
 	void readFrom(Common::SeekableReadStream *dta);
 
 	Common::Array<byte> _globalData;
@@ -229,7 +229,7 @@ class ScriptInstance {
 	friend class ScriptDataString;
 
 public:
-	ScriptInstance(AGSEngine *vm, ccScript *script, bool autoImport = false,
+	ScriptInstance(AGSEngine *vm, ScriptSource *script, bool autoImport = false,
 	               ScriptInstance *fork = NULL, ScriptState *oldState = NULL);
 	~ScriptInstance();
 
@@ -250,7 +250,7 @@ protected:
 	                                  Common::Array<RuntimeValue> &params);
 
 	AGSEngine *_vm;
-	ccScript *_script;
+	ScriptSource *_script;
 	uint32 _flags;
 
 	Common::Array<byte> *_globalData;

@@ -771,7 +771,7 @@ void Room::readData(Common::SeekableReadStream *dta) {
 			if (_compiledScript)
 				error("Room: second compiled script encountered");
 
-			_compiledScript = new ccScript();
+			_compiledScript = new ScriptSource();
 			_compiledScript->readFrom(dta);
 			break;
 		case BLOCKTYPE_OBJECTNAMES:

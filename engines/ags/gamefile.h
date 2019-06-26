@@ -118,7 +118,7 @@ struct WordsDictionary {
 	Common::Array<DictionaryWord> _words;
 };
 
-struct ccScript;
+struct ScriptSource;
 
 class ViewFrame : public ScriptObject {
 public:
@@ -260,9 +260,9 @@ public:
 
 	WordsDictionary _dict;
 
-	ccScript *_gameScript;
-	ccScript *_dialogScriptsScript;
-	Common::Array<ccScript *> _scriptModules;
+	ScriptSource *_gameScript;
+	ScriptSource *_dialogScriptsScript;
+	Common::Array<ScriptSource *> _scriptModules;
 
 	Common::Array<ViewStruct> _views;
 

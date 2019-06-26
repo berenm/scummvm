@@ -46,15 +46,15 @@ namespace AGS {
 #define CC_STACK_SIZE 4000
 #define MAX_CALL_STACK 100
 
-void ccScript::readFrom(Common::SeekableReadStream *dta) {
+void ScriptSource::readFrom(Common::SeekableReadStream *dta) {
 	_instances = 0;
 
 	uint32 magic = dta->readUint32BE();
 	if (magic != MKTAG('S', 'C', 'O', 'M'))
-		error("ccScript had invalid magic %x", magic);
+		error("ScriptSource had invalid magic %x", magic);
 	uint32 version = dta->readUint32LE();
 	if (version > SCOM_VERSION)
-		error("ccScript had invalid version %d", version);
+		error("ScriptSource had invalid version %d", version);
 
 	uint32 globalDataSize = dta->readUint32LE();
 	uint32 codeSize = dta->readUint32LE();
@@ -183,8 +183,9 @@ void ccScript::readFrom(Common::SeekableReadStream *dta) {
 		error("incorrect end signature %x for script", endsig);
 }
 
-ScriptInstance::ScriptInstance(AGSEngine *vm, ccScript *script, bool autoImport,
-                               ScriptInstance *fork, ScriptState *oldState) :
+ScriptInstance::ScriptInstance(AGSEngine *vm, ScriptSource *script,
+                               bool autoImport, ScriptInstance *fork,
+                               ScriptState *oldState) :
     _vm(vm),
     _script(script) {
 
@@ -500,7 +501,7 @@ static const char *regnames[] = {"null", "sp", "mar", "ax",
 
 void ScriptInstance::runCodeFrom(uint32 start) {
 	ScriptInstance *inst = _runningInst;
-	ccScript *script = inst->_script;
+	ScriptSource *script = inst->_script;
 
 	_returnValue = -1;
 
@@ -647,7 +648,7 @@ void ScriptInstance::runCodeFrom(uint32 start) {
 		ScriptObject *tempObj;
 		ScriptString *tempStr1, *tempStr2;
 		uint32 *fixup;
-		ccScript *instScript;
+		ScriptSource *instScript;
 		Common::Array<RuntimeValue> params;
 
 		switch (instruction) {
@@ -1611,7 +1612,7 @@ ScriptString *ScriptInstance::createStringFrom(RuntimeValue &value,
 	if (value._type == rvtStackPointer)
 		return new ScriptStackString(this, value._value);
 	else if (value._type == rvtScriptData) {
-		ccScript *script = value._instance->_script;
+		ScriptSource *script = value._instance->_script;
 		uint32 *fixup = Common::find(script->_globalFixups.begin(),
 		                             script->_globalFixups.end(), value._value);
 		if (fixup != script->_globalFixups.end())
@@ -1808,7 +1809,7 @@ ScriptObject *ScriptInstance::getObjectFrom(const RuntimeValue &value) {
 
 	switch (value._type) {
 	case rvtScriptData:
-		ccScript *instScript;
+		ScriptSource *instScript;
 		uint32 *fixup;
 		instScript = value._instance->_script;
 		if (value._instance->_globalObjects->contains(value._value))
@@ -1864,7 +1865,7 @@ ScriptObject *ScriptInstance::getObjectFrom(const RuntimeValue &value) {
 
 void ScriptInstance::writePointer(const RuntimeValue &value,
                                   ScriptObject *object) {
-	ccScript *instScript;
+	ScriptSource *instScript;
 	uint32 *fixup;
 	switch (value._type) {
 	case rvtScriptData:
