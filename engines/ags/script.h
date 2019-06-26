@@ -80,7 +80,7 @@ enum RuntimeValueType {
 };
 
 class AGSEngine;
-class ccInstance;
+class ScriptInstance;
 struct RuntimeValue;
 struct ScriptSystemFunctionInfo;
 
@@ -129,7 +129,7 @@ struct RuntimeValue {
 		float _floatValue;
 	};
 	union {
-		ccInstance *_instance;
+		ScriptInstance *_instance;
 		ScriptObject *_object;
 		const ScriptSystemFunctionInfo *_function;
 	};
@@ -207,7 +207,7 @@ struct ScriptImport {
 	};
 
 	// script instance (script)
-	ccInstance *_owner;
+	ScriptInstance *_owner;
 	// code/data offset (script)
 	uint32 _offset;
 };
@@ -215,7 +215,7 @@ struct ScriptImport {
 struct CallStackEntry {
 	uint32 _lineNumber;
 	uint32 _address;
-	class ccInstance *_instance;
+	class ScriptInstance *_instance;
 };
 
 struct ScriptState {
@@ -224,14 +224,14 @@ struct ScriptState {
 };
 
 // a running instance of a script
-class ccInstance {
+class ScriptInstance {
 	friend class ScriptStackString;
 	friend class ScriptDataString;
 
 public:
-	ccInstance(AGSEngine *vm, ccScript *script, bool autoImport = false,
-	           ccInstance *fork = NULL, ScriptState *oldState = NULL);
-	~ccInstance();
+	ScriptInstance(AGSEngine *vm, ccScript *script, bool autoImport = false,
+	               ScriptInstance *fork = NULL, ScriptState *oldState = NULL);
+	~ScriptInstance();
 
 	bool isRunning() { return (_pc != 0); }
 	bool exportsSymbol(const Common::String &name);
@@ -264,7 +264,7 @@ protected:
 	Common::Array<RuntimeValue> _stack;
 	Common::Array<ScriptImport> _resolvedImports;
 	// might point to another instance if in far call
-	ccInstance *_runningInst;
+	ScriptInstance *_runningInst;
 
 	void pushValue(const RuntimeValue &value);
 	RuntimeValue popValue();

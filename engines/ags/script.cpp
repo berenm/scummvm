@@ -183,8 +183,8 @@ void ccScript::readFrom(Common::SeekableReadStream *dta) {
 		error("incorrect end signature %x for script", endsig);
 }
 
-ccInstance::ccInstance(AGSEngine *vm, ccScript *script, bool autoImport,
-                       ccInstance *fork, ScriptState *oldState) :
+ScriptInstance::ScriptInstance(AGSEngine *vm, ccScript *script, bool autoImport,
+                               ScriptInstance *fork, ScriptState *oldState) :
     _vm(vm),
     _script(script) {
 
@@ -249,7 +249,7 @@ ccInstance::ccInstance(AGSEngine *vm, ccScript *script, bool autoImport,
 		_stack[i].invalidate();
 }
 
-ccInstance::~ccInstance() {
+ScriptInstance::~ScriptInstance() {
 	_script->_instances--;
 	if (_script->_instances == 0) {
 		// FIXME: must make sure that nothing is referencing these!
@@ -284,7 +284,7 @@ ccInstance::~ccInstance() {
 	}
 }
 
-bool ccInstance::exportsSymbol(const Common::String &name) {
+bool ScriptInstance::exportsSymbol(const Common::String &name) {
 	Common::String mangledName = name + '$';
 
 	for (uint i = 0; i < _script->_exports.size(); ++i) {
@@ -299,8 +299,8 @@ bool ccInstance::exportsSymbol(const Common::String &name) {
 	return false;
 }
 
-void ccInstance::call(const Common::String &name,
-                      const Common::Array<RuntimeValue> &params) {
+void ScriptInstance::call(const Common::String &name,
+                          const Common::Array<RuntimeValue> &params) {
 	if (params.size() >= 20)
 		error("too many arguments %d to function '%s'", params.size(),
 		      name.c_str());
@@ -382,7 +382,7 @@ void ccInstance::call(const Common::String &name,
 	// FIXME: abort/free cleanup
 }
 
-ScriptState *ccInstance::saveState() {
+ScriptState *ScriptInstance::saveState() {
 	ScriptState *state = new ScriptState;
 
 	state->_globalData = *_globalData;
@@ -392,7 +392,7 @@ ScriptState *ccInstance::saveState() {
 	return state;
 }
 
-uint32 ccInstance::getReturnValue() {
+uint32 ScriptInstance::getReturnValue() {
 	if (_returnValue._type != rvtInteger)
 		error("getReturnValue(): last return value was of type %d, not integer",
 		      _returnValue._type);
@@ -498,8 +498,8 @@ static const char *regnames[] = {"null", "sp", "mar", "ax",
 #define MAX_FUNC_PARAMS 20 // maximum size of externalStack
 #define MAXNEST 50         // number of recursive function calls allowed
 
-void ccInstance::runCodeFrom(uint32 start) {
-	ccInstance *inst = _runningInst;
+void ScriptInstance::runCodeFrom(uint32 start) {
+	ScriptInstance *inst = _runningInst;
 	ccScript *script = inst->_script;
 
 	_returnValue = -1;
@@ -1274,7 +1274,7 @@ void ccInstance::runCodeFrom(uint32 start) {
 				// TODO: store call stack (line number etc)
 
 				// save current state
-				ccInstance *wasRunning = _runningInst;
+				ScriptInstance *wasRunning = _runningInst;
 				uint32 oldpc = _pc;
 
 				// push the parameters on the stack
@@ -1535,7 +1535,7 @@ const uint kOldScriptStringLength = 200;
 
 class ScriptStackString : public ScriptString {
 public:
-	ScriptStackString(ccInstance *instance, uint32 offset) :
+	ScriptStackString(ScriptInstance *instance, uint32 offset) :
 	    _instance(instance), _offset(offset) {}
 
 	const Common::String getString() {
@@ -1567,13 +1567,13 @@ public:
 	}
 
 protected:
-	ccInstance *_instance;
+	ScriptInstance *_instance;
 	uint32 _offset;
 };
 
 class ScriptDataString : public ScriptString {
 public:
-	ScriptDataString(ccInstance *instance, uint32 offset) :
+	ScriptDataString(ScriptInstance *instance, uint32 offset) :
 	    _instance(instance), _offset(offset) {}
 
 	const Common::String getString() {
@@ -1602,12 +1602,12 @@ public:
 	}
 
 protected:
-	ccInstance *_instance;
+	ScriptInstance *_instance;
 	uint32 _offset;
 };
 
-ScriptString *ccInstance::createStringFrom(RuntimeValue &value,
-                                           bool allowFailure) {
+ScriptString *ScriptInstance::createStringFrom(RuntimeValue &value,
+                                               bool allowFailure) {
 	if (value._type == rvtStackPointer)
 		return new ScriptStackString(this, value._value);
 	else if (value._type == rvtScriptData) {
@@ -1645,9 +1645,9 @@ ScriptString *ccInstance::createStringFrom(RuntimeValue &value,
 }
 
 RuntimeValue
-ccInstance::callImportedFunction(const ScriptSystemFunctionInfo *function,
-                                 ScriptObject *object,
-                                 Common::Array<RuntimeValue> &params) {
+ScriptInstance::callImportedFunction(const ScriptSystemFunctionInfo *function,
+                                     ScriptObject *object,
+                                     Common::Array<RuntimeValue> &params) {
 
 	// check the signature
 	uint pos = 0;
@@ -1761,7 +1761,7 @@ ccInstance::callImportedFunction(const ScriptSystemFunctionInfo *function,
 	return function->function(_vm, object, params);
 }
 
-void ccInstance::pushValue(const RuntimeValue &value) {
+void ScriptInstance::pushValue(const RuntimeValue &value) {
 	// TODO: shouldn't be assert?
 	assert(_registers[SREG_SP]._type == rvtStackPointer);
 
@@ -1777,7 +1777,7 @@ void ccInstance::pushValue(const RuntimeValue &value) {
 	_registers[SREG_SP]._value += 4;
 }
 
-RuntimeValue ccInstance::popValue() {
+RuntimeValue ScriptInstance::popValue() {
 	// TODO: shouldn't be assert?
 	assert(_registers[SREG_SP]._type == rvtStackPointer &&
 	       _registers[SREG_SP]._value >= 4);
@@ -1793,7 +1793,7 @@ RuntimeValue ccInstance::popValue() {
 	return _stack[stackValue];
 }
 
-uint32 ccInstance::popIntValue() {
+uint32 ScriptInstance::popIntValue() {
 	RuntimeValue val = popValue();
 
 	if (val._type != rvtInteger)
@@ -1803,7 +1803,7 @@ uint32 ccInstance::popIntValue() {
 	return val._value;
 }
 
-ScriptObject *ccInstance::getObjectFrom(const RuntimeValue &value) {
+ScriptObject *ScriptInstance::getObjectFrom(const RuntimeValue &value) {
 	RuntimeValue result;
 
 	switch (value._type) {
@@ -1862,7 +1862,8 @@ ScriptObject *ccInstance::getObjectFrom(const RuntimeValue &value) {
 	return obj;
 }
 
-void ccInstance::writePointer(const RuntimeValue &value, ScriptObject *object) {
+void ScriptInstance::writePointer(const RuntimeValue &value,
+                                  ScriptObject *object) {
 	ccScript *instScript;
 	uint32 *fixup;
 	switch (value._type) {

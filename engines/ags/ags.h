@@ -60,7 +60,7 @@ class Room;
 class ScriptObject;
 class SpriteSet;
 class Character;
-class ccInstance;
+class ScriptInstance;
 
 struct AGSGameDescription {
 	ADGameDescription desc;
@@ -110,7 +110,7 @@ struct PostScriptAction {
 
 class ExecutingScript {
 public:
-	ExecutingScript(ccInstance *instance);
+	ExecutingScript(ScriptInstance *instance);
 
 	void queueAction(PostScriptActionType type, uint data,
 	                 const Common::String &name);
@@ -122,7 +122,7 @@ public:
 	Common::Array<PostScriptAction> _pendingActions;
 
 protected:
-	ccInstance *_instance;
+	ScriptInstance *_instance;
 };
 
 enum NewRoomState {
@@ -493,15 +493,16 @@ private:
 
 	int _leavesScreenRoomId;
 
-	void queueOrRunTextScript(ccInstance *instance, const Common::String &name,
-	                          uint32 p1);
-	void queueOrRunTextScript(ccInstance *instance, const Common::String &name,
-	                          uint32 p1, uint32 p2);
-	void queueOrRunTextScript(ccInstance *instance, const Common::String &name,
+	void queueOrRunTextScript(ScriptInstance *instance,
+	                          const Common::String &name, uint32 p1);
+	void queueOrRunTextScript(ScriptInstance *instance,
+	                          const Common::String &name, uint32 p1, uint32 p2);
+	void queueOrRunTextScript(ScriptInstance *instance,
+	                          const Common::String &name,
 	                          const Common::Array<RuntimeValue> &params =
 	                              Common::Array<RuntimeValue>());
 
-	void runTextScript(ccInstance *instance, const Common::String &name,
+	void runTextScript(ScriptInstance *instance, const Common::String &name,
 	                   const Common::Array<RuntimeValue> &params =
 	                       Common::Array<RuntimeValue>());
 
@@ -535,11 +536,11 @@ private:
 	Common::Array<ExecutingScript> _runningScripts;
 
 	// script instances
-	ccInstance *_gameScript, *_gameScriptFork;
-	Common::Array<ccInstance *> _scriptModules;
-	Common::Array<ccInstance *> _scriptModuleForks;
-	ccInstance *_dialogScriptsScript;
-	ccInstance *_roomScript, *_roomScriptFork;
+	ScriptInstance *_gameScript, *_gameScriptFork;
+	Common::Array<ScriptInstance *> _scriptModules;
+	Common::Array<ScriptInstance *> _scriptModuleForks;
+	ScriptInstance *_dialogScriptsScript;
+	ScriptInstance *_roomScript, *_roomScriptFork;
 
 	class GlobalScriptState *_scriptState;
 	struct RoomObjectState *_roomObjectState;
@@ -588,10 +589,11 @@ private:
 	                    uint optionId);
 	int runDialogRequest(uint request);
 
-	bool runScriptFunction(ccInstance *instance, const Common::String &name,
+	bool runScriptFunction(ScriptInstance *instance, const Common::String &name,
 	                       const Common::Array<RuntimeValue> &params =
 	                           Common::Array<RuntimeValue>());
-	bool prepareTextScript(ccInstance *instance, const Common::String &name);
+	bool prepareTextScript(ScriptInstance *instance,
+	                       const Common::String &name);
 	void postScriptCleanup();
 
 	// Engine APIs

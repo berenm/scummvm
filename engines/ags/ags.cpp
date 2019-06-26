@@ -1229,24 +1229,24 @@ void AGSEngine::createGlobalScript() {
 		debug(3, "creating instance for script module %d", i);
 		// create an instance for the script module
 		_scriptModules.push_back(
-		    new ccInstance(this, _gameFile->_scriptModules[i], true));
+		    new ScriptInstance(this, _gameFile->_scriptModules[i], true));
 		// fork an instance for repeatedly_execute_always to run in
-		_scriptModuleForks.push_back(new ccInstance(
+		_scriptModuleForks.push_back(new ScriptInstance(
 		    this, _gameFile->_scriptModules[i], true, _scriptModules[i]));
 	}
 
 	debug(3, "creating instance for game script");
 	// create an instance for the game script
-	_gameScript = new ccInstance(this, _gameFile->_gameScript, true);
+	_gameScript = new ScriptInstance(this, _gameFile->_gameScript, true);
 	// fork an instance for repeatedly_execute_always to run in
 	_gameScriptFork =
-	    new ccInstance(this, _gameFile->_gameScript, true, _gameScript);
+	    new ScriptInstance(this, _gameFile->_gameScript, true, _gameScript);
 
 	if (_gameFile->_dialogScriptsScript) {
 		debug(3, "creating instance for dialog scripts");
 		// create an instance for the 3.1.1+ dialog scripts if present
 		_dialogScriptsScript =
-		    new ccInstance(this, _gameFile->_dialogScriptsScript, true);
+		    new ScriptInstance(this, _gameFile->_dialogScriptsScript, true);
 	}
 }
 
@@ -1364,10 +1364,10 @@ void AGSEngine::loadNewRoom(uint32 id, Character *forChar) {
 	}
 
 	// compile_room_script
-	_roomScript = new ccInstance(this, _currentRoom->_compiledScript, false,
-	                             NULL, _currentRoom->_savedScriptState);
-	_roomScriptFork =
-	    new ccInstance(this, _currentRoom->_compiledScript, false, _roomScript);
+	_roomScript = new ScriptInstance(this, _currentRoom->_compiledScript, false,
+	                                 NULL, _currentRoom->_savedScriptState);
+	_roomScriptFork = new ScriptInstance(this, _currentRoom->_compiledScript,
+	                                     false, _roomScript);
 	_currentRoom->_savedScriptState = NULL;
 	// FIXME: optimization stuff
 
@@ -3511,14 +3511,14 @@ void AGSEngine::checkViewFrame(uint view, uint loop, uint frame) {
 	_audio->playAudioClipByIndex(viewFrame->_sound);
 }
 
-void AGSEngine::queueOrRunTextScript(ccInstance *instance,
+void AGSEngine::queueOrRunTextScript(ScriptInstance *instance,
                                      const Common::String &name, uint32 p1) {
 	Common::Array<RuntimeValue> params;
 	params.push_back(p1);
 	queueOrRunTextScript(instance, name, params);
 }
 
-void AGSEngine::queueOrRunTextScript(ccInstance *instance,
+void AGSEngine::queueOrRunTextScript(ScriptInstance *instance,
                                      const Common::String &name, uint32 p1,
                                      uint32 p2) {
 	Common::Array<RuntimeValue> params;
@@ -3528,7 +3528,7 @@ void AGSEngine::queueOrRunTextScript(ccInstance *instance,
 }
 
 void AGSEngine::queueOrRunTextScript(
-    ccInstance *instance, const Common::String &name,
+    ScriptInstance *instance, const Common::String &name,
     const Common::Array<RuntimeValue> &params) {
 	assert(instance == _gameScript || instance == _roomScript);
 
@@ -3539,7 +3539,8 @@ void AGSEngine::queueOrRunTextScript(
 		runTextScript(instance, name, params);
 }
 
-void AGSEngine::runTextScript(ccInstance *instance, const Common::String &name,
+void AGSEngine::runTextScript(ScriptInstance *instance,
+                              const Common::String &name,
                               const Common::Array<RuntimeValue> &params) {
 	// first, check for special cases
 	switch (params.size()) {
@@ -4110,7 +4111,7 @@ AGSEngine::getStringProperty(const Common::String &name,
 	return property->_defaultValue;
 }
 
-bool AGSEngine::runScriptFunction(ccInstance *instance,
+bool AGSEngine::runScriptFunction(ScriptInstance *instance,
                                   const Common::String &name,
                                   const Common::Array<RuntimeValue> &params) {
 	if (!prepareTextScript(instance, name))
@@ -4133,7 +4134,7 @@ bool AGSEngine::runScriptFunction(ccInstance *instance,
 	return true;
 }
 
-bool AGSEngine::prepareTextScript(ccInstance *instance,
+bool AGSEngine::prepareTextScript(ScriptInstance *instance,
                                   const Common::String &name) {
 	if (!instance->exportsSymbol(name))
 		return false;
@@ -4213,7 +4214,8 @@ void AGSEngine::postScriptCleanup() {
 	}
 }
 
-ExecutingScript::ExecutingScript(ccInstance *instance) : _instance(instance) {
+ExecutingScript::ExecutingScript(ScriptInstance *instance) :
+    _instance(instance) {
 }
 
 void ExecutingScript::queueAction(PostScriptActionType type, uint data,
